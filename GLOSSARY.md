@@ -128,7 +128,7 @@ _Avoid_: recalc, rebuild
 ## Example dialogue
 
 > **Dev:** When Sam and Priya beat Dave and Alex at doubles, whose Rating changes?
-> **Domain expert:** All four. Each Side's Rating is the average of its Participants, and every Participant on a Side moves by the same amount. But only once the Match is Confirmed. While it's Pending, nothing moves.
+> **Domain expert:** All four. Each Side's Rating is the average of its Participants, and every Participant on a Side moves by the same amount, unless one of them is Provisional: they move faster than their teammate. But only once the Match is Confirmed. While it's Pending, nothing moves.
 > **Dev:** And if Alex is a Guest, who confirms?
 > **Domain expert:** Dave can, since he's on the opposing Side. If nobody does, it's Confirmed when the Confirmation window runs out.
 > **Dev:** Say Dave disputes it a week later and an Admin voids it. Do we just undo those four Rating changes?
