@@ -1,0 +1,3 @@
+# All writes go through database functions, never direct table writes
+
+The client never inserts or updates tables directly. Every write (recording a Match, confirming, approving a Join request, Claiming a Guest) is a Postgres function called through Supabase RPC. These operations touch several rows and must happen atomically, and rules such as equal Sides, membership and Role checks must hold even when someone calls the API by hand. Row-level security still protects reads, but it cannot express these multi-row rules. Functions that run with elevated privileges check the caller's identity and Role themselves.
