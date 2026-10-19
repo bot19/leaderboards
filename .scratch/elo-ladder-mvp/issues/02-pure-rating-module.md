@@ -4,7 +4,7 @@
 
 **Blocked by:** 01 Walking skeleton
 
-**Status:** claimed
+**Status:** resolved
 
 - [ ] A Side's Rating is the mean of its Participants' Ratings; the expected score uses standard Elo on the two Side Ratings
 - [ ] Win, Draw and loss score 1, 0.5 and 0 (Draws are supported in the maths even though release 1 refuses them on recording)
