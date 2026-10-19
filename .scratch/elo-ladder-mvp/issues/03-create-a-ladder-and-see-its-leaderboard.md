@@ -4,7 +4,7 @@
 
 **Blocked by:** 01 Walking skeleton
 
-**Status:** claimed
+**Status:** resolved
 
 - [ ] Games table seeded with pool only (no Draws, largest Side 2)
 - [ ] Ladders table (name, Game, Share link token, join policy defaulting to "open", creation time) and Ladder members table (Ladder, nullable User, Role Admin or Player, status, Rating, rated-Match count, last-Match time); at most one Ladder member per User per Ladder
