@@ -8,6 +8,7 @@ type MatchClient = SupabaseClient<Database>
 export type MatchResult = 'side_a_won' | 'side_b_won' | 'draw'
 export type MatchStatus = 'pending' | 'confirmed' | 'voided'
 export type MatchSide = 'a' | 'b'
+export type MatchVoidKind = 'rejected' | 'admin'
 
 export type MatchParticipantRead = {
   ladderMemberId: string
@@ -26,6 +27,9 @@ export type MatchRead = {
   recordedBy: string
   recordedAt: string
   confirmedAt: string | null
+  voidedBy: string | null
+  voidedAt: string | null
+  voidKind: MatchVoidKind | null
   participants: MatchParticipantRead[]
 }
 
@@ -71,6 +75,9 @@ function toMatch(row: {
   recorded_by: string
   recorded_at: string
   confirmed_at: string | null
+  voided_by: string | null
+  voided_at: string | null
+  void_kind: MatchVoidKind | null
   participants: ParticipantRow[] | null
 }): MatchRead {
   const participants = (row.participants ?? []).map((participant) => {
@@ -95,6 +102,9 @@ function toMatch(row: {
     recordedBy: row.recorded_by,
     recordedAt: row.recorded_at,
     confirmedAt: row.confirmed_at,
+    voidedBy: row.voided_by,
+    voidedAt: row.voided_at,
+    voidKind: row.void_kind,
     participants: participants.sort((a, b) => {
       if (a.side !== b.side) return a.side.localeCompare(b.side)
       return a.displayName.localeCompare(b.displayName)
@@ -132,6 +142,22 @@ export async function confirmMatch(
   if (error) throw new Error(error.message)
 }
 
+export async function rejectMatch(
+  matchId: string,
+  client: MatchClient = getSupabase(),
+) {
+  const { error } = await client.rpc('reject_match', { p_match_id: matchId })
+  if (error) throw new Error(error.message)
+}
+
+export async function voidMatch(
+  matchId: string,
+  client: MatchClient = getSupabase(),
+) {
+  const { error } = await client.rpc('void_match', { p_match_id: matchId })
+  if (error) throw new Error(error.message)
+}
+
 export async function listMatches(
   ladderId: string,
   client: MatchClient = getSupabase(),
@@ -140,6 +166,7 @@ export async function listMatches(
     .from('matches')
     .select(
       `id, status, result, notes, recorded_by, recorded_at, confirmed_at,
+       voided_by, voided_at, void_kind,
        participants(side, rating_before, rating_change, ladder_members(id, user_id, profiles(display_name)))`,
     )
     .eq('ladder_id', ladderId)

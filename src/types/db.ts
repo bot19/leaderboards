@@ -310,6 +310,14 @@ export type Database = {
         Args: { p_match_id: string }
         Returns: undefined
       }
+      reject_match: {
+        Args: { p_match_id: string }
+        Returns: undefined
+      }
+      void_match: {
+        Args: { p_match_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       join_policy: 'open'

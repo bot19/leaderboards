@@ -1,5 +1,8 @@
-import { useQuery } from '@tanstack/react-query'
-import { listMatches, type MatchRead } from '@/data/match'
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { toast } from 'sonner'
+import { listLadderMembers } from '@/data/ladder'
+import { listMatches, voidMatch, type MatchRead } from '@/data/match'
+import { useAuth } from '@/features/auth/authContext'
 import {
   formatRatingChange,
   matchResultLabel,
@@ -12,9 +15,35 @@ type Props = {
 }
 
 export function MatchHistory({ ladderId }: Props) {
+  const { profile } = useAuth()
+  const queryClient = useQueryClient()
   const matches = useQuery({
     queryKey: ['matches', ladderId],
     queryFn: () => listMatches(ladderId),
+  })
+  const members = useQuery({
+    queryKey: ['ladder-members', ladderId],
+    queryFn: () => listLadderMembers(ladderId),
+  })
+
+  const mine = members.data?.find((member) => member.userId === profile?.id)
+  const canVoid =
+    Boolean(profile?.isSuperAdmin) ||
+    (mine?.status === 'active' && mine.role === 'admin')
+
+  const voiding = useMutation({
+    mutationFn: (matchId: string) => voidMatch(matchId),
+    onSuccess: async () => {
+      toast.success('Match voided')
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['matches', ladderId] }),
+        queryClient.invalidateQueries({ queryKey: ['matches-waiting', ladderId] }),
+        queryClient.invalidateQueries({ queryKey: ['leaderboard', ladderId] }),
+        queryClient.invalidateQueries({ queryKey: ['roster', ladderId] }),
+        queryClient.invalidateQueries({ queryKey: ['ladder-members', ladderId] }),
+      ])
+    },
+    onError: (error: Error) => toast.error(error.message),
   })
 
   return (
@@ -33,13 +62,27 @@ export function MatchHistory({ ladderId }: Props) {
                 <p className="font-medium text-ink">
                   {sideNames(match, 'a')} vs {sideNames(match, 'b')}
                 </p>
-                <p className="text-sm text-neutral-600">{matchStatusLabel(match.status)}</p>
+                <p className="text-sm text-neutral-600">
+                  {matchStatusLabel(match.status, match.voidKind)}
+                </p>
               </div>
               <p className="text-sm text-neutral-700">
                 {matchResultLabel(match.result)}
                 {match.notes ? ` · ${match.notes}` : ''}
               </p>
               <RatingChanges match={match} />
+              {canVoid && match.status !== 'voided' ? (
+                <div className="pt-1">
+                  <button
+                    type="button"
+                    disabled={voiding.isPending && voiding.variables === match.id}
+                    className="rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-sm font-medium text-ink disabled:opacity-60"
+                    onClick={() => voiding.mutate(match.id)}
+                  >
+                    Void
+                  </button>
+                </div>
+              ) : null}
             </li>
           ))}
         </ol>

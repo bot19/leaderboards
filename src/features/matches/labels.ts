@@ -1,4 +1,4 @@
-import type { MatchRead, MatchResult, MatchSide, MatchStatus } from '@/data/match'
+import type { MatchRead, MatchResult, MatchSide, MatchStatus, MatchVoidKind } from '@/data/match'
 
 export function formatRating(rating: number): string {
   return Number(rating.toFixed(1)).toString()
@@ -23,11 +23,17 @@ const statusLabel: Record<MatchStatus, string> = {
   voided: 'Voided',
 }
 
+const voidKindLabel: Record<MatchVoidKind, string> = {
+  rejected: 'Rejected',
+  admin: 'Voided by Admin',
+}
+
 export function matchResultLabel(result: MatchResult): string {
   return resultLabel[result]
 }
 
-export function matchStatusLabel(status: MatchStatus): string {
+export function matchStatusLabel(status: MatchStatus, voidKind: MatchVoidKind | null = null): string {
+  if (status === 'voided' && voidKind) return voidKindLabel[voidKind]
   return statusLabel[status]
 }
 
