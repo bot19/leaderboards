@@ -6,6 +6,7 @@
       "Write(supabase/migrations/**)",
       "Write(.scratch/**)",
       "Write(docs/**)",
+      "Write(.worktrees/**)",
       "Shell(pnpm)",
       "Shell(git)",
       "Shell(cd)",
