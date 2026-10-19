@@ -4,7 +4,7 @@
 
 **Blocked by:** 05 Record and confirm a Match (1v1 and 2v2)
 
-**Status:** ready-for-agent
+**Status:** claimed
 
 - [ ] Reject function: only a Participant on the opposing Side, only while Pending; the Match becomes Voided and no Ratings change
 - [ ] Void function: uses the shared Admin-or-super-admin check; refuses an already-Voided Match; records who voided it and when
