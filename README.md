@@ -38,7 +38,7 @@ cp .env.example .env    # then paste PUBLISHABLE_KEY from `pnpm exec supabase st
 3. **Worktree.** Run `git worktree add .worktrees/<NN-slug> -b ticket/<NN-slug> elo-ladder-mvp`. Then, inside it, run `pnpm install` and create `.env` from `.env.example` using `PUBLISHABLE_KEY` from `pnpm exec supabase status -o env`.
 4. **Schema.** From the worktree, run `pnpm exec supabase db reset`. Run it again whenever you add or change a migration.
 5. **Build** test-first. The ticket is done when every acceptance box is ticked and `pnpm typecheck`, `pnpm lint` and `pnpm test` are green in the worktree.
-6. **Resolve.** In this checkout, merge `ticket/<NN-slug>` into `elo-ladder-mvp`. Then tick the boxes, set `**Status:** resolved` and commit (`Resolve the <ticket> ticket.`).
+6. **Resolve.** Stop every dev server or watcher you started in the worktree. Then, in this checkout, merge `ticket/<NN-slug>` into `elo-ladder-mvp`. Then tick the boxes, set `**Status:** resolved` and commit (`Resolve the <ticket> ticket.`).
 
 If `pnpm test` says *Local Supabase is not ready*, the stack is down. Stop and ask the human to start it.
 
