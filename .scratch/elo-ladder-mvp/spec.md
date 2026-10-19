@@ -100,12 +100,41 @@ An app where friends set up a Ladder for a Game, invite each other with a Share 
 66. As a Ladder member, I want recording, confirming, voiding and Claiming to happen all at once or not at all, so that a failure halfway never leaves Ratings or history inconsistent.
 67. As a Ladder member, I want a Replay to reproduce exactly the Ratings we'd have if the Voided Match had never existed, so that I can trust the numbers.
 
+### Accounts and navigation
+
+68. As a person, I want to sign up and sign in with a passcode sent to my email, so that I don't need a password.
+69. As a person signing in, I want a mistyped email to fail instead of creating a new account, so that I don't end up with two accounts.
+70. As a new User, I want to set my display name before using the app, so that my friends recognise me on Leaderboards.
+71. As a User, I want the screen I'm on (Ladder, tab, filters, open panel) reflected in the URL, so that reloading or sharing a link brings me back to the same view.
+72. As a User who opens a Share link while signed out, I want to return to that Ladder's preview after signing in, so that joining doesn't lose my place.
+
 ## Implementation Decisions
 
-- **Platform.** Supabase: Postgres, Supabase Auth for Users, row-level security for reads, and RPC for all writes. The client app's framework isn't fixed by this spec.
+- **Platform.** Supabase: Postgres, Supabase Auth for Users, row-level security for reads, and RPC for all writes. The local stack runs through the Supabase CLI, installed as a dev dependency.
+- **Client stack.** A Vite + React + TypeScript single-page app with no server framework, since every rule lives in the database. It follows the stack of the food-friends repo:
+  - TanStack Router (file-based routes) and TanStack Query
+  - zod, and react-hook-form for forms
+  - sonner for toasts
+  - Tailwind v4 and Tabler icons
+  - Vitest for tests
+  - pnpm as the package manager
+- **UI kit.** Base the look on the bao-ui repo. bao-ui isn't published as a package yet, so copy in only what this app needs: the CSS tokens and the general-purpose components (icon button, info box, combobox, avatar, skeleton, sheet header, brand lockup). Each copied file notes its bao-ui source. Switch to the published package once it exists. Don't copy bao-ui's map, review or place components.
+- **Sign-in (food-friends pattern).** An emailed passcode: `signInWithOtp` sends a code and the User types it into the app (`verifyOtp`). Login sets `shouldCreateUser: false`, so a mistyped email can't create a second account. Also follow food-friends for:
+  - a callback route that accepts a magic link, as a fallback
+  - an auth provider that exposes the session and profile
+  - a single function that decides where a signed-in User is sent (sign-in, onboarding or the app)
+  - a password login for local development only, behind a flag
+
+  Unlike food-friends, the profile (display name) is created through a database function, not a direct table insert, to keep to ADR-0003. A User with a session but no profile is sent to onboarding.
+- **View state in the URL.** As in food-friends, any view state worth sharing or reloading lives in the URL:
+  - the current Ladder and the Share link preview are route paths
+  - tabs (Leaderboard, Matches, Ladder members, Join requests), filters and open panels (such as recording a Match) are zod-validated search params
+
+  Form drafts aren't put in the URL.
 - **All writes through database functions (ADR-0003).** The client never writes tables directly. Every change in this spec is a Postgres function called through RPC. Functions that run with elevated privileges check the caller's identity, Ladder membership and Role themselves, and each function runs in a single transaction.
 - **Ladder member as the unit of rating (ADR-0001).** Rating, Role, status (active / Left / Removed), rated-Match count and last-Match time live on the Ladder member. Participants reference a Ladder member, not a User. A Guest is a Ladder member with no User. A Claim sets the User on that Ladder member and changes nothing else. A User has at most one Ladder member per Ladder.
 - **Schema (described in prose).**
+  - **Profiles:** one per User, keyed by the auth User's id, holding the display name. Email stays in auth and isn't copied.
   - **Games:** seeded reference data, each with a name, whether Draws are allowed, and the largest Side allowed.
   - **Ladders:** name, Game, Share link token and creation time.
   - **Ladder members:** Ladder, optional User, display name for Guests, Role, status, Rating, rated-Match count and last-Match time.
@@ -113,6 +142,7 @@ An app where friends set up a Ladder for a Game, invite each other with a Share 
   - **Matches:** Ladder, status (Pending / Confirmed / Disputed / Voided), Result (Side A won / Side B won / Draw), notes, recorded-by, recorded-at, confirmed-at, and who disputed or voided it and when.
   - **Participants:** Match, Ladder member, Side, Rating before the Match, and Rating change. The last two are empty until the Match is Confirmed.
 - **Public write functions (the RPC surface).**
+  - Profiles: create the caller's profile, update their display name.
   - Ladders: create a Ladder, delete a Ladder, transfer ownership.
   - Membership: view the Ladder preview by Share link token, make a Join request (optionally naming a Guest to Claim), approve or reject a Join request, leave, rejoin after leaving, remove a Ladder member, set Role.
   - Guests: add a Guest.
@@ -166,14 +196,14 @@ An app where friends set up a Ladder for a Game, invite each other with a Share 
   - Read isolation between Ladders.
 
   Time-dependent behaviour (Confirmation window, Inactive) is driven by calling the internal confirm-expired function with a chosen time, using the service role. Backdated timestamps can also be set up through a service-role fixture. Assertions still go through the public surface.
-- **Seam 2: the pure rating module.** Called directly with chosen inputs. No tables or fixtures are involved. It covers:
+- **Seam 2: the pure rating module.** Called directly with chosen inputs from Vitest, against the same local Postgres as Seam 1. It's a pure-input unit test that touches no tables or fixtures, and it needs no separate SQL test framework. It covers:
   - Expected score for equal and unequal Sides.
   - Wins, losses and Draws.
   - Side averaging in team Matches.
   - The Provisional K-factor and the threshold boundary.
   - Changes balancing between the Sides when K-factors match.
   - A few hand-checked Elo examples.
-- **Prior art.** None yet. This is a new repo, and these tests set the pattern for later work.
+- **Prior art.** None in this repo yet. These tests set the pattern for later work. The food-friends repo uses Vitest with Testing Library and MSW for component tests. Follow it if UI tests are added, but the UI isn't a required test seam in this spec.
 
 ## Out of Scope
 
@@ -193,4 +223,5 @@ An app where friends set up a Ladder for a Game, invite each other with a Share 
 - **Mixed Provisional status in team Matches (decided, ADR-0006).** Each Participant uses their own K-factor, so a Provisional Participant moves faster than an established teammate. This settles a newcomer's Rating quickly without inflating their partner's swings. The cost is that a Match with a Provisional Participant doesn't balance exactly (winners gain more than losers lose), which also happens in standard Elo and lasts only for the first 5 rated Matches. A single K-factor per Side was rejected because it slows the newcomer and penalises established players for partnering them.
 - **Default constants** (starting Rating, K-factors, thresholds, Confirmation window) are agreed starting values. Tune them once real data is in.
 - **Disputing a Confirmed Match** has no time limit in this spec. That's accepted for now; add one if late disputes get abused.
+- **Custom SMTP (for example Resend) is a deployment prerequisite.** Supabase's built-in email only delivers to the project's own team members, so friends wouldn't get passcodes without it. Local development uses the local stack's mail catcher and the password login.
 - **The Elo module lives in SQL,** not in client or Edge Function code. Moving it out would mean rating writes no longer happen in the same transaction as confirmation, which contradicts ADR-0003.
