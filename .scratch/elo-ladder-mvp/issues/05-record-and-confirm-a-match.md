@@ -4,7 +4,7 @@
 
 **Blocked by:** 02 Pure rating module, 04 Join a Ladder from its Share link
 
-**Status:** ready-for-agent
+**Status:** claimed
 
 - [ ] Matches table (status Pending / Confirmed / Voided, Result, notes, recorded-by, recorded-at, confirmed-at, and void fields for 07 to use) and Participants table (Match, Ladder member, Side, Rating before, Rating change)
 - [ ] Record function refuses: unequal Sides, empty Sides, a Side larger than the Game allows, a Draw in a Game without Draws, anyone not an active Ladder member of this Ladder, a Ladder member listed twice, and a recorder who isn't a Participant
