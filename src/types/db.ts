@@ -273,6 +273,29 @@ export type Database = {
         Args: { p_share_token: string }
         Returns: string
       }
+      leave_ladder: {
+        Args: { p_ladder_id: string }
+        Returns: undefined
+      }
+      remove_ladder_member: {
+        Args: { p_ladder_member_id: string }
+        Returns: undefined
+      }
+      reinstate_ladder_member: {
+        Args: { p_ladder_member_id: string }
+        Returns: undefined
+      }
+      set_ladder_member_role: {
+        Args: {
+          p_ladder_member_id: string
+          p_role: Database['public']['Enums']['ladder_role']
+        }
+        Returns: undefined
+      }
+      delete_ladder: {
+        Args: { p_ladder_id: string }
+        Returns: undefined
+      }
       record_match: {
         Args: {
           p_ladder_id: string

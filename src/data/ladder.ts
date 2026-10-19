@@ -24,6 +24,8 @@ export type LeaderboardEntry = {
 }
 
 export type LadderMemberRead = {
+  id: string
+  userId: string | null
   displayName: string
   role: 'admin' | 'player'
   status: 'active' | 'left' | 'removed'
@@ -117,6 +119,54 @@ export async function joinLadder(
   if (error) throw new Error(error.message)
   if (data !== 'joined') throw new Error('Could not join this Ladder')
   return { outcome: 'joined' }
+}
+
+export async function leaveLadder(
+  ladderId: string,
+  client: LadderClient = getSupabase(),
+) {
+  const { error } = await client.rpc('leave_ladder', { p_ladder_id: ladderId })
+  if (error) throw new Error(error.message)
+}
+
+export async function removeLadderMember(
+  ladderMemberId: string,
+  client: LadderClient = getSupabase(),
+) {
+  const { error } = await client.rpc('remove_ladder_member', {
+    p_ladder_member_id: ladderMemberId,
+  })
+  if (error) throw new Error(error.message)
+}
+
+export async function reinstateLadderMember(
+  ladderMemberId: string,
+  client: LadderClient = getSupabase(),
+) {
+  const { error } = await client.rpc('reinstate_ladder_member', {
+    p_ladder_member_id: ladderMemberId,
+  })
+  if (error) throw new Error(error.message)
+}
+
+export async function setLadderMemberRole(
+  ladderMemberId: string,
+  role: 'admin' | 'player',
+  client: LadderClient = getSupabase(),
+) {
+  const { error } = await client.rpc('set_ladder_member_role', {
+    p_ladder_member_id: ladderMemberId,
+    p_role: role,
+  })
+  if (error) throw new Error(error.message)
+}
+
+export async function deleteLadder(
+  ladderId: string,
+  client: LadderClient = getSupabase(),
+) {
+  const { error } = await client.rpc('delete_ladder', { p_ladder_id: ladderId })
+  if (error) throw new Error(error.message)
 }
 
 export async function fetchLadderIdByShareToken(
@@ -229,7 +279,9 @@ export async function listLadderMembers(
 ): Promise<LadderMemberRead[]> {
   const { data, error } = await client
     .from('ladder_members')
-    .select('role, status, rating, rated_match_count, last_match_at, profiles(display_name)')
+    .select(
+      'id, user_id, role, status, rating, rated_match_count, last_match_at, profiles(display_name)',
+    )
     .eq('ladder_id', ladderId)
 
   if (error) throw new Error(error.message)
@@ -238,6 +290,8 @@ export async function listLadderMembers(
     const displayName = embeddedDisplayName(row.profiles)
     if (!displayName) throw new Error('Ladder member is missing a display name')
     return {
+      id: row.id,
+      userId: row.user_id,
       displayName,
       role: row.role,
       status: row.status,

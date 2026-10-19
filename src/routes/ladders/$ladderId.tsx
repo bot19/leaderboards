@@ -4,6 +4,7 @@ import { IconCopy } from '@tabler/icons-react'
 import { toast } from 'sonner'
 import { fetchLadder, fetchShareToken, listLeaderboard } from '@/data/ladder'
 import { useAuth } from '@/features/auth/authContext'
+import { MembersPanel } from '@/features/ladders/MembersPanel'
 import { ladderSearchSchema, ladderTabs, type LadderTab } from '@/features/ladders/search'
 import { formatRating } from '@/features/matches/labels'
 import { MatchHistory } from '@/features/matches/MatchHistory'
@@ -158,6 +159,7 @@ function LadderPage() {
             </section>
           ) : null}
           {tab === 'matches' ? <MatchHistory ladderId={ladderId} /> : null}
+          {tab === 'members' ? <MembersPanel ladderId={ladderId} /> : null}
         </>
       ) : null}
       {ladder.data && record === 'open' ? (

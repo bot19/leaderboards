@@ -45,6 +45,8 @@ describe('creating a Ladder', () => {
     ])
     expect(await listLadderMembers(ladder.id, client)).toEqual([
       {
+        id: expect.any(String),
+        userId: user.id,
         displayName: 'Sam',
         role: 'admin',
         status: 'active',
@@ -89,6 +91,8 @@ describe('creating a Ladder', () => {
     })
     expect(await listLadderMembers(ladder.id, superClient)).toEqual([
       {
+        id: expect.any(String),
+        userId: admin.id,
         displayName: 'Sam',
         role: 'admin',
         status: 'active',

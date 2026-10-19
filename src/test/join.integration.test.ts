@@ -77,6 +77,8 @@ describe('joining a Ladder from its Share link', () => {
       ),
     ).toEqual([
       {
+        id: expect.any(String),
+        userId: joiner.id,
         displayName: 'Priya',
         role: 'player',
         status: 'active',
@@ -85,6 +87,8 @@ describe('joining a Ladder from its Share link', () => {
         lastMatchAt: null,
       },
       {
+        id: expect.any(String),
+        userId: admin.id,
         displayName: 'Sam',
         role: 'admin',
         status: 'active',
@@ -118,6 +122,8 @@ describe('joining a Ladder from its Share link', () => {
         (member) => member.displayName === 'Gone',
       ),
     ).toEqual({
+      id: expect.any(String),
+      userId: left.id,
       displayName: 'Gone',
       role: 'player',
       status: 'active',
@@ -146,6 +152,8 @@ describe('joining a Ladder from its Share link', () => {
         (member) => member.displayName === 'Banned',
       ),
     ).toEqual({
+      id: expect.any(String),
+      userId: removed.id,
       displayName: 'Banned',
       role: 'player',
       status: 'removed',
@@ -180,6 +188,8 @@ describe('joining a Ladder from its Share link', () => {
       ),
     ).toEqual([
       {
+        id: expect.any(String),
+        userId: joiner.id,
         displayName: 'Priya',
         role: 'player',
         status: 'active',
@@ -188,6 +198,8 @@ describe('joining a Ladder from its Share link', () => {
         lastMatchAt: null,
       },
       {
+        id: expect.any(String),
+        userId: admin.id,
         displayName: 'Sam',
         role: 'admin',
         status: 'active',
