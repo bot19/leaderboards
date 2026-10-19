@@ -109,3 +109,23 @@ export async function setSuperAdmin(userId: string, isSuperAdmin: boolean) {
     .eq('id', userId)
   if (error) throw new Error(error.message)
 }
+
+/**
+ * Fixtures a Player on a Ladder. Join is not available yet, so this writes
+ * the membership with the service role, the same way the super-admin flag is set.
+ */
+export async function addLadderPlayer(
+  ladderId: string,
+  userId: string,
+  options?: { rating?: number; status?: 'active' | 'left' | 'removed' },
+) {
+  const { error } = await serviceRole().from('ladder_members').insert({
+    ladder_id: ladderId,
+    user_id: userId,
+    role: 'player',
+    status: options?.status ?? 'active',
+    rating: options?.rating ?? 1000,
+    rated_match_count: 0,
+  })
+  if (error) throw new Error(error.message)
+}
