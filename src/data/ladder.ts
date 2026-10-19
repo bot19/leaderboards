@@ -108,6 +108,20 @@ export async function joinLadder(
   return { outcome: 'joined' }
 }
 
+export async function fetchLadderIdByShareToken(
+  shareToken: string,
+  client: LadderClient = getSupabase(),
+): Promise<string | null> {
+  const { data, error } = await client
+    .from('ladders')
+    .select('id')
+    .eq('share_token', shareToken)
+    .maybeSingle()
+
+  if (error) throw new Error(error.message)
+  return data?.id ?? null
+}
+
 export async function createLadder(
   name: string,
   client: LadderClient = getSupabase(),

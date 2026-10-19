@@ -13,17 +13,24 @@ import {
   type PasscodeValues,
 } from '@/features/auth/schemas'
 import { resolveAuthDestination } from '@/lib/authDestination'
+import { redirectSearchSchema } from '@/features/auth/redirectSearch'
 
 export const Route = createFileRoute('/signup')({
-  beforeLoad: ({ context }) => {
+  validateSearch: redirectSearchSchema,
+  beforeLoad: ({ context, search }) => {
     if (context.auth.isLoading) return
     if (!context.auth.session) return
-    throw redirect({
-      to: resolveAuthDestination({
+    const destination = resolveAuthDestination(
+      {
         session: context.auth.session,
         profile: context.auth.profile,
-      }),
-    })
+      },
+      search.redirect,
+    )
+    if (destination === '/onboarding') {
+      throw redirect({ to: '/onboarding', search })
+    }
+    throw redirect({ href: destination })
   },
   component: SignupPage,
 })
@@ -33,6 +40,7 @@ function SignupPage() {
   const verifyOtp = useVerifyEmailOtp()
   const [email, setEmail] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const { redirect: returnTo } = Route.useSearch()
   const emailForm = useForm<PasscodeRequestValues>({
     resolver: zodResolver(passcodeRequestSchema),
     defaultValues: { email: '' },
@@ -119,7 +127,11 @@ function SignupPage() {
         )}
         <p className="text-center text-sm text-neutral-600">
           Already have an account?{' '}
-          <Link to="/login" className="font-medium text-ink underline">
+          <Link
+            to="/login"
+            search={{ redirect: returnTo }}
+            className="font-medium text-ink underline"
+          >
             Sign in
           </Link>
         </p>

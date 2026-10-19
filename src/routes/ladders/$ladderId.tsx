@@ -1,6 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
-import { fetchLadder, listLeaderboard } from '@/data/ladder'
+import { IconCopy } from '@tabler/icons-react'
+import { toast } from 'sonner'
+import { fetchLadder, fetchShareToken, listLeaderboard } from '@/data/ladder'
 import { useAuth } from '@/features/auth/authContext'
 import { ladderSearchSchema, ladderTabs, type LadderTab } from '@/features/ladders/search'
 import { resolveAuthDestination } from '@/lib/authDestination'
@@ -19,7 +21,7 @@ export const Route = createFileRoute('/ladders/$ladderId')({
       session: context.auth.session,
       profile: context.auth.profile,
     })
-    if (destination !== '/') {
+    if (destination === '/login' || destination === '/onboarding') {
       throw redirect({ to: destination })
     }
   },
@@ -40,6 +42,14 @@ function LadderPage() {
     queryFn: () => listLeaderboard(ladderId),
     enabled: Boolean(ladder.data),
   })
+  const shareToken = useQuery({
+    queryKey: ['share-token', ladderId],
+    queryFn: () => fetchShareToken(ladderId),
+    enabled: Boolean(ladder.data),
+  })
+  const shareLink = shareToken.data
+    ? `${window.location.origin}/join/${shareToken.data}`
+    : null
 
   if (!profile) return null
 
@@ -54,6 +64,29 @@ function LadderPage() {
           <>
             <h1 className="font-display text-3xl text-ink">{ladder.data.name}</h1>
             <p className="text-sm text-neutral-600">{ladder.data.gameName}</p>
+            {shareLink ? (
+              <div className="flex items-center gap-2">
+                <input
+                  readOnly
+                  aria-label="Share link"
+                  value={shareLink}
+                  className="block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm text-ink"
+                />
+                <button
+                  type="button"
+                  className="inline-flex shrink-0 items-center gap-1 rounded-md bg-ink px-3 py-2 text-sm font-medium text-white"
+                  onClick={() => {
+                    void navigator.clipboard.writeText(shareLink).then(
+                      () => toast.success('Share link copied'),
+                      () => toast.error('Could not copy the Share link'),
+                    )
+                  }}
+                >
+                  <IconCopy size={16} aria-hidden />
+                  Copy Share link
+                </button>
+              </div>
+            ) : null}
           </>
         ) : null}
         {ladder.isSuccess && !ladder.data ? (

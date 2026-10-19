@@ -1,7 +1,7 @@
 import { IconLoader2 } from '@tabler/icons-react'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { RouterProvider, createRouter } from '@tanstack/react-router'
-import { StrictMode } from 'react'
+import { StrictMode, useEffect } from 'react'
 import { createRoot } from 'react-dom/client'
 import { AuthProvider } from '@/features/auth/AuthProvider'
 import { useAuth } from '@/features/auth/authContext'
@@ -33,18 +33,12 @@ declare module '@tanstack/react-router' {
 function InnerApp() {
   const auth = useAuth()
 
-  if (auth.isLoading) {
-    return (
-      <div className="grid min-h-dvh place-items-center bg-neutral-100">
-        <p className="inline-flex items-center gap-2 text-neutral-600">
-          <IconLoader2 size={18} className="animate-spin" aria-hidden />
-          Loading…
-        </p>
-      </div>
-    )
-  }
+  useEffect(() => {
+    if (auth.isLoading) return
+    void router.invalidate()
+  }, [auth.isLoading, auth.session, auth.profile])
 
-  if (auth.session && !auth.profile && auth.profileError) {
+  if (auth.session && !auth.profile && auth.profileError && !auth.isLoading) {
     return (
       <main className="grid min-h-dvh place-items-center bg-neutral-100 px-4 text-center">
         <div className="space-y-3">
@@ -63,7 +57,19 @@ function InnerApp() {
     )
   }
 
-  return <RouterProvider router={router} context={{ auth, queryClient }} />
+  return (
+    <>
+      <RouterProvider router={router} context={{ auth, queryClient }} />
+      {auth.isLoading && !auth.session ? (
+        <div className="fixed inset-0 grid place-items-center bg-neutral-100">
+          <p className="inline-flex items-center gap-2 text-neutral-600">
+            <IconLoader2 size={18} className="animate-spin" aria-hidden />
+            Loading…
+          </p>
+        </div>
+      ) : null}
+    </>
+  )
 }
 
 const rootElement = document.getElementById('root')

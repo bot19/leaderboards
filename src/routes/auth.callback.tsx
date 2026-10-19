@@ -15,7 +15,9 @@ function AuthCallbackPage() {
   useEffect(() => {
     if (isLoading) return
     const destination = resolveAuthDestination({ session, profile })
-    void navigate({ to: destination, replace: true })
+    if (destination === '/login' || destination === '/onboarding' || destination === '/') {
+      void navigate({ to: destination, replace: true })
+    }
   }, [isLoading, session, profile, navigate])
 
   return (

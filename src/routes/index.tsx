@@ -19,7 +19,7 @@ export const Route = createFileRoute('/')({
       session: context.auth.session,
       profile: context.auth.profile,
     })
-    if (destination !== '/') {
+    if (destination === '/login' || destination === '/onboarding') {
       throw redirect({ to: destination })
     }
   },

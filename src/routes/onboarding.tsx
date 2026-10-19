@@ -5,18 +5,25 @@ import { toast } from 'sonner'
 import { createProfile } from '@/data/profile'
 import { useAuth } from '@/features/auth/authContext'
 import { displayNameSchema, type DisplayNameValues } from '@/features/auth/schemas'
-import { resolveAuthDestination } from '@/lib/authDestination'
+import { resolveAuthDestination, safeReturnPath } from '@/lib/authDestination'
+import { redirectSearchSchema } from '@/features/auth/redirectSearch'
 
 export const Route = createFileRoute('/onboarding')({
-  beforeLoad: ({ context }) => {
+  validateSearch: redirectSearchSchema,
+  beforeLoad: ({ context, search }) => {
     if (context.auth.isLoading) return
-    const destination = resolveAuthDestination({
-      session: context.auth.session,
-      profile: context.auth.profile,
-    })
-    if (destination !== '/onboarding') {
-      throw redirect({ to: destination })
+    const destination = resolveAuthDestination(
+      {
+        session: context.auth.session,
+        profile: context.auth.profile,
+      },
+      search.redirect,
+    )
+    if (destination === '/onboarding') return
+    if (destination === '/login') {
+      throw redirect({ to: '/login', search })
     }
+    throw redirect({ href: destination })
   },
   component: OnboardingPage,
 })
@@ -24,6 +31,7 @@ export const Route = createFileRoute('/onboarding')({
 function OnboardingPage() {
   const { refreshProfile } = useAuth()
   const navigate = useNavigate()
+  const { redirect: returnTo } = Route.useSearch()
   const form = useForm<DisplayNameValues>({
     resolver: zodResolver(displayNameSchema),
     defaultValues: { displayName: '' },
@@ -37,7 +45,7 @@ function OnboardingPage() {
           try {
             await createProfile(values.displayName)
             await refreshProfile()
-            await navigate({ to: '/' })
+            await navigate({ href: safeReturnPath(returnTo) ?? '/' })
           } catch (caught) {
             const message = caught instanceof Error ? caught.message : 'Could not save your display name.'
             form.setError('displayName', { message })

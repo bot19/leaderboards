@@ -20,17 +20,24 @@ import {
 } from '@/features/auth/schemas'
 import { resolveAuthDestination } from '@/lib/authDestination'
 import { TEMP_PASSWORD_AUTH } from '@/lib/tempPasswordAuth'
+import { redirectSearchSchema } from '@/features/auth/redirectSearch'
 
 export const Route = createFileRoute('/login')({
-  beforeLoad: ({ context }) => {
+  validateSearch: redirectSearchSchema,
+  beforeLoad: ({ context, search }) => {
     if (context.auth.isLoading) return
     if (!context.auth.session) return
-    throw redirect({
-      to: resolveAuthDestination({
+    const destination = resolveAuthDestination(
+      {
         session: context.auth.session,
         profile: context.auth.profile,
-      }),
-    })
+      },
+      search.redirect,
+    )
+    if (destination === '/onboarding') {
+      throw redirect({ to: '/onboarding', search })
+    }
+    throw redirect({ href: destination })
   },
   component: LoginPage,
 })
@@ -39,6 +46,7 @@ function LoginPage() {
   const requestOtp = useSignInWithOtp()
   const verifyOtp = useVerifyEmailOtp()
   const signIn = useSignInWithPassword()
+  const { redirect: returnTo } = Route.useSearch()
   const [email, setEmail] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
@@ -96,7 +104,11 @@ function LoginPage() {
         ) : null}
         <p className="text-center text-sm text-neutral-600">
           New here?{' '}
-          <Link to="/signup" className="font-medium text-ink underline">
+          <Link
+            to="/signup"
+            search={{ redirect: returnTo }}
+            className="font-medium text-ink underline"
+          >
             Sign up
           </Link>
         </p>

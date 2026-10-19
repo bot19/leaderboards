@@ -14,6 +14,7 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as OnboardingRouteImport } from './routes/onboarding'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
+import { Route as JoinTokenRouteImport } from './routes/join/$token'
 import { Route as LaddersLadderIdRouteImport } from './routes/ladders/$ladderId'
 
 const IndexRoute = IndexRouteImport.update({
@@ -41,6 +42,11 @@ const AuthCallbackRoute = AuthCallbackRouteImport.update({
   path: '/auth/callback',
   getParentRoute: () => rootRouteImport,
 } as any)
+const JoinTokenRoute = JoinTokenRouteImport.update({
+  id: '/join/$token',
+  path: '/join/$token',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LaddersLadderIdRoute = LaddersLadderIdRouteImport.update({
   id: '/ladders/$ladderId',
   path: '/ladders/$ladderId',
@@ -53,6 +59,7 @@ export interface FileRoutesByFullPath {
   '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/join/$token': typeof JoinTokenRoute
   '/ladders/$ladderId': typeof LaddersLadderIdRoute
 }
 export interface FileRoutesByTo {
@@ -61,6 +68,7 @@ export interface FileRoutesByTo {
   '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/join/$token': typeof JoinTokenRoute
   '/ladders/$ladderId': typeof LaddersLadderIdRoute
 }
 export interface FileRoutesById {
@@ -70,6 +78,7 @@ export interface FileRoutesById {
   '/onboarding': typeof OnboardingRoute
   '/signup': typeof SignupRoute
   '/auth/callback': typeof AuthCallbackRoute
+  '/join/$token': typeof JoinTokenRoute
   '/ladders/$ladderId': typeof LaddersLadderIdRoute
 }
 export interface FileRouteTypes {
@@ -80,6 +89,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/signup'
     | '/auth/callback'
+    | '/join/$token'
     | '/ladders/$ladderId'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -88,6 +98,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/signup'
     | '/auth/callback'
+    | '/join/$token'
     | '/ladders/$ladderId'
   id:
     | '__root__'
@@ -96,6 +107,7 @@ export interface FileRouteTypes {
     | '/onboarding'
     | '/signup'
     | '/auth/callback'
+    | '/join/$token'
     | '/ladders/$ladderId'
   fileRoutesById: FileRoutesById
 }
@@ -105,6 +117,7 @@ export interface RootRouteChildren {
   OnboardingRoute: typeof OnboardingRoute
   SignupRoute: typeof SignupRoute
   AuthCallbackRoute: typeof AuthCallbackRoute
+  JoinTokenRoute: typeof JoinTokenRoute
   LaddersLadderIdRoute: typeof LaddersLadderIdRoute
 }
 
@@ -145,6 +158,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthCallbackRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/join/$token': {
+      id: '/join/$token'
+      path: '/join/$token'
+      fullPath: '/join/$token'
+      preLoaderRoute: typeof JoinTokenRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ladders/$ladderId': {
       id: '/ladders/$ladderId'
       path: '/ladders/$ladderId'
@@ -161,6 +181,7 @@ const rootRouteChildren: RootRouteChildren = {
   OnboardingRoute: OnboardingRoute,
   SignupRoute: SignupRoute,
   AuthCallbackRoute: AuthCallbackRoute,
+  JoinTokenRoute: JoinTokenRoute,
   LaddersLadderIdRoute: LaddersLadderIdRoute,
 }
 export const routeTree = rootRouteImport
