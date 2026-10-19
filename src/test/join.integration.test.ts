@@ -11,7 +11,7 @@ import {
   listMyLadders,
   previewLadder,
 } from '@/data/ladder'
-import { createTestUser, deleteTestUser, signInAs } from './harness'
+import { createTestUser, deleteTestUser, signInAs, addLadderPlayer } from './harness'
 
 describe('joining a Ladder from its Share link', () => {
   const created: string[] = []
@@ -97,5 +97,33 @@ describe('joining a Ladder from its Share link', () => {
       { displayName: 'Priya', rating: 1000 },
       { displayName: 'Sam', rating: 1000 },
     ])
+  })
+
+  it('rejoins a Left Ladder member and keeps their Rating', async () => {
+    const admin = await createTestUser()
+    const left = await createTestUser()
+    created.push(admin.id, left.id)
+    const adminClient = await signInAs(admin)
+    const leftClient = await signInAs(left)
+    await createProfile('Sam', adminClient)
+    await createProfile('Gone', leftClient)
+    const ladder = await createLadder('Friday pool', adminClient)
+    await addLadderPlayer(ladder.id, left.id, { rating: 1200, status: 'left' })
+    const token = await fetchShareToken(ladder.id, adminClient)
+
+    await expect(joinLadder(token, leftClient)).resolves.toEqual({ outcome: 'joined' })
+
+    expect(
+      (await listLadderMembers(ladder.id, leftClient)).find(
+        (member) => member.displayName === 'Gone',
+      ),
+    ).toEqual({
+      displayName: 'Gone',
+      role: 'player',
+      status: 'active',
+      rating: 1200,
+      ratedMatchCount: 0,
+      lastMatchAt: null,
+    })
   })
 })
