@@ -1,6 +1,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { getSupabase } from '@/lib/supabase'
 import type { Database } from '@/types/db'
+import { asNumber } from '@/data/numeric'
 
 type LadderClient = SupabaseClient<Database>
 
@@ -25,6 +26,16 @@ export type LeaderboardEntry = {
 export type LadderMemberRead = {
   displayName: string
   role: 'admin' | 'player'
+  status: 'active' | 'left' | 'removed'
+  rating: number
+  ratedMatchCount: number
+  lastMatchAt: string | null
+}
+
+export type RosterMember = {
+  id: string
+  userId: string | null
+  displayName: string
   status: 'active' | 'left' | 'removed'
   rating: number
   ratedMatchCount: number
@@ -208,7 +219,7 @@ export async function listLeaderboard(
 
   return (data ?? []).map((row) => ({
     displayName: row.display_name,
-    rating: row.rating,
+    rating: asNumber(row.rating),
   }))
 }
 
@@ -230,9 +241,37 @@ export async function listLadderMembers(
       displayName,
       role: row.role,
       status: row.status,
-      rating: row.rating,
+      rating: asNumber(row.rating),
       ratedMatchCount: row.rated_match_count,
       lastMatchAt: row.last_match_at,
     }
   })
+}
+
+export async function listRoster(
+  ladderId: string,
+  client: LadderClient = getSupabase(),
+): Promise<RosterMember[]> {
+  const { data, error } = await client
+    .from('ladder_members')
+    .select('id, user_id, status, rating, rated_match_count, last_match_at, profiles(display_name)')
+    .eq('ladder_id', ladderId)
+
+  if (error) throw new Error(error.message)
+
+  return (data ?? [])
+    .map((row) => {
+      const displayName = embeddedDisplayName(row.profiles)
+      if (!displayName) throw new Error('Ladder member is missing a display name')
+      return {
+        id: row.id,
+        userId: row.user_id,
+        displayName,
+        status: row.status,
+        rating: asNumber(row.rating),
+        ratedMatchCount: row.rated_match_count,
+        lastMatchAt: row.last_match_at,
+      }
+    })
+    .sort((a, b) => a.displayName.localeCompare(b.displayName))
 }

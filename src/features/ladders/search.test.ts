@@ -14,4 +14,15 @@ describe('ladder search', () => {
   it('falls back to the Leaderboard tab when the tab is not valid', () => {
     expect(ladderSearchSchema.parse({ tab: 'standings' })).toEqual({ tab: 'leaderboard' })
   })
+
+  it('opens the record panel from the search param', () => {
+    expect(ladderSearchSchema.parse({ tab: 'matches', record: 'open' })).toEqual({
+      tab: 'matches',
+      record: 'open',
+    })
+  })
+
+  it('leaves the record panel closed when the search param is not valid', () => {
+    expect(ladderSearchSchema.parse({ tab: 'matches', record: 'yes' }).record).toBeUndefined()
+  })
 })

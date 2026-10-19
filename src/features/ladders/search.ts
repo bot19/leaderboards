@@ -6,4 +6,5 @@ export type LadderTab = (typeof ladderTabs)[number]
 
 export const ladderSearchSchema = z.object({
   tab: z.enum(ladderTabs).catch('leaderboard'),
+  record: z.enum(['open']).optional().catch(undefined),
 })

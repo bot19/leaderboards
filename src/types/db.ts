@@ -119,6 +119,110 @@ export type Database = {
           },
         ]
       }
+      matches: {
+        Row: {
+          id: string
+          ladder_id: string
+          status: Database['public']['Enums']['match_status']
+          result: Database['public']['Enums']['match_result']
+          notes: string | null
+          recorded_by: string
+          recorded_at: string
+          confirmed_at: string | null
+          voided_by: string | null
+          voided_at: string | null
+          void_kind: Database['public']['Enums']['match_void_kind'] | null
+        }
+        Insert: {
+          id?: string
+          ladder_id: string
+          status?: Database['public']['Enums']['match_status']
+          result: Database['public']['Enums']['match_result']
+          notes?: string | null
+          recorded_by: string
+          recorded_at?: string
+          confirmed_at?: string | null
+          voided_by?: string | null
+          voided_at?: string | null
+          void_kind?: Database['public']['Enums']['match_void_kind'] | null
+        }
+        Update: {
+          ladder_id?: string
+          status?: Database['public']['Enums']['match_status']
+          result?: Database['public']['Enums']['match_result']
+          notes?: string | null
+          recorded_by?: string
+          recorded_at?: string
+          confirmed_at?: string | null
+          voided_by?: string | null
+          voided_at?: string | null
+          void_kind?: Database['public']['Enums']['match_void_kind'] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'matches_ladder_id_fkey'
+            columns: ['ladder_id']
+            isOneToOne: false
+            referencedRelation: 'ladders'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'matches_recorded_by_fkey'
+            columns: ['recorded_by']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'matches_voided_by_fkey'
+            columns: ['voided_by']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      participants: {
+        Row: {
+          id: string
+          match_id: string
+          ladder_member_id: string
+          side: Database['public']['Enums']['match_side']
+          rating_before: number | null
+          rating_change: number | null
+        }
+        Insert: {
+          id?: string
+          match_id: string
+          ladder_member_id: string
+          side: Database['public']['Enums']['match_side']
+          rating_before?: number | null
+          rating_change?: number | null
+        }
+        Update: {
+          match_id?: string
+          ladder_member_id?: string
+          side?: Database['public']['Enums']['match_side']
+          rating_before?: number | null
+          rating_change?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'participants_match_id_fkey'
+            columns: ['match_id']
+            isOneToOne: false
+            referencedRelation: 'matches'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'participants_ladder_member_id_fkey'
+            columns: ['ladder_member_id']
+            isOneToOne: false
+            referencedRelation: 'ladder_members'
+            referencedColumns: ['id']
+          },
+        ]
+      }
     }
     Views: {
       leaderboard: {
@@ -169,11 +273,29 @@ export type Database = {
         Args: { p_share_token: string }
         Returns: string
       }
+      record_match: {
+        Args: {
+          p_ladder_id: string
+          p_side_a: string[]
+          p_side_b: string[]
+          p_result: Database['public']['Enums']['match_result']
+          p_notes?: string | null
+        }
+        Returns: string
+      }
+      confirm_match: {
+        Args: { p_match_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       join_policy: 'open'
       ladder_role: 'admin' | 'player'
       ladder_member_status: 'active' | 'left' | 'removed'
+      match_status: 'pending' | 'confirmed' | 'voided'
+      match_result: 'side_a_won' | 'side_b_won' | 'draw'
+      match_side: 'a' | 'b'
+      match_void_kind: 'rejected' | 'admin'
     }
     CompositeTypes: Record<string, never>
   }
