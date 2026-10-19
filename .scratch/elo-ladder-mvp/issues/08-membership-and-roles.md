@@ -4,7 +4,7 @@
 
 **Blocked by:** 04 Join a Ladder from its Share link
 
-**Status:** ready-for-agent
+**Status:** claimed
 
 - [ ] Leave function: any active Ladder member, including the last Admin (the super admin fixes a Ladder with no Admin)
 - [ ] Remove, reinstate and set-Role functions use the shared Admin-or-super-admin check; reinstating returns a Removed Ladder member to active with their Rating kept
