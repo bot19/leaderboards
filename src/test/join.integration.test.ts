@@ -126,4 +126,32 @@ describe('joining a Ladder from its Share link', () => {
       lastMatchAt: null,
     })
   })
+
+  it('refuses a Removed Ladder member', async () => {
+    const admin = await createTestUser()
+    const removed = await createTestUser()
+    created.push(admin.id, removed.id)
+    const adminClient = await signInAs(admin)
+    const removedClient = await signInAs(removed)
+    await createProfile('Sam', adminClient)
+    await createProfile('Banned', removedClient)
+    const ladder = await createLadder('Friday pool', adminClient)
+    await addLadderPlayer(ladder.id, removed.id, { rating: 1100, status: 'removed' })
+    const token = await fetchShareToken(ladder.id, adminClient)
+
+    await expect(joinLadder(token, removedClient)).rejects.toThrow(/removed/i)
+
+    expect(
+      (await listLadderMembers(ladder.id, adminClient)).find(
+        (member) => member.displayName === 'Banned',
+      ),
+    ).toEqual({
+      displayName: 'Banned',
+      role: 'player',
+      status: 'removed',
+      rating: 1100,
+      ratedMatchCount: 0,
+      lastMatchAt: null,
+    })
+  })
 })
