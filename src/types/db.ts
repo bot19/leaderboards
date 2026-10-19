@@ -165,6 +165,10 @@ export type Database = {
           member_count: number
         }
       }
+      join_ladder: {
+        Args: { p_share_token: string }
+        Returns: string
+      }
     }
     Enums: {
       join_policy: 'open'

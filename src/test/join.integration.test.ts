@@ -71,18 +71,22 @@ describe('joining a Ladder from its Share link', () => {
     expect(await listMyLadders(joinerClient)).toEqual([
       { id: ladder.id, name: 'Friday pool', gameName: 'pool' },
     ])
-    expect(await listLadderMembers(ladder.id, joinerClient)).toEqual([
+    expect(
+      (await listLadderMembers(ladder.id, joinerClient)).sort((a, b) =>
+        a.displayName.localeCompare(b.displayName),
+      ),
+    ).toEqual([
       {
-        displayName: 'Sam',
-        role: 'admin',
+        displayName: 'Priya',
+        role: 'player',
         status: 'active',
         rating: 1000,
         ratedMatchCount: 0,
         lastMatchAt: null,
       },
       {
-        displayName: 'Priya',
-        role: 'player',
+        displayName: 'Sam',
+        role: 'admin',
         status: 'active',
         rating: 1000,
         ratedMatchCount: 0,

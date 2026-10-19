@@ -96,6 +96,18 @@ export async function previewLadder(
   }
 }
 
+export async function joinLadder(
+  shareToken: string,
+  client: LadderClient = getSupabase(),
+): Promise<{ outcome: 'joined' }> {
+  const { data, error } = await client.rpc('join_ladder', {
+    p_share_token: shareToken,
+  })
+  if (error) throw new Error(error.message)
+  if (data !== 'joined') throw new Error('Could not join this Ladder')
+  return { outcome: 'joined' }
+}
+
 export async function createLadder(
   name: string,
   client: LadderClient = getSupabase(),
