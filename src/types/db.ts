@@ -157,6 +157,14 @@ export type Database = {
         Args: { p_ladder_id: string }
         Returns: undefined
       }
+      preview_ladder: {
+        Args: { p_share_token: string }
+        Returns: {
+          name: string
+          game_name: string
+          member_count: number
+        }
+      }
     }
     Enums: {
       join_policy: 'open'

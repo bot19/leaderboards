@@ -57,6 +57,45 @@ export async function assertActiveLadderAdmin(
   if (error) throw new Error(error.message)
 }
 
+export type LadderPreview = {
+  name: string
+  gameName: string
+  memberCount: number
+}
+
+export async function fetchShareToken(
+  ladderId: string,
+  client: LadderClient = getSupabase(),
+): Promise<string> {
+  const { data, error } = await client
+    .from('ladders')
+    .select('share_token')
+    .eq('id', ladderId)
+    .maybeSingle()
+
+  if (error) throw new Error(error.message)
+  if (!data?.share_token) throw new Error('This Ladder has no Share link')
+  return data.share_token
+}
+
+export async function previewLadder(
+  shareToken: string,
+  client: LadderClient = getSupabase(),
+): Promise<LadderPreview> {
+  const { data, error } = await client.rpc('preview_ladder', {
+    p_share_token: shareToken,
+  })
+  if (error) throw new Error(error.message)
+  if (!data?.name || !data.game_name || data.member_count == null) {
+    throw new Error('No Ladder matches this Share link')
+  }
+  return {
+    name: data.name,
+    gameName: data.game_name,
+    memberCount: data.member_count,
+  }
+}
+
 export async function createLadder(
   name: string,
   client: LadderClient = getSupabase(),
