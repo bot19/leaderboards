@@ -11,3 +11,5 @@ Integration tests talk to the local Supabase stack (`pnpm exec supabase start` f
 - `deleteTestUser(id)` removes the auth User (and the profile, via the foreign key) after a test.
 
 `pnpm test` expects the stack to be up. Keys come from `supabase status -o env`, not from a committed secret.
+
+This worktree's stack is `elo-ladder-02` (API `54421`, database `54422`). `query()` runs SQL on that database as the local superuser. Use it for functions that are not exposed to the API.

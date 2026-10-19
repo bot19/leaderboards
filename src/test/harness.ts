@@ -1,6 +1,7 @@
 import { execSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
 import { createClient, type SupabaseClient } from '@supabase/supabase-js'
+import { Client } from 'pg'
 import type { Database } from '@/types/db'
 
 export type TestUser = {
@@ -13,6 +14,7 @@ type LocalSupabase = {
   url: string
   anonKey: string
   serviceRoleKey: string
+  dbUrl: string
 }
 
 let cached: LocalSupabase | null = null
@@ -42,15 +44,31 @@ export function localSupabase(): LocalSupabase {
   const anonKey = env.ANON_KEY ?? env.SUPABASE_ANON_KEY ?? env.PUBLISHABLE_KEY
   const serviceRoleKey =
     env.SERVICE_ROLE_KEY ?? env.SUPABASE_SERVICE_ROLE_KEY ?? env.SECRET_KEY
+  const dbUrl = env.DB_URL
 
-  if (!url || !anonKey || !serviceRoleKey) {
+  if (!url || !anonKey || !serviceRoleKey || !dbUrl) {
     throw new Error(
       'Local Supabase is not ready. Run `pnpm exec supabase start` and retry.',
     )
   }
 
-  cached = { url, anonKey, serviceRoleKey }
+  cached = { url, anonKey, serviceRoleKey, dbUrl }
   return cached
+}
+
+/** Runs SQL against this worktree's local Postgres. */
+export async function query<Row extends Record<string, unknown>>(
+  sql: string,
+  params: unknown[] = [],
+): Promise<Row[]> {
+  const client = new Client({ connectionString: localSupabase().dbUrl })
+  await client.connect()
+  try {
+    const result = await client.query<Row>(sql, params)
+    return result.rows
+  } finally {
+    await client.end()
+  }
 }
 
 export function serviceRole(): SupabaseClient<Database> {
