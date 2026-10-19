@@ -4,7 +4,7 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** claimed
+**Status:** resolved
 
 - [ ] Vite + React + TypeScript app with TanStack Router (file-based routes) and TanStack Query, zod, react-hook-form, sonner, Tailwind v4 and Tabler icons, using pnpm
 - [ ] bao-ui CSS tokens and the general-purpose components listed in the spec are copied in, each noting its bao-ui source; no map, review or place components
