@@ -154,4 +154,47 @@ describe('joining a Ladder from its Share link', () => {
       lastMatchAt: null,
     })
   })
+
+  it('leaves an already-active Ladder member unchanged when they join again', async () => {
+    const admin = await createTestUser()
+    const joiner = await createTestUser()
+    created.push(admin.id, joiner.id)
+    const adminClient = await signInAs(admin)
+    const joinerClient = await signInAs(joiner)
+    await createProfile('Sam', adminClient)
+    await createProfile('Priya', joinerClient)
+    const ladder = await createLadder('Friday pool', adminClient)
+    const token = await fetchShareToken(ladder.id, adminClient)
+
+    await expect(joinLadder(token, joinerClient)).resolves.toEqual({ outcome: 'joined' })
+    await expect(joinLadder(token, joinerClient)).resolves.toEqual({ outcome: 'joined' })
+
+    expect(await previewLadder(token, joinerClient)).toEqual({
+      name: 'Friday pool',
+      gameName: 'pool',
+      memberCount: 2,
+    })
+    expect(
+      (await listLadderMembers(ladder.id, joinerClient)).sort((a, b) =>
+        a.displayName.localeCompare(b.displayName),
+      ),
+    ).toEqual([
+      {
+        displayName: 'Priya',
+        role: 'player',
+        status: 'active',
+        rating: 1000,
+        ratedMatchCount: 0,
+        lastMatchAt: null,
+      },
+      {
+        displayName: 'Sam',
+        role: 'admin',
+        status: 'active',
+        rating: 1000,
+        ratedMatchCount: 0,
+        lastMatchAt: null,
+      },
+    ])
+  })
 })
