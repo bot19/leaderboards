@@ -34,6 +34,13 @@ export default tseslint.config(
     },
   },
   {
+    files: ['src/components/ui/Combobox.tsx'],
+    rules: {
+      // Copied from bao-ui; keep the component as-is.
+      'react-hooks/set-state-in-effect': 'off',
+    },
+  },
+  {
     files: ['src/**/*.test.ts', 'src/**/*.test.tsx', 'src/test/**/*.ts'],
     languageOptions: {
       globals: globals.node,

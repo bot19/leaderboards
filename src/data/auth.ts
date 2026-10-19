@@ -1,6 +1,9 @@
 import { useMutation } from '@tanstack/react-query'
+import type { Session } from '@supabase/supabase-js'
 import { getSupabase } from '@/lib/supabase'
 import { TEMP_PASSWORD_AUTH } from '@/lib/tempPasswordAuth'
+
+export type { Session }
 
 type AuthError = { message: string }
 
@@ -97,4 +100,30 @@ export function useSignInWithPassword() {
     mutationFn: ({ email, password }: { email: string; password: string }) =>
       signInWithPassword(email, password),
   })
+}
+
+export async function getSession(): Promise<Session | null> {
+  const { data, error } = await getSupabase().auth.getSession()
+  if (error) throw new Error(error.message)
+  return data.session
+}
+
+export function subscribeToAuth(
+  onChange: (session: Session | null) => void,
+): () => void {
+  const {
+    data: { subscription },
+  } = getSupabase().auth.onAuthStateChange((_event, session) => {
+    onChange(session)
+  })
+  return () => subscription.unsubscribe()
+}
+
+export async function signOut() {
+  const { error } = await getSupabase().auth.signOut()
+  if (error) throw new Error(error.message)
+}
+
+export function useSignOut() {
+  return useMutation({ mutationFn: signOut })
 }
