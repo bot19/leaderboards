@@ -64,7 +64,11 @@ function SignupPage() {
           >
             <p className="text-sm text-neutral-600">Enter the passcode sent to {email}.</p>
             <input type="hidden" {...codeForm.register('email')} />
+            <label className="block text-sm font-medium" htmlFor="signup-token">
+              Passcode
+            </label>
             <input
+              id="signup-token"
               inputMode="numeric"
               autoComplete="one-time-code"
               className="block w-full rounded-md border border-neutral-300 px-3 py-2 text-ink"

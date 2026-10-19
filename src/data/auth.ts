@@ -10,7 +10,7 @@ type AuthError = { message: string }
 export type OtpAuth = {
   signInWithOtp: (credentials: {
     email: string
-    options?: { shouldCreateUser?: boolean }
+    options?: { shouldCreateUser?: boolean; emailRedirectTo?: string }
   }) => PromiseLike<{ error: AuthError | null }>
   verifyOtp: (credentials: {
     email: string
@@ -30,20 +30,42 @@ function throwOnError(error: AuthError | null) {
   if (error) throw new Error(error.message)
 }
 
+function callbackUrl() {
+  return `${window.location.origin}/auth/callback`
+}
+
 /** Sign-in passcode. A mistyped email must not create a User. */
-export async function signInWithOtp(email: string, auth: OtpAuth = getSupabase().auth) {
+export async function signInWithOtp(
+  email: string,
+  auth: OtpAuth = getSupabase().auth,
+  options?: { emailRedirectTo?: string },
+) {
   const { error } = await auth.signInWithOtp({
     email,
-    options: { shouldCreateUser: false },
+    options: {
+      shouldCreateUser: false,
+      ...(options?.emailRedirectTo
+        ? { emailRedirectTo: options.emailRedirectTo }
+        : {}),
+    },
   })
   throwOnError(error)
 }
 
 /** Sign-up passcode. This is the path that creates a User. */
-export async function signUpWithOtp(email: string, auth: OtpAuth = getSupabase().auth) {
+export async function signUpWithOtp(
+  email: string,
+  auth: OtpAuth = getSupabase().auth,
+  options?: { emailRedirectTo?: string },
+) {
   const { error } = await auth.signInWithOtp({
     email,
-    options: { shouldCreateUser: true },
+    options: {
+      shouldCreateUser: true,
+      ...(options?.emailRedirectTo
+        ? { emailRedirectTo: options.emailRedirectTo }
+        : {}),
+    },
   })
   throwOnError(error)
 }
@@ -78,13 +100,19 @@ export async function signInWithPassword(
 
 export function useSignInWithOtp() {
   return useMutation({
-    mutationFn: (email: string) => signInWithOtp(email),
+    mutationFn: (email: string) =>
+      signInWithOtp(email, getSupabase().auth, {
+        emailRedirectTo: callbackUrl(),
+      }),
   })
 }
 
 export function useSignUpWithOtp() {
   return useMutation({
-    mutationFn: (email: string) => signUpWithOtp(email),
+    mutationFn: (email: string) =>
+      signUpWithOtp(email, getSupabase().auth, {
+        emailRedirectTo: callbackUrl(),
+      }),
   })
 }
 

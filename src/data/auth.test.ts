@@ -25,6 +25,22 @@ describe('passcode sign-in', () => {
     })
   })
 
+  it('points the magic-link fallback at the callback route', async () => {
+    const auth = otpAuth()
+
+    await signInWithOtp('sam@example.com', auth, {
+      emailRedirectTo: 'http://localhost:5173/auth/callback',
+    })
+
+    expect(auth.signInWithOtp).toHaveBeenCalledWith({
+      email: 'sam@example.com',
+      options: {
+        shouldCreateUser: false,
+        emailRedirectTo: 'http://localhost:5173/auth/callback',
+      },
+    })
+  })
+
   it('sends a sign-up passcode that can create a User', async () => {
     const auth = otpAuth()
 
