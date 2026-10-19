@@ -4,3 +4,13 @@
 # Secrets
 .env
 .env.local
+.env.*.local
+
+# App
+node_modules
+dist
+*.tsbuildinfo
+
+# Supabase local
+supabase/.temp
+supabase/.branches
