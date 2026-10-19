@@ -1,30 +1,11 @@
 -- Ladders, Games, and Ladder members.
 -- Writes go through functions. Reads are protected by row-level security.
--- Tunable constants live in one place for later tickets to read.
+-- The starting Rating comes from public.rating_constants().
 
 create schema if not exists private;
 
 revoke all on schema private from public;
 grant usage on schema private to authenticated, service_role;
-
-create or replace function private.tunable_constants()
-returns table (
-  starting_rating integer,
-  k_factor integer,
-  provisional_k_factor integer,
-  provisional_threshold integer,
-  inactive_threshold_days integer,
-  confirmation_window_hours integer
-)
-language sql
-immutable
-parallel safe
-set search_path = ''
-as $$
-  select 1000, 32, 64, 5, 30, 48
-$$;
-
-revoke all on function private.tunable_constants() from public, anon, authenticated;
 
 create type public.join_policy as enum ('open');
 create type public.ladder_role as enum ('admin', 'player');
@@ -214,8 +195,8 @@ begin
       using errcode = 'P0002';
   end if;
 
-  select tunable.starting_rating into starting
-  from private.tunable_constants() as tunable;
+  select constants.starting_rating into starting
+  from public.rating_constants() as constants;
 
   insert into public.ladders (name, game_id, share_token)
   values (cleaned, pool_id, gen_random_uuid()::text)
