@@ -4,7 +4,7 @@
 
 **Blocked by:** 03 Create a Ladder and see its Leaderboard
 
-**Status:** ready-for-agent
+**Status:** claimed
 
 - [ ] Any Ladder member can copy the Ladder's Share link
 - [ ] Preview function (by Share link token) returns only the Ladder's name, Game and Ladder member count; it's the only thing a non-member can read
