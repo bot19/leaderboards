@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(**)",
+      "Write(src/**)",
+      "Write(supabase/migrations/**)",
+      "Write(.scratch/**)",
+      "Write(docs/**)",
+      "Shell(pnpm)",
+      "Shell(git)",
+      "Shell(cd)",
+      "Shell(pwd)",
+      "Shell(ls)",
+      "Shell(cat)",
+      "Shell(head)",
+      "Shell(tail)",
+      "Shell(wc)",
+      "Shell(grep)",
+      "Shell(rg)",
+      "Shell(find)",
+      "Shell(test)"
+    ],
+    "deny": []
+  }
+}
