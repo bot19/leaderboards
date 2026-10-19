@@ -4,7 +4,7 @@
 
 **Blocked by:** 05 Record and confirm a Match (1v1 and 2v2)
 
-**Status:** ready-for-agent
+**Status:** claimed
 
 - [ ] Internal "confirm expired Pending Matches as of a given time" function, not callable by clients
 - [ ] It confirms each expired Pending Match through the same rating path as a manual confirmation, in the order they expired, setting confirmed-at to that moment
