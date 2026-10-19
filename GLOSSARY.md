@@ -23,28 +23,29 @@ A User taking over a Guest, so the Guest's Rating and Match history become their
 _Avoid_: merge, link account
 
 **Role**:
-What a Ladder member may do on their Ladder: Owner, Admin or Player.
-
-**Owner**:
-The single Ladder member with full control of a Ladder, including deleting it and appointing Admins. Every Ladder has exactly one Owner.
+What a Ladder member may do on their Ladder: Admin or Player.
 
 **Admin**:
-A Ladder member who can approve Join requests, add Guests, remove Ladder members and settle Disputed Matches.
-_Avoid_: moderator, manager
+A Ladder member who can appoint and demote Admins, remove and reinstate Ladder members, void Matches, and (later) approve Join requests and add Guests. A Ladder can have several Admins; whoever creates a Ladder is its first.
+_Avoid_: moderator, manager, owner (there is no Owner Role)
+
+**Super admin**:
+A User, not a Ladder member, who can do anything an Admin can on every Ladder, and also delete Ladders. Set directly in the database; it settles anything a Ladder's Admins can't, such as a Ladder left with no Admin.
+_Avoid_: owner, root, superuser
 
 **Player**:
 The default Role: a Ladder member who records and confirms their own Matches.
 
 **Join request**:
-A User's request to become a Ladder member, which an Owner or Admin approves or rejects.
+A User's request to become a Ladder member, which an Admin approves or rejects. Used only on Ladders that require approval to join (not yet built: every Ladder is open for now).
 _Avoid_: invite, application
 
 **Share link**:
-The link that leads a User to a Ladder's preview, where they can make a Join request. It grants nothing on its own.
-_Avoid_: invite link (it does not admit anyone)
+The link that leads a User to a Ladder's preview, where they can join it, or on a Ladder that requires approval, make a Join request.
+_Avoid_: invite link
 
 **Left / Removed**:
-A Ladder member who chose to go (Left) or was taken off by an Admin (Removed). Their Matches stay in history; a Removed member needs approval to return.
+A Ladder member who chose to go (Left) or was taken off by an Admin (Removed). Their Matches stay in history. A Left member can rejoin from the Share link; a Removed member returns only when an Admin reinstates them.
 
 ### Competition
 
@@ -101,16 +102,16 @@ A Match that has been recorded but not yet agreed. It has no effect on Ratings.
 A Match whose Result is agreed, either by the opposing Side or by the Confirmation window running out. Only Confirmed Matches change Ratings.
 _Avoid_: approved, verified
 
-**Disputed**:
-A Match the opposing Side says is wrong, waiting for an Admin to confirm it or void it.
-_Avoid_: contested, flagged
+**Reject**:
+The opposing Side refusing a Pending Match because it is wrong, which Voids it.
+_Avoid_: dispute, decline
 
 **Voided**:
-A Match an Admin has struck out. It no longer counts, and if it had been Confirmed, every Rating on the Ladder is recalculated without it.
+A Match that has been struck out, either Rejected while Pending or voided by an Admin. It no longer counts, and if it had been Confirmed, every Rating on the Ladder is recalculated without it.
 _Avoid_: deleted, cancelled
 
 **Confirmation window**:
-How long the opposing Side has to confirm or dispute a Pending Match before it becomes Confirmed on its own.
+How long the opposing Side has to confirm or Reject a Pending Match before it becomes Confirmed on its own.
 _Avoid_: timeout, grace period
 
 **Replay**:
@@ -120,7 +121,7 @@ _Avoid_: recalc, rebuild
 ## Relationships
 
 - A **User** has zero or more **Ladder members**, at most one per **Ladder**.
-- A **Ladder** is played in exactly one **Game** and has many **Ladder members**, exactly one of whom is the **Owner**.
+- A **Ladder** is played in exactly one **Game** and has many **Ladder members**, at least one of whom is normally an **Admin**.
 - A **Match** belongs to one **Ladder** and has exactly two **Sides** of equal size.
 - A **Participant** is a **Ladder member** of the Match's own Ladder.
 - A **Guest** is a **Ladder member** with no **User**, until it is **Claimed**.
@@ -131,7 +132,7 @@ _Avoid_: recalc, rebuild
 > **Domain expert:** All four. Each Side's Rating is the average of its Participants, and every Participant on a Side moves by the same amount, unless one of them is Provisional: they move faster than their teammate. But only once the Match is Confirmed. While it's Pending, nothing moves.
 > **Dev:** And if Alex is a Guest, who confirms?
 > **Domain expert:** Dave can, since he's on the opposing Side. If nobody does, it's Confirmed when the Confirmation window runs out.
-> **Dev:** Say Dave disputes it a week later and an Admin voids it. Do we just undo those four Rating changes?
+> **Dev:** Say Dave tells an Admin a week later that it was wrong, and the Admin voids it. Do we just undo those four Rating changes?
 > **Domain expert:** No. It had been Confirmed, so we Replay the whole Ladder without it. Later Matches were rated off those numbers.
 > **Dev:** Is "the pool ladder" the Leaderboard?
 > **Domain expert:** The Ladder is the competition. The Leaderboard is just its ranking of active Ladder members.
