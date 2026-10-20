@@ -4,7 +4,7 @@
 
 **Blocked by:** 09 Leaderboard details
 
-**Status:** ready-for-agent
+**Status:** claimed
 
 - [ ] `TEMP_PASSWORD_AUTH` is `import.meta.env.DEV`, so the password login shows in local development and never in a production build
 - [ ] `netlify.toml` follows `/Users/teex/Code/food-friends/netlify.toml`, which fixed stale-deploy errors there (HTML served for a `.js` URL, MIME errors, a stuck cache). Copy its comments explaining why. It:
