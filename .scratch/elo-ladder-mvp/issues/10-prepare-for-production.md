@@ -4,17 +4,17 @@
 
 **Blocked by:** 09 Leaderboard details
 
-**Status:** claimed
+**Status:** resolved
 
-- [ ] `TEMP_PASSWORD_AUTH` is `import.meta.env.DEV`, so the password login shows in local development and never in a production build
-- [ ] `netlify.toml` follows `/Users/teex/Code/food-friends/netlify.toml`, which fixed stale-deploy errors there (HTML served for a `.js` URL, MIME errors, a stuck cache). Copy its comments explaining why. It:
+- [x] `TEMP_PASSWORD_AUTH` is `import.meta.env.DEV`, so the password login shows in local development and never in a production build
+- [x] `netlify.toml` follows `/Users/teex/Code/food-friends/netlify.toml`, which fixed stale-deploy errors there (HTML served for a `.js` URL, MIME errors, a stuck cache). Copy its comments explaining why. It:
   - builds with `pnpm build` and publishes `dist`
   - sends `/assets/*` to `/404.html` with status 404 *before* the SPA fallback, plus a `public/404.html`, so a missing hashed chunk 404s instead of getting the app shell
   - serves `index.html` for every other path (`/* → /index.html 200`), so `/join/…` and `/auth/callback` load when opened directly
   - caches `/assets/*` for a week (`public, max-age=604800`), not a year-long immutable cache
   - sets `no-cache, no-store, must-revalidate` on every path that serves the app shell, matched on the request path: `/`, `/:route` (login, signup, onboarding), `/auth/callback`, `/join/:token`, `/ladders/:ladderId`, `/ladders/:ladderId/members/:memberId`
-- [ ] Test: every route path in `src/routeTree.gen.ts` is covered by a no-cache header rule in `netlify.toml`, so a new route can't silently miss one
-- [ ] AGENTS.md gains a guardrail: agents never run `supabase link`, `supabase db push` or any command with `--linked`; production changes are the human's
-- [ ] Test: the login page shows no password form when `TEMP_PASSWORD_AUTH` is false
-- [ ] `pnpm build` succeeds, and `dist/` from that build contains no "Local development password" text
-- [ ] Ticket 01's open box (password login for local development only) is ticked, and its comment is updated to point here
+- [x] Test: every route path in `src/routeTree.gen.ts` is covered by a no-cache header rule in `netlify.toml`, so a new route can't silently miss one
+- [x] AGENTS.md gains a guardrail: agents never run `supabase link`, `supabase db push` or any command with `--linked`; production changes are the human's
+- [x] Test: the login page shows no password form when `TEMP_PASSWORD_AUTH` is false
+- [x] `pnpm build` succeeds, and `dist/` from that build contains no "Local development password" text
+- [x] Ticket 01's open box (password login for local development only) is ticked, and its comment is updated to point here

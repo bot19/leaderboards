@@ -10,7 +10,7 @@
 - [x] bao-ui CSS tokens and the general-purpose components listed in the spec are copied in, each noting its bao-ui source; no map, review or place components
 - [x] Local Supabase stack runs through the Supabase CLI (a dev dependency); migrations live in the repo
 - [x] Sign-in sends an emailed passcode and verifies the typed code; login can't create a new account from a mistyped email
-- [ ] Magic-link callback route works as a fallback; a password login exists for local development only, behind a flag
+- [x] Magic-link callback route works as a fallback; a password login exists for local development only, behind a flag
 - [x] Profiles table (display name, super admin flag defaulting to false) with RLS; profile creation and display-name update are database functions, never direct table writes (ADR-0003); no function can set the super admin flag
 - [x] A signed-in User with no profile is sent to onboarding; a single function decides where a signed-in User goes (sign-in, onboarding or home)
 - [x] Vitest harness can create test Users, sign in as each one, and use the service role for fixtures; documented for later tickets
@@ -19,4 +19,4 @@
 
 ## Comments
 
-Callback route and password flag exist, but `TEMP_PASSWORD_AUTH` is hardcoded `true`, so the password login would show in production. Tick once it is `import.meta.env.DEV` (ticket 10).
+Callback route and password flag are in place. `TEMP_PASSWORD_AUTH` is `import.meta.env.DEV` so the password login never ships in production (ticket 10).
