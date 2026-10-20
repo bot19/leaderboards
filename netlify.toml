@@ -1,0 +1,61 @@
+[build]
+  command = "pnpm build"
+  publish = "dist"
+
+# Missing hashed assets must 404 — not fall through to the SPA shell below.
+# Otherwise the browser gets HTML for a .js URL (MIME error), and our
+# /assets cache header can stick that bad response on the client.
+[[redirects]]
+  from = "/assets/*"
+  to = "/404.html"
+  status = 404
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Filenames carry a content hash, so a given URL never changes contents.
+# A week is enough for this app — a year-long immutable cache turns a bad
+# /assets response (HTML from the SPA fallback) into a stuck browser.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    cache-control = "public, max-age=604800"
+
+# index.html names this build's hashed chunks. A cached copy asks for chunks the
+# current deploy no longer has, and the SPA fallback above answers those with
+# HTML — which then fails as a module script. Never reuse it.
+#
+# The rule has to match the request path, not the rewritten one, so every path
+# that serves the app shell needs covering. `/:route` is a single segment, so it
+# can't collide with the /assets rule above.
+[[headers]]
+  for = "/"
+  [headers.values]
+    cache-control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/:route"
+  [headers.values]
+    cache-control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/auth/callback"
+  [headers.values]
+    cache-control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/join/:token"
+  [headers.values]
+    cache-control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/ladders/:ladderId"
+  [headers.values]
+    cache-control = "no-cache, no-store, must-revalidate"
+
+[[headers]]
+  for = "/ladders/:ladderId/members/:memberId"
+  [headers.values]
+    cache-control = "no-cache, no-store, must-revalidate"
