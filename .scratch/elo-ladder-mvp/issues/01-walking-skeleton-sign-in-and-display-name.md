@@ -19,4 +19,4 @@
 
 ## Comments
 
-Callback route and password flag exist, but `TEMP_PASSWORD_AUTH` is hardcoded `true`, so the password login would show in production. Tick once it is `import.meta.env.DEV` (see `../deploy.md`, code changes).
+Callback route and password flag exist, but `TEMP_PASSWORD_AUTH` is hardcoded `true`, so the password login would show in production. Tick once it is `import.meta.env.DEV` (ticket 10).

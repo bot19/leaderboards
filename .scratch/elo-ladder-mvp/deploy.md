@@ -2,11 +2,9 @@
 
 Checklist for after ticket 09. Not a ticket: the agent's "Pick" rule only reads `issues/`.
 
-## Code changes (could become ticket 10, ready-for-agent)
+## Code changes
 
-- [ ] `src/lib/tempPasswordAuth.ts`: `TEMP_PASSWORD_AUTH = import.meta.env.DEV`, so production hides the "Local development password" form.
-- [ ] `netlify.toml`: build `pnpm build`, publish `dist`, redirect `/* → /index.html 200`. Without it, Share links (`/join/…`) and `/auth/callback` 404 when opened directly.
-- [ ] AGENTS.md guardrail: never run `supabase link`, `db push` or anything `--linked`. Production changes are the human's. Once the main checkout is linked, `pnpm` being allowlisted would otherwise let `db push` run unprompted.
+- [ ] Ticket 10 (`issues/10-prepare-for-production.md`) resolved. Do it before linking: once the main checkout is linked, allowlisted `pnpm` would let an agent `db push` unprompted.
 
 ## Supabase (human)
 
