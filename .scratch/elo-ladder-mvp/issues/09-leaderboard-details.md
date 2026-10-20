@@ -4,7 +4,7 @@
 
 **Blocked by:** 05 Record and confirm a Match (1v1 and 2v2)
 
-**Status:** ready-for-agent
+**Status:** claimed
 
 - [ ] Leaderboard read view: active Ladder members whose last Match (or joining, if they've never played) is within the Inactive threshold, ordered by Rating, with rank and a Provisional flag (fewer than 5 rated Matches)
 - [ ] Inactive read view: active Ladder members past the Inactive threshold (30 days, from the tunable constants); being Inactive never changes a Rating
