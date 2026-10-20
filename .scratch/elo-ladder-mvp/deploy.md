@@ -8,12 +8,12 @@ Checklist for after ticket 09. Not a ticket: the agent's "Pick" rule only reads 
 
 ## Supabase (human)
 
-- [ ] Create the project in a region near colleagues (Sydney). `pnpm exec supabase link`, then `pnpm exec supabase db push`.
+- [x] Create the project in a region near colleagues (Sydney). `pnpm exec supabase link`, then `pnpm exec supabase db push`.
 - [ ] Auth → URL configuration: Site URL = Netlify URL. Redirect URLs = `https://<site>/auth/callback`.
 - [ ] Auth → Email templates: copy `supabase/templates/magic_link.html` and `confirmation.html`, subject "Your Elo Ladder passcode". The templates must show `{{ .Token }}`. Set OTP length to 6. Hosted Supabase ignores `config.toml`.
 - [ ] Resend: verify a domain you own (DNS records). Auth → SMTP: host `smtp.resend.com`, port 465, user `resend`, password = Resend API key. Raise the auth email rate limit.
 - [ ] After signing up through the live app: `update profiles set is_super_admin = true where id = '<your user id>';`
-- [ ] `select * from cron.job;` lists the auto-confirm schedule (ticket 06).
+- [x] `select * from cron.job;` lists the auto-confirm schedule (ticket 06).
 
 ## Netlify (human)
 
