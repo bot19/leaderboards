@@ -4,12 +4,12 @@
 
 **Blocked by:** 02 Pure rating module, 04 Join a Ladder from its Share link
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Matches table (status Pending / Confirmed / Voided, Result, notes, recorded-by, recorded-at, confirmed-at, and void fields for 07 to use) and Participants table (Match, Ladder member, Side, Rating before, Rating change)
-- [ ] Record function refuses: unequal Sides, empty Sides, a Side larger than the Game allows, a Draw in a Game without Draws, anyone not an active Ladder member of this Ladder, a Ladder member listed twice, and a recorder who isn't a Participant
-- [ ] Confirm function: only a Participant on the opposing Side may confirm; the recorder's Side is refused; confirming rates the Match once, in the same transaction, using Ratings as they stand at that moment, and stores Rating before and change on each Participant
-- [ ] Confirming updates each Participant's Rating, rated-Match count and last-Match time
-- [ ] RLS: Ladder members read their Ladder's Matches and Participants; the super admin reads all
-- [ ] UI: a record-Match panel opened from a search param, a "waiting for you" list, and a Matches tab showing history with Rating changes
-- [ ] Integration tests: each validation refusal; recording leaves Ratings unchanged; the recorder's Side can't confirm; the opposing Side confirms and Ratings match the rating module; 2v2 averaging; two Matches confirmed in the opposite order from recording are rated in confirmation order; outsiders can't read Matches
+- [x] Matches table (status Pending / Confirmed / Voided, Result, notes, recorded-by, recorded-at, confirmed-at, and void fields for 07 to use) and Participants table (Match, Ladder member, Side, Rating before, Rating change)
+- [x] Record function refuses: unequal Sides, empty Sides, a Side larger than the Game allows, a Draw in a Game without Draws, anyone not an active Ladder member of this Ladder, a Ladder member listed twice, and a recorder who isn't a Participant
+- [x] Confirm function: only a Participant on the opposing Side may confirm; the recorder's Side is refused; confirming rates the Match once, in the same transaction, using Ratings as they stand at that moment, and stores Rating before and change on each Participant
+- [x] Confirming updates each Participant's Rating, rated-Match count and last-Match time
+- [x] RLS: Ladder members read their Ladder's Matches and Participants; the super admin reads all
+- [x] UI: a record-Match panel opened from a search param, a "waiting for you" list, and a Matches tab showing history with Rating changes
+- [x] Integration tests: each validation refusal; recording leaves Ratings unchanged; the recorder's Side can't confirm; the opposing Side confirms and Ratings match the rating module; 2v2 averaging; two Matches confirmed in the opposite order from recording are rated in confirmation order; outsiders can't read Matches

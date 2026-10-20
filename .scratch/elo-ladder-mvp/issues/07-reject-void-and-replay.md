@@ -4,11 +4,11 @@
 
 **Blocked by:** 05 Record and confirm a Match (1v1 and 2v2)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Reject function: only a Participant on the opposing Side, only while Pending; the Match becomes Voided and no Ratings change
-- [ ] Void function: uses the shared Admin-or-super-admin check; refuses an already-Voided Match; records who voided it and when
-- [ ] Internal Replay function: in one transaction, resets every Ladder member to the starting Rating and zero rated Matches, walks non-Voided Confirmed Matches in confirmed-at order through the rating module, rewrites each Match's Participant rows, and writes final Ratings and counts back
-- [ ] Voiding a Confirmed Match triggers Replay; voiding a Pending Match doesn't
-- [ ] UI: Reject on the "waiting for you" list; void for Admins on the Matches tab; Voided Matches shown as such
-- [ ] Integration tests: Reject by the opposing Side; Reject refused for the recorder's Side and for non-Pending Matches; void refused for a Player; void allowed for an Admin and the super admin; voiding a Confirmed Match leaves Ratings identical to a fresh Ladder that played the same Matches without it; Replay with nothing Voided reproduces the stored Ratings exactly
+- [x] Reject function: only a Participant on the opposing Side, only while Pending; the Match becomes Voided and no Ratings change
+- [x] Void function: uses the shared Admin-or-super-admin check; refuses an already-Voided Match; records who voided it and when
+- [x] Internal Replay function: in one transaction, resets every Ladder member to the starting Rating and zero rated Matches, walks non-Voided Confirmed Matches in confirmed-at order through the rating module, rewrites each Match's Participant rows, and writes final Ratings and counts back
+- [x] Voiding a Confirmed Match triggers Replay; voiding a Pending Match doesn't
+- [x] UI: Reject on the "waiting for you" list; void for Admins on the Matches tab; Voided Matches shown as such
+- [x] Integration tests: Reject by the opposing Side; Reject refused for the recorder's Side and for non-Pending Matches; void refused for a Player; void allowed for an Admin and the super admin; voiding a Confirmed Match leaves Ratings identical to a fresh Ladder that played the same Matches without it; Replay with nothing Voided reproduces the stored Ratings exactly

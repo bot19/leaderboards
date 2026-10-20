@@ -4,11 +4,11 @@
 
 **Blocked by:** 04 Join a Ladder from its Share link
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Leave function: any active Ladder member, including the last Admin (the super admin fixes a Ladder with no Admin)
-- [ ] Remove, reinstate and set-Role functions use the shared Admin-or-super-admin check; reinstating returns a Removed Ladder member to active with their Rating kept
-- [ ] Delete-Ladder function: super admin only; removes all the Ladder's data
-- [ ] Left and Removed Ladder members drop off the Leaderboard but keep their Matches in history
-- [ ] UI: a Ladder members tab (in the URL) listing active, Left and Removed Ladder members, with Admin actions shown only to Admins and the super admin; a leave action for everyone
-- [ ] Integration tests: leaving, then rejoining by Share link keeps the Rating; an Admin removes a Player, who then can't rejoin by Share link until reinstated; a Player can't remove, reinstate or change Roles; an Admin appoints and demotes an Admin; the super admin, not a member of the Ladder, can do all of these; only the super admin can delete a Ladder
+- [x] Leave function: any active Ladder member, including the last Admin (the super admin fixes a Ladder with no Admin)
+- [x] Remove, reinstate and set-Role functions use the shared Admin-or-super-admin check; reinstating returns a Removed Ladder member to active with their Rating kept
+- [x] Delete-Ladder function: super admin only; removes all the Ladder's data
+- [x] Left and Removed Ladder members drop off the Leaderboard but keep their Matches in history
+- [x] UI: a Ladder members tab (in the URL) listing active, Left and Removed Ladder members, with Admin actions shown only to Admins and the super admin; a leave action for everyone
+- [x] Integration tests: leaving, then rejoining by Share link keeps the Rating; an Admin removes a Player, who then can't rejoin by Share link until reinstated; a Player can't remove, reinstate or change Roles; an Admin appoints and demotes an Admin; the super admin, not a member of the Ladder, can do all of these; only the super admin can delete a Ladder

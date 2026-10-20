@@ -4,15 +4,19 @@
 
 **Blocked by:** None (can start immediately)
 
-**Status:** ready-for-agent
+**Status:** resolved
 
-- [ ] Vite + React + TypeScript app with TanStack Router (file-based routes) and TanStack Query, zod, react-hook-form, sonner, Tailwind v4 and Tabler icons, using pnpm
-- [ ] bao-ui CSS tokens and the general-purpose components listed in the spec are copied in, each noting its bao-ui source; no map, review or place components
-- [ ] Local Supabase stack runs through the Supabase CLI (a dev dependency); migrations live in the repo
-- [ ] Sign-in sends an emailed passcode and verifies the typed code; login can't create a new account from a mistyped email
-- [ ] Magic-link callback route works as a fallback; a password login exists for local development only, behind a flag
-- [ ] Profiles table (display name, super admin flag defaulting to false) with RLS; profile creation and display-name update are database functions, never direct table writes (ADR-0003); no function can set the super admin flag
-- [ ] A signed-in User with no profile is sent to onboarding; a single function decides where a signed-in User goes (sign-in, onboarding or home)
-- [ ] Vitest harness can create test Users, sign in as each one, and use the service role for fixtures; documented for later tickets
-- [ ] Integration tests through the RPC surface: creating a profile, updating the display name, refusing a second profile, refusing writes from a signed-out caller, and a User being unable to set their own super admin flag
-- [ ] Typecheck, lint and the test suite pass from one command each
+- [x] Vite + React + TypeScript app with TanStack Router (file-based routes) and TanStack Query, zod, react-hook-form, sonner, Tailwind v4 and Tabler icons, using pnpm
+- [x] bao-ui CSS tokens and the general-purpose components listed in the spec are copied in, each noting its bao-ui source; no map, review or place components
+- [x] Local Supabase stack runs through the Supabase CLI (a dev dependency); migrations live in the repo
+- [x] Sign-in sends an emailed passcode and verifies the typed code; login can't create a new account from a mistyped email
+- [x] Magic-link callback route works as a fallback; a password login exists for local development only, behind a flag
+- [x] Profiles table (display name, super admin flag defaulting to false) with RLS; profile creation and display-name update are database functions, never direct table writes (ADR-0003); no function can set the super admin flag
+- [x] A signed-in User with no profile is sent to onboarding; a single function decides where a signed-in User goes (sign-in, onboarding or home)
+- [x] Vitest harness can create test Users, sign in as each one, and use the service role for fixtures; documented for later tickets
+- [x] Integration tests through the RPC surface: creating a profile, updating the display name, refusing a second profile, refusing writes from a signed-out caller, and a User being unable to set their own super admin flag
+- [x] Typecheck, lint and the test suite pass from one command each
+
+## Comments
+
+Callback route and password flag are in place. `TEMP_PASSWORD_AUTH` is `import.meta.env.DEV` so the password login never ships in production (ticket 10).
