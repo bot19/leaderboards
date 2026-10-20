@@ -263,8 +263,8 @@ describe('recording and confirming a Match', () => {
     ])
     expect(matches[0]?.participants.map((participant) => participant.ratingChange)).toEqual([null, null])
     expect(await listLeaderboard(ladder.id, who('Sam').client)).toEqual([
-      { displayName: 'Priya', rating: 1000 },
-      { displayName: 'Sam', rating: 1000 },
+      expect.objectContaining({ displayName: 'Priya', rating: 1000, rank: 1 }),
+      expect.objectContaining({ displayName: 'Sam', rating: 1000, rank: 2 }),
     ])
   })
 
@@ -339,8 +339,8 @@ describe('recording and confirming a Match', () => {
       ratingChange: samChange,
     })
     expect(await listLeaderboard(ladder.id, who('Sam').client)).toEqual([
-      { displayName: 'Sam', rating: sam?.rating },
-      { displayName: 'Priya', rating: priya?.rating },
+      expect.objectContaining({ displayName: 'Sam', rating: sam?.rating, rank: 1 }),
+      expect.objectContaining({ displayName: 'Priya', rating: priya?.rating, rank: 2 }),
     ])
     expect(await listMatchesWaitingForMe(ladder.id, who('Priya').client)).toEqual([])
     await expect(confirmMatch(match.id, who('Priya').client)).rejects.toThrow(/pending/i)

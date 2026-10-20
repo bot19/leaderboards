@@ -2,11 +2,11 @@ import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
 import { IconCopy } from '@tabler/icons-react'
 import { toast } from 'sonner'
-import { fetchLadder, fetchShareToken, listLeaderboard } from '@/data/ladder'
+import { fetchLadder, fetchShareToken } from '@/data/ladder'
 import { useAuth } from '@/features/auth/authContext'
+import { LeaderboardPanel } from '@/features/ladders/LeaderboardPanel'
 import { MembersPanel } from '@/features/ladders/MembersPanel'
 import { ladderSearchSchema, ladderTabs, type LadderTab } from '@/features/ladders/search'
-import { formatRating } from '@/features/matches/labels'
 import { MatchHistory } from '@/features/matches/MatchHistory'
 import { RecordMatchPanel } from '@/features/matches/RecordMatchPanel'
 import { WaitingForYou } from '@/features/matches/WaitingForYou'
@@ -41,11 +41,6 @@ function LadderPage() {
   const ladder = useQuery({
     queryKey: ['ladder', ladderId],
     queryFn: () => fetchLadder(ladderId),
-  })
-  const leaderboard = useQuery({
-    queryKey: ['leaderboard', ladderId],
-    queryFn: () => listLeaderboard(ladderId),
-    enabled: Boolean(ladder.data),
   })
   const shareToken = useQuery({
     queryKey: ['share-token', ladderId],
@@ -139,25 +134,7 @@ function LadderPage() {
             </button>
           </div>
           <WaitingForYou ladderId={ladderId} />
-          {tab === 'leaderboard' ? (
-            <section aria-label="Leaderboard">
-              <h2 className="sr-only">Leaderboard</h2>
-              {leaderboard.isLoading ? <p className="text-neutral-600">Loading Leaderboard…</p> : null}
-              {leaderboard.data ? (
-                <ol className="divide-y divide-neutral-200 overflow-hidden rounded-xl bg-white shadow-sm">
-                  {leaderboard.data.map((entry, index) => (
-                    <li
-                      key={`${entry.displayName}-${entry.rating}-${index}`}
-                      className="flex items-baseline justify-between gap-3 px-4 py-3"
-                    >
-                      <span className="font-medium text-ink">{entry.displayName}</span>
-                      <span className="tabular-nums text-neutral-800">{formatRating(entry.rating)}</span>
-                    </li>
-                  ))}
-                </ol>
-              ) : null}
-            </section>
-          ) : null}
+          {tab === 'leaderboard' ? <LeaderboardPanel ladderId={ladderId} /> : null}
           {tab === 'matches' ? <MatchHistory ladderId={ladderId} /> : null}
           {tab === 'members' ? <MembersPanel ladderId={ladderId} /> : null}
         </>

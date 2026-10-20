@@ -88,7 +88,7 @@ describe('membership and roles', () => {
       ),
     ).toMatchObject({ status: 'left', rating: 1180, role: 'player' })
     expect(await listLeaderboard(ladder.id, admin.client)).toEqual([
-      { displayName: 'Sam', rating: 1000 },
+      expect.objectContaining({ displayName: 'Sam', rating: 1000, rank: 1 }),
     ])
     expect(await listMyLadders(player.client)).toEqual([])
 
@@ -133,7 +133,7 @@ describe('membership and roles', () => {
     await leaveLadder(ladder.id, player.client)
     expect((await listMatches(ladder.id, admin.client)).map((row) => row.id)).toEqual([match.id])
     expect(await listLeaderboard(ladder.id, admin.client)).toEqual([
-      { displayName: 'Sam', rating: 1000 },
+      expect.objectContaining({ displayName: 'Sam', rating: 1000, rank: 1 }),
     ])
 
     await joinLadder(token, player.client)
@@ -145,7 +145,7 @@ describe('membership and roles', () => {
     ).toMatchObject({ status: 'removed' })
     expect((await listMatches(ladder.id, admin.client)).map((row) => row.id)).toEqual([match.id])
     expect(await listLeaderboard(ladder.id, admin.client)).toEqual([
-      { displayName: 'Sam', rating: 1000 },
+      expect.objectContaining({ displayName: 'Sam', rating: 1000, rank: 1 }),
     ])
   })
 
@@ -161,7 +161,7 @@ describe('membership and roles', () => {
       ),
     ).toMatchObject({ status: 'removed', rating: 1125 })
     expect(await listLeaderboard(ladder.id, admin.client)).toEqual([
-      { displayName: 'Sam', rating: 1000 },
+      expect.objectContaining({ displayName: 'Sam', rating: 1000, rank: 1 }),
     ])
     await expect(joinLadder(token, player.client)).rejects.toThrow(/removed/i)
 

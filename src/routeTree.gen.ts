@@ -16,6 +16,7 @@ import { Route as SignupRouteImport } from './routes/signup'
 import { Route as AuthCallbackRouteImport } from './routes/auth.callback'
 import { Route as JoinTokenRouteImport } from './routes/join/$token'
 import { Route as LaddersLadderIdRouteImport } from './routes/ladders/$ladderId'
+import { Route as LaddersLadderIdMembersMemberIdRouteImport } from './routes/ladders/$ladderId_.members.$memberId'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -52,6 +53,12 @@ const LaddersLadderIdRoute = LaddersLadderIdRouteImport.update({
   path: '/ladders/$ladderId',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LaddersLadderIdMembersMemberIdRoute =
+  LaddersLadderIdMembersMemberIdRouteImport.update({
+    id: '/ladders/$ladderId_/members/$memberId',
+    path: '/ladders/$ladderId/members/$memberId',
+    getParentRoute: () => rootRouteImport,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -61,6 +68,7 @@ export interface FileRoutesByFullPath {
   '/auth/callback': typeof AuthCallbackRoute
   '/join/$token': typeof JoinTokenRoute
   '/ladders/$ladderId': typeof LaddersLadderIdRoute
+  '/ladders/$ladderId/members/$memberId': typeof LaddersLadderIdMembersMemberIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -70,6 +78,7 @@ export interface FileRoutesByTo {
   '/auth/callback': typeof AuthCallbackRoute
   '/join/$token': typeof JoinTokenRoute
   '/ladders/$ladderId': typeof LaddersLadderIdRoute
+  '/ladders/$ladderId/members/$memberId': typeof LaddersLadderIdMembersMemberIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -80,6 +89,7 @@ export interface FileRoutesById {
   '/auth/callback': typeof AuthCallbackRoute
   '/join/$token': typeof JoinTokenRoute
   '/ladders/$ladderId': typeof LaddersLadderIdRoute
+  '/ladders/$ladderId_/members/$memberId': typeof LaddersLadderIdMembersMemberIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -91,6 +101,7 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/join/$token'
     | '/ladders/$ladderId'
+    | '/ladders/$ladderId/members/$memberId'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -100,6 +111,7 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/join/$token'
     | '/ladders/$ladderId'
+    | '/ladders/$ladderId/members/$memberId'
   id:
     | '__root__'
     | '/'
@@ -109,6 +121,7 @@ export interface FileRouteTypes {
     | '/auth/callback'
     | '/join/$token'
     | '/ladders/$ladderId'
+    | '/ladders/$ladderId_/members/$memberId'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -119,6 +132,7 @@ export interface RootRouteChildren {
   AuthCallbackRoute: typeof AuthCallbackRoute
   JoinTokenRoute: typeof JoinTokenRoute
   LaddersLadderIdRoute: typeof LaddersLadderIdRoute
+  LaddersLadderIdMembersMemberIdRoute: typeof LaddersLadderIdMembersMemberIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -172,6 +186,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LaddersLadderIdRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/ladders/$ladderId_/members/$memberId': {
+      id: '/ladders/$ladderId_/members/$memberId'
+      path: '/ladders/$ladderId/members/$memberId'
+      fullPath: '/ladders/$ladderId/members/$memberId'
+      preLoaderRoute: typeof LaddersLadderIdMembersMemberIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -183,6 +204,7 @@ const rootRouteChildren: RootRouteChildren = {
   AuthCallbackRoute: AuthCallbackRoute,
   JoinTokenRoute: JoinTokenRoute,
   LaddersLadderIdRoute: LaddersLadderIdRoute,
+  LaddersLadderIdMembersMemberIdRoute: LaddersLadderIdMembersMemberIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

@@ -98,8 +98,8 @@ describe('joining a Ladder from its Share link', () => {
       },
     ])
     expect(await listLeaderboard(ladder.id, joinerClient)).toEqual([
-      { displayName: 'Priya', rating: 1000 },
-      { displayName: 'Sam', rating: 1000 },
+      expect.objectContaining({ displayName: 'Priya', rating: 1000, rank: 1 }),
+      expect.objectContaining({ displayName: 'Sam', rating: 1000, rank: 2 }),
     ])
   })
 

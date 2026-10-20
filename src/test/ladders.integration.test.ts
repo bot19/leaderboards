@@ -155,11 +155,13 @@ describe('creating a Ladder', () => {
     await addLadderPlayer(ladder.id, lower.id, { rating: 900 })
     await addLadderPlayer(ladder.id, left.id, { rating: 1500, status: 'left' })
 
-    expect(await listLeaderboard(ladder.id, adminClient)).toEqual([
-      { displayName: 'Priya', rating: 1200 },
-      { displayName: 'Sam', rating: 1000 },
-      { displayName: 'Alex', rating: 900 },
+    const board = await listLeaderboard(ladder.id, adminClient)
+    expect(board.map((entry) => ({ displayName: entry.displayName, rating: entry.rating, rank: entry.rank }))).toEqual([
+      { displayName: 'Priya', rating: 1200, rank: 1 },
+      { displayName: 'Sam', rating: 1000, rank: 2 },
+      { displayName: 'Alex', rating: 900, rank: 3 },
     ])
+    expect(board.every((entry) => entry.provisional && entry.ladderMemberId)).toBe(true)
   })
 
   it('lists the Ladders a User belongs to, and not every Ladder a super admin can read', async () => {

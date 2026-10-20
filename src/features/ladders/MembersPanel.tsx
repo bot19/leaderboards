@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useNavigate } from '@tanstack/react-router'
+import { Link, useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import {
   deleteLadder,
@@ -52,6 +52,7 @@ export function MembersPanel({ ladderId }: Props) {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['ladder-members', ladderId] }),
       queryClient.invalidateQueries({ queryKey: ['leaderboard', ladderId] }),
+      queryClient.invalidateQueries({ queryKey: ['inactive-members', ladderId] }),
       queryClient.invalidateQueries({ queryKey: ['my-ladders'] }),
       queryClient.invalidateQueries({ queryKey: ['roster', ladderId] }),
     ])
@@ -117,7 +118,15 @@ export function MembersPanel({ ladderId }: Props) {
           {sorted.map((member) => (
             <li key={member.id} className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
-                <p className="font-medium text-ink">{member.displayName}</p>
+                <p className="font-medium text-ink">
+                  <Link
+                    to="/ladders/$ladderId/members/$memberId"
+                    params={{ ladderId, memberId: member.id }}
+                    className="underline-offset-2 hover:underline"
+                  >
+                    {member.displayName}
+                  </Link>
+                </p>
                 <p className="text-sm text-neutral-600">
                   {member.role === 'admin' ? 'Admin' : 'Player'} · {statusLabel[member.status]}
                 </p>

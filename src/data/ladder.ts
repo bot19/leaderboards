@@ -19,8 +19,26 @@ export type MyLadder = {
 }
 
 export type LeaderboardEntry = {
+  ladderMemberId: string
   displayName: string
   rating: number
+  rank: number
+  provisional: boolean
+}
+
+export type InactiveMember = {
+  ladderMemberId: string
+  displayName: string
+  rating: number
+  provisional: boolean
+  lastActiveAt: string
+}
+
+export type RatingHistoryEntry = {
+  matchId: string
+  confirmedAt: string
+  ratingBefore: number
+  ratingChange: number
 }
 
 export type LadderMemberRead = {
@@ -260,16 +278,60 @@ export async function listLeaderboard(
 ): Promise<LeaderboardEntry[]> {
   const { data, error } = await client
     .from('leaderboard')
-    .select('display_name, rating')
+    .select('ladder_member_id, display_name, rating, provisional, rank')
     .eq('ladder_id', ladderId)
-    .order('rating', { ascending: false })
+    .order('rank', { ascending: true })
+
+  if (error) throw new Error(error.message)
+
+  return (data ?? []).map((row) => ({
+    ladderMemberId: row.ladder_member_id,
+    displayName: row.display_name,
+    rating: asNumber(row.rating),
+    rank: asNumber(row.rank),
+    provisional: row.provisional,
+  }))
+}
+
+export async function listInactiveMembers(
+  ladderId: string,
+  client: LadderClient = getSupabase(),
+): Promise<InactiveMember[]> {
+  const { data, error } = await client
+    .from('inactive_ladder_members')
+    .select('ladder_member_id, display_name, rating, provisional, last_active_at')
+    .eq('ladder_id', ladderId)
     .order('display_name', { ascending: true })
 
   if (error) throw new Error(error.message)
 
   return (data ?? []).map((row) => ({
+    ladderMemberId: row.ladder_member_id,
     displayName: row.display_name,
     rating: asNumber(row.rating),
+    provisional: row.provisional,
+    lastActiveAt: row.last_active_at,
+  }))
+}
+
+export async function listRatingHistory(
+  ladderMemberId: string,
+  client: LadderClient = getSupabase(),
+): Promise<RatingHistoryEntry[]> {
+  const { data, error } = await client
+    .from('rating_history')
+    .select('match_id, confirmed_at, rating_before, rating_change')
+    .eq('ladder_member_id', ladderMemberId)
+    .order('confirmed_at', { ascending: true })
+    .order('match_id', { ascending: true })
+
+  if (error) throw new Error(error.message)
+
+  return (data ?? []).map((row) => ({
+    matchId: row.match_id,
+    confirmedAt: row.confirmed_at,
+    ratingBefore: asNumber(row.rating_before),
+    ratingChange: asNumber(row.rating_change),
   }))
 }
 

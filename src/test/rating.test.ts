@@ -206,9 +206,10 @@ describe('pure rating module', () => {
       provisional_k_factor: number
       provisional_threshold: number
       confirmation_window_hours: number
+      inactive_threshold_days: number
     }>(
       `select starting_rating, k_factor, provisional_k_factor, provisional_threshold,
-              confirmation_window_hours
+              confirmation_window_hours, inactive_threshold_days
        from public.rating_constants()`,
     )
 
@@ -218,6 +219,7 @@ describe('pure rating module', () => {
       provisional_k_factor: 64,
       provisional_threshold: 5,
       confirmation_window_hours: 48,
+      inactive_threshold_days: 30,
     })
   })
 })

@@ -82,6 +82,7 @@ export type Database = {
           rating: number
           rated_match_count: number
           last_match_at: string | null
+          joined_at: string
         }
         Insert: {
           id?: string
@@ -92,6 +93,7 @@ export type Database = {
           rating: number
           rated_match_count?: number
           last_match_at?: string | null
+          joined_at?: string
         }
         Update: {
           ladder_id?: string
@@ -101,6 +103,7 @@ export type Database = {
           rating?: number
           rated_match_count?: number
           last_match_at?: string | null
+          joined_at?: string
         }
         Relationships: [
           {
@@ -231,6 +234,30 @@ export type Database = {
           ladder_member_id: string
           display_name: string
           rating: number
+          provisional: boolean
+          rank: number
+        }
+        Relationships: []
+      }
+      inactive_ladder_members: {
+        Row: {
+          ladder_id: string
+          ladder_member_id: string
+          display_name: string
+          rating: number
+          provisional: boolean
+          last_active_at: string
+        }
+        Relationships: []
+      }
+      rating_history: {
+        Row: {
+          ladder_member_id: string
+          ladder_id: string
+          match_id: string
+          confirmed_at: string
+          rating_before: number
+          rating_change: number
         }
         Relationships: []
       }
