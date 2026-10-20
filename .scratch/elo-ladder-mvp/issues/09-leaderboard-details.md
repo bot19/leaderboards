@@ -4,10 +4,10 @@
 
 **Blocked by:** 05 Record and confirm a Match (1v1 and 2v2)
 
-**Status:** claimed
+**Status:** resolved
 
-- [ ] Leaderboard read view: active Ladder members whose last Match (or joining, if they've never played) is within the Inactive threshold, ordered by Rating, with rank and a Provisional flag (fewer than 5 rated Matches)
-- [ ] Inactive read view: active Ladder members past the Inactive threshold (30 days, from the tunable constants); being Inactive never changes a Rating
-- [ ] Rating history for a Ladder member: their Confirmed Matches in confirmation order with Rating before and change
-- [ ] UI: ranks and a Provisional marker on the Leaderboard, a separate Inactive list, and a Rating history view per Ladder member (routed, so it can be linked)
-- [ ] Integration tests (backdated timestamps via a service-role fixture): ranks follow Rating; the Provisional flag clears at 5 rated Matches; a Ladder member past the threshold appears only in the Inactive list with the same Rating; playing a Match returns them to the Leaderboard; Rating history matches the Participants' stored changes
+- [x] Leaderboard read view: active Ladder members whose last Match (or joining, if they've never played) is within the Inactive threshold, ordered by Rating, with rank and a Provisional flag (fewer than 5 rated Matches)
+- [x] Inactive read view: active Ladder members past the Inactive threshold (30 days, from the tunable constants); being Inactive never changes a Rating
+- [x] Rating history for a Ladder member: their Confirmed Matches in confirmation order with Rating before and change
+- [x] UI: ranks and a Provisional marker on the Leaderboard, a separate Inactive list, and a Rating history view per Ladder member (routed, so it can be linked)
+- [x] Integration tests (backdated timestamps via a service-role fixture): ranks follow Rating; the Provisional flag clears at 5 rated Matches; a Ladder member past the threshold appears only in the Inactive list with the same Rating; playing a Match returns them to the Leaderboard; Rating history matches the Participants' stored changes
