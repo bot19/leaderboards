@@ -4,7 +4,7 @@ Checklist for after ticket 09. Not a ticket: the agent's "Pick" rule only reads 
 
 ## Code changes
 
-- [ ] Ticket 10 (`issues/10-prepare-for-production.md`) resolved. Do it before linking: once the main checkout is linked, allowlisted `pnpm` would let an agent `db push` unprompted.
+- [x] Ticket 10 (`issues/10-prepare-for-production.md`) resolved. Do it before linking: once the main checkout is linked, allowlisted `pnpm` would let an agent `db push` unprompted.
 
 ## Supabase (human)
 
