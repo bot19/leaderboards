@@ -31,16 +31,16 @@ In the Cursor chat panel, add these to Settings → Agents → Auto-Run → Comm
 
 1. Tell the agent: *"Work the next ticket in `.scratch/elo-ladder-mvp/` following README.md."* You can name a specific ticket instead.
 2. Answer the prompts that are left. The allowlist above covers routine work, so anything else still asks: `docker`, `curl`, `python3`/`node` scripts, `rm` and `kill`.
-3. When the agent reports the ticket resolved, look over the merge on `elo-ladder-mvp`.
+3. When the agent reports the ticket resolved, look over the merge on `dev`.
 
 ## Agent: working a ticket
 
 1. **Pick.** Use the ticket you were given. Otherwise take the lowest-numbered ticket in `.scratch/elo-ladder-mvp/issues/` that isn't `claimed` or `resolved` and whose **Blocked by** tickets are all `resolved`.
-2. **Claim.** On `elo-ladder-mvp` in this checkout, set `**Status:** claimed` and commit (`Claim the <ticket> ticket.`).
-3. **Worktree.** Run `git worktree add .worktrees/<NN-slug> -b ticket/<NN-slug> elo-ladder-mvp`. Then, inside it, run `pnpm install` and `pnpm env:local`.
+2. **Claim.** On `dev` in this checkout, set `**Status:** claimed` and commit (`Claim the <ticket> ticket.`).
+3. **Worktree.** Run `git worktree add .worktrees/<NN-slug> -b ticket/<NN-slug> dev`. Then, inside it, run `pnpm install` and `pnpm env:local`.
 4. **Schema.** From the worktree, run `pnpm exec supabase db reset`. Run it again whenever you add or change a migration.
 5. **Build** test-first. The ticket is done when every acceptance box is ticked and `pnpm typecheck`, `pnpm lint` and `pnpm test` are green in the worktree.
-6. **Resolve.** Stop every dev server or watcher you started in the worktree. Then, in this checkout, merge `ticket/<NN-slug>` into `elo-ladder-mvp`. Then tick the boxes, set `**Status:** resolved` and commit (`Resolve the <ticket> ticket.`). Last, run `git worktree remove .worktrees/<NN-slug>`.
+6. **Resolve.** Stop every dev server or watcher you started in the worktree. Then, in this checkout, merge `ticket/<NN-slug>` into `dev`. Then tick the boxes, set `**Status:** resolved` and commit (`Resolve the <ticket> ticket.`). Last, run `git worktree remove .worktrees/<NN-slug>`.
 
 If `pnpm test` says *Local Supabase is not ready*, the stack is down. Stop and ask the human to start it.
 

@@ -9,16 +9,16 @@ Checklist for after ticket 09. Not a ticket: the agent's "Pick" rule only reads 
 ## Supabase (human)
 
 - [x] Create the project in a region near colleagues (Sydney). `pnpm exec supabase link`, then `pnpm exec supabase db push`.
-- [ ] Auth → URL configuration: Site URL = Netlify URL. Redirect URLs = `https://<site>/auth/callback`.
-- [x] Auth → Email templates: copy `supabase/templates/magic_link.html` and `confirmation.html`, subject "Your Elo Ladder passcode". The templates must show `{{ .Token }}`. Set OTP length to 6. Hosted Supabase ignores `config.toml`.
+- [x] Auth → Email templates → Magic Link: paste `supabase/templates/magic_link.html` (code only, `{{ .Token }}`), subject "Your Leaderboards App passcode". Confirm email off, so Confirm signup is unused. OTP length 6, expiry 3600. Hosted Supabase ignores `config.toml`.
 - [x] Resend: verify a domain you own (DNS records). Auth → SMTP: host `smtp.resend.com`, port 465, user `resend`, password = Resend API key. Raise the auth email rate limit.
 - [ ] After signing up through the live app: `update profiles set is_super_admin = true where id = '<your user id>';`
 - [x] `select * from cron.job;` lists the auto-confirm schedule (ticket 06).
 
 ## Netlify (human)
 
-- [ ] Merge `elo-ladder-mvp` into `main`, push, connect the repo with `main` as the production branch.
+- [ ] Open a PR `dev` → `main` and merge it. Connect the repo in Netlify with `main` as the production branch.
 - [ ] Env vars: `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` from the hosted project (never the secret or service-role key). `NODE_VERSION=24`.
+- [ ] **After the Netlify subdomain is set:** Auth → URL configuration → Site URL = `https://<subdomain>`. Redirect URLs: leave empty (emails carry a code, no link). Add `https://<subdomain>/auth/callback` only if a link goes back into the template.
 
 ## Smoke test
 

@@ -247,11 +247,11 @@ otp_expiry = 3600
 
 # Uncomment to customize email template
 [auth.email.template.magic_link]
-subject = "Your Elo Ladder passcode"
+subject = "Your Leaderboards App passcode"
 content_path = "./supabase/templates/magic_link.html"
 
 [auth.email.template.confirmation]
-subject = "Your Elo Ladder passcode"
+subject = "Your Leaderboards App passcode"
 content_path = "./supabase/templates/confirmation.html"
 
 # [auth.email.template.invite]
