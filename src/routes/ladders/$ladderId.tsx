@@ -10,6 +10,7 @@ import { ladderSearchSchema, ladderTabs, type LadderTab } from '@/features/ladde
 import { MatchHistory } from '@/features/matches/MatchHistory'
 import { RecordMatchPanel } from '@/features/matches/RecordMatchPanel'
 import { WaitingForYou } from '@/features/matches/WaitingForYou'
+import { SignedInChrome } from '@/features/nav/SignedInChrome'
 import { resolveAuthDestination } from '@/lib/authDestination'
 
 const tabLabel: Record<LadderTab, string> = {
@@ -54,6 +55,7 @@ function LadderPage() {
   if (!profile) return null
 
   return (
+    <>
     <main className="mx-auto flex min-h-dvh max-w-lg flex-col gap-6 px-4 py-10">
       <div className="space-y-2">
         <Link to="/" className="text-sm text-neutral-700 underline">
@@ -111,8 +113,8 @@ function LadderPage() {
                   onClick={() => {
                     void navigate({
                       search: (prev) => ({
+                        ...prev,
                         tab: item,
-                        ...(prev.record ? { record: prev.record } : {}),
                       }),
                     })
                   }}
@@ -126,7 +128,7 @@ function LadderPage() {
               className="rounded-md bg-ink px-3 py-2 text-sm font-medium text-white"
               onClick={() => {
                 void navigate({
-                  search: (prev) => ({ tab: prev.tab, record: 'open' }),
+                  search: (prev) => ({ ...prev, record: 'open' }),
                 })
               }}
             >
@@ -143,10 +145,14 @@ function LadderPage() {
         <RecordMatchPanel
           ladderId={ladderId}
           onClose={() => {
-            void navigate({ search: (prev) => ({ tab: prev.tab }) })
+            void navigate({
+              search: (prev) => ({ ...prev, record: undefined }),
+            })
           }}
         />
       ) : null}
     </main>
+    <SignedInChrome />
+    </>
   )
 }

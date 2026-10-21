@@ -1,6 +1,6 @@
 // Copied from bao-ui: src/components/brand/BrandLockup.tsx — wordmark strings changed for this app.
 
-export const BRAND_NAME = 'Leaderboards App'
+export const BRAND_NAME = 'Leaderboards'
 export const BRAND_TAGLINE = 'Who beats whom'
 
 type WordmarkProps = {
@@ -10,7 +10,7 @@ type WordmarkProps = {
   id?: string
 }
 
-/** App wordmark: “Leaderboards” in ink, “App” in primary. */
+/** App wordmark: “Leader” in ink, “boards” in primary. */
 export function BrandWordmark({
   className = '',
   as: Tag = 'span',
@@ -18,7 +18,7 @@ export function BrandWordmark({
 }: WordmarkProps) {
   return (
     <Tag id={id} className={`font-display tracking-tight text-ink ${className}`}>
-      Leaderboards <span className="text-primary">App</span>
+      Leader<span className="text-primary">boards</span>
     </Tag>
   )
 }
