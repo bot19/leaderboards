@@ -22,9 +22,9 @@ Checklist for after ticket 09. Not a ticket: the agent's "Pick" rule only reads 
 
 ## Smoke test
 
-- [ ] Sign up with a real email and confirm the passcode arrives through Resend. Then onboard and create a Ladder.
-- [ ] Open the Share link in a private window. Sign in and land back on the preview, then join with a second account.
-- [ ] Record a Match and confirm it from the other account. Ratings move.
+- [x] Sign up with a real email and confirm the passcode arrives through Resend. Then onboard and create a Ladder.
+- [x] Open the Share link in a private window. Sign in and land back on the preview, then join with a second account. (verified on local Supabase)
+- [x] Record a Match and confirm it from the other account. Ratings move. (verified on local Supabase)
 
 ## Know before launch
 
