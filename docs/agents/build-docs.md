@@ -60,7 +60,7 @@ Every screen sits in one centred column: `mx-auto max-w-lg px-4` on the route's 
 
 ## Writing a build doc
 
-For the agent that turns the human's feature description into a build doc. Settle open questions with the human before writing; the implementing agent should find nothing left to decide.
+For the agent that turns the human's feature description into a build doc. Settle open questions with the human before writing; the implementing agent should find nothing left to decide. Once it's written, commit the build doc alone on `dev` as `<version> docs: add build doc for <short title>`.
 
 ```md
 # <version>: <short title>
