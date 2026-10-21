@@ -98,14 +98,14 @@ export function NavDrawer({
 
   return (
     <div
-      className="pointer-events-none fixed inset-0 z-50 flex justify-end"
+      className="pointer-events-none fixed inset-0 z-50"
       inert={!shown}
       aria-hidden={shown ? undefined : true}
     >
       <button
         type="button"
         aria-label="Dismiss navigation"
-        className={`min-w-[10%] flex-1 bg-ink/25 motion-safe:transition-opacity motion-safe:duration-300 motion-safe:ease-out ${shown ? 'pointer-events-auto opacity-100' : 'opacity-0'}`}
+        className={`absolute inset-0 bg-ink/25 motion-safe:transition-opacity motion-safe:duration-300 motion-safe:ease-out ${shown ? 'pointer-events-auto opacity-100' : 'opacity-0'}`}
         onClick={onClose}
       />
 
@@ -114,7 +114,7 @@ export function NavDrawer({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className={`flex h-full w-[90%] max-w-md flex-col bg-white shadow-2xl motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-out ${shown ? 'pointer-events-auto translate-x-0' : 'translate-x-full'}`}
+        className={`absolute inset-y-0 right-0 flex h-full w-[90%] max-w-md flex-col bg-white shadow-2xl motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-out ${shown ? 'pointer-events-auto translate-x-0' : 'translate-x-full'}`}
       >
         <div className="flex items-start justify-between gap-2 border-b border-neutral-100 px-4 pt-[max(1.25rem,env(safe-area-inset-top))] pb-4">
           <div className="min-w-0 flex-1">
