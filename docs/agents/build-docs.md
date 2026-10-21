@@ -11,9 +11,10 @@ Build docs replace the MVP's ticket-and-worktree flow in `README.md`: work happe
 3. **Version.** Set `"version"` in `package.json` to the build doc's **Version**. Change nothing else in that file unless the build doc says so.
 4. **Schema** (only when the build doc needs a database change). Add a migration under `supabase/migrations/`, then run `pnpm exec supabase db reset`, and again after every migration edit. The stack rules in `AGENTS.md` apply. Production is the human's: record the migration in your report so they can apply it.
 5. **Build** test-first, following **UI rules** below for anything a user sees. Done when every acceptance box in the build doc is met.
-6. **Gate.** `pnpm typecheck`, `pnpm lint`, `pnpm test` and `pnpm build` all green. If you can drive a browser, check each changed screen at 300px, 375px, 512px and 1280px wide. If you can't, say so in your report.
-7. **Commit** on `dev` as soon as the feature is built and the gate is green, without waiting for the human, following **Commit messages** below. In the last commit, tick the build doc's boxes and set its `**Status:** resolved`. Stop any dev server or watcher you started. Leave pushing to the human.
-8. **Report.** List the commits, any migration production needs, and every judgement call the build doc didn't settle (including UI with no food-friends equivalent).
+6. **Gate.** `pnpm typecheck`, `pnpm lint`, `pnpm test` and `pnpm build` all green. If you can drive a browser, check each changed screen at 300px, 375px, 512px and 1280px wide. If you can't, say so in your review.
+7. **Review.** With the gate green and nothing committed, ask the human whether they want any changes before you commit. In the same message, summarise what you built, any migration production needs, and every judgement call the build doc didn't settle (including UI with no food-friends equivalent). Apply each change they ask for, rerun the gate, and ask again. Move on only when the human says there are no more changes.
+8. **Commit** on `dev`, following **Commit messages** below. In the last commit, tick the build doc's boxes and set its `**Status:** resolved`. Stop any dev server or watcher you started. Leave pushing to the human.
+9. **Report.** List the commits, and repeat any migration production needs.
 
 ## Commit messages
 
