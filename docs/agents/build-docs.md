@@ -1,6 +1,6 @@
 # Build docs
 
-A **build doc** describes one versioned update to the app: a feature, a fix, a UI change. Each one lives at `.scratch/updates/<version>-<slug>.md` (for example `.scratch/updates/0.3.0-win-streaks.md`) and carries its own **Version**.
+A **build doc** describes one versioned update to the app: a feature, a fix, a UI change. Each one lives at `.scratch/updates/<version>-<slug>.md` (for example `.scratch/updates/0.3.0-win-streaks.md`) and carries its own **Version**. Work that doesn't change the shipped app (seed data, tooling) has **Version:** none and lives at `.scratch/updates/<slug>.md`.
 
 Build docs replace the MVP's ticket-and-worktree flow in `README.md`: work happens directly on `dev` in this checkout.
 
@@ -8,7 +8,7 @@ Build docs replace the MVP's ticket-and-worktree flow in `README.md`: work happe
 
 1. **Read.** Read the build doc, `GLOSSARY.md`, and any ADR in `docs/adr/` that touches the area. Use glossary terms in code, copy and commit messages.
 2. **Branch.** Confirm `git branch --show-current` prints `dev`. If it doesn't, stop and ask the human. Changes already in `git status` belong to the human: leave them unstaged and stage only the files you touch.
-3. **Version.** Set `"version"` in `package.json` to the build doc's **Version**. Change nothing else in that file unless the build doc says so.
+3. **Version.** Set `"version"` in `package.json` to the build doc's **Version**. Change nothing else in that file unless the build doc says so. Skip this step when the Version is none.
 4. **Schema** (only when the build doc needs a database change). Add a migration under `supabase/migrations/`, then run `pnpm exec supabase db reset`, and again after every migration edit. The stack rules in `AGENTS.md` apply. Production is the human's: record the migration in your report so they can apply it.
 5. **Build** test-first, following **UI rules** below for anything a user sees. Done when every acceptance box in the build doc is met.
 6. **Gate.** `pnpm typecheck`, `pnpm lint`, `pnpm test` and `pnpm build` all green. If you can drive a browser, check each changed screen at 300px, 375px, 512px and 1280px wide. If you can't, say so in your review.
@@ -22,7 +22,7 @@ Build docs replace the MVP's ticket-and-worktree flow in `README.md`: work happe
 <version> <type>: <description>
 ```
 
-- `<version>` is the build doc's **Version**, on every commit for that build doc.
+- `<version>` is the build doc's **Version**, on every commit for that build doc. When the Version is none, the message starts at `<type>`.
 - `<type>` is one lowercase word for what the commit does: `feature`, `fix`, `test`, `refactor`, `style`, `docs`, `chore`, or another plain verb that fits better.
 - `<description>` is lowercase, present tense, no trailing period, and says what changed for the user or the code.
 
