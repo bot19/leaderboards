@@ -16,9 +16,9 @@ Checklist for after ticket 09. Not a ticket: the agent's "Pick" rule only reads 
 
 ## Netlify (human)
 
-- [ ] Open a PR `dev` → `main` and merge it. Connect the repo in Netlify with `main` as the production branch.
-- [ ] Env vars: `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` from the hosted project (never the secret or service-role key). `NODE_VERSION=24`.
-- [ ] **After the Netlify subdomain is set:** Auth → URL configuration → Site URL = `https://<subdomain>`. Redirect URLs: leave empty (emails carry a code, no link). Add `https://<subdomain>/auth/callback` only if a link goes back into the template.
+- [x] Open a PR `dev` → `main` and merge it. Connect the repo in Netlify with `main` as the production branch.
+- [x] Env vars: `VITE_SUPABASE_URL` and `VITE_SUPABASE_PUBLISHABLE_KEY` from the hosted project (never the secret or service-role key). `NODE_VERSION=24`.
+- [ ] **After the Netlify subdomain is set:** Auth → URL configuration → Site URL = `https://<subdomain>` (until then, `https://leaderboards-app.netlify.app` works). Redirect URLs: leave empty (emails carry a code, no link). Add `https://<subdomain>/auth/callback` only if a link goes back into the template.
 
 ## Smoke test
 
