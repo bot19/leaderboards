@@ -11,7 +11,7 @@ Checklist for after ticket 09. Not a ticket: the agent's "Pick" rule only reads 
 - [x] Create the project in a region near colleagues (Sydney). `pnpm exec supabase link`, then `pnpm exec supabase db push`.
 - [x] Auth → Email templates → Magic Link: paste `supabase/templates/magic_link.html` (code only, `{{ .Token }}`), subject "Your Leaderboards App passcode". Confirm email off, so Confirm signup is unused. OTP length 6, expiry 3600. Hosted Supabase ignores `config.toml`.
 - [x] Resend: verify a domain you own (DNS records). Auth → SMTP: host `smtp.resend.com`, port 465, user `resend`, password = Resend API key. Raise the auth email rate limit.
-- [ ] After signing up through the live app: `update profiles set is_super_admin = true where id = '<your user id>';`
+- [x] After signing up through the live app: `update profiles set is_super_admin = true where id = '<your user id>';`
 - [x] `select * from cron.job;` lists the auto-confirm schedule (ticket 06).
 
 ## Netlify (human)
