@@ -1,5 +1,7 @@
 # Seed local data
 
+Implement this by following `docs/agents/build-docs.md`.
+
 **Version:** none
 
 **Status:** ready-for-agent

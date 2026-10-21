@@ -65,6 +65,8 @@ For the agent that turns the human's feature description into a build doc. Settl
 ```md
 # <version>: <short title>
 
+Implement this by following `docs/agents/build-docs.md`.
+
 **Version:** <version>
 
 **Status:** ready-for-agent

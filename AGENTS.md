@@ -1,6 +1,6 @@
 ## Build docs
 
-Versioned updates live in `.scratch/updates/<version>-<slug>.md`. To write or implement one, follow `docs/agents/build-docs.md`.
+Build docs live in `.scratch/updates/`. When you're given one to implement, or asked to write one, follow `docs/agents/build-docs.md`.
 
 ## Working a ticket
 
