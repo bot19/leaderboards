@@ -1,3 +1,7 @@
+## Build docs
+
+Build docs live in `.scratch/updates/`. When you're given one to implement, or asked to write one, follow `docs/agents/build-docs.md`.
+
 ## Working a ticket
 
 Follow `README.md` → "Agent: working a ticket" for every ticket: claim, worktree, schema, build, resolve.

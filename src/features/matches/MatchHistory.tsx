@@ -9,6 +9,7 @@ import {
   matchStatusLabel,
   sideNames,
 } from '@/features/matches/labels'
+import { voidMatchConfirm } from '@/lib/confirmAction'
 
 type Props = {
   ladderId: string
@@ -78,7 +79,14 @@ export function MatchHistory({ ladderId }: Props) {
                     type="button"
                     disabled={voiding.isPending && voiding.variables === match.id}
                     className="rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-sm font-medium text-ink disabled:opacity-60"
-                    onClick={() => voiding.mutate(match.id)}
+                    onClick={() => {
+                      if (
+                        match.status !== 'voided' &&
+                        window.confirm(voidMatchConfirm(match.status))
+                      ) {
+                        voiding.mutate(match.id)
+                      }
+                    }}
                   >
                     Void
                   </button>

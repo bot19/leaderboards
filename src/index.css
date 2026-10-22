@@ -39,6 +39,11 @@
   }
 
   /* TW v4 dropped button cursor:pointer from preflight; restore for clickable controls. */
+  button,
+  [role='button'] {
+    @apply motion-safe:transition-[color,background-color,border-color,box-shadow,opacity] motion-safe:duration-200 motion-safe:ease-out;
+  }
+
   button:not(:disabled),
   [role='button']:not([aria-disabled='true']) {
     cursor: pointer;
@@ -46,6 +51,14 @@
 
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-neutral-800;
+  }
+
+  input:not([type='checkbox']):not([type='radio']):not([type='range']):not(
+      [type='hidden']
+    ):not([type='button']):not([type='submit']):not([type='reset']),
+  select,
+  textarea {
+    @apply bg-white;
   }
 }
 

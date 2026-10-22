@@ -44,6 +44,10 @@ _Avoid_: invite, application
 The link that leads a User to a Ladder's preview, where they can join it, or on a Ladder that requires approval, make a Join request.
 _Avoid_: invite link
 
+**Join code**:
+The 6-character code that identifies a Ladder for joining, typed in the app or carried in the Share link.
+_Avoid_: invite code, ladder code
+
 **Left / Removed**:
 A Ladder member who chose to go (Left) or was taken off by an Admin (Removed). Their Matches stay in history. A Left member can rejoin from the Share link; a Removed member returns only when an Admin reinstates them.
 

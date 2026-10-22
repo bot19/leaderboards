@@ -1,5 +1,6 @@
 import { useMutation } from '@tanstack/react-query'
 import type { Session } from '@supabase/supabase-js'
+import { classifySessionCheck, type SessionCheck } from '@/lib/sessionCheck'
 import { getSupabase } from '@/lib/supabase'
 import { TEMP_PASSWORD_AUTH } from '@/lib/tempPasswordAuth'
 
@@ -136,6 +137,25 @@ export async function getSession(): Promise<Session | null> {
   return data.session
 }
 
+type SessionCheckAuth = {
+  getUser: () => PromiseLike<{
+    data: { user: unknown }
+    error: unknown
+  }>
+}
+
+/** Asks the server whether the stored session still belongs to a User. */
+export async function checkSession(
+  auth: SessionCheckAuth = getSupabase().auth,
+): Promise<SessionCheck> {
+  try {
+    const { data, error } = await auth.getUser()
+    return classifySessionCheck({ user: data.user, error })
+  } catch (caught) {
+    return classifySessionCheck({ user: null, error: caught })
+  }
+}
+
 export function subscribeToAuth(
   onChange: (session: Session | null) => void,
 ): () => void {
@@ -147,8 +167,30 @@ export function subscribeToAuth(
   return () => subscription.unsubscribe()
 }
 
-export async function signOut() {
-  const { error } = await getSupabase().auth.signOut()
+type SignOutAuth = {
+  signOut: (options?: { scope: 'global' | 'local' | 'others' }) => PromiseLike<{
+    error: { message: string } | null
+  }>
+}
+
+/**
+ * Signs out on the server. If that fails, clears this browser so a deleted User can still leave.
+ */
+export async function signOut(auth: SignOutAuth = getSupabase().auth) {
+  try {
+    const { error } = await auth.signOut()
+    if (!error) return
+  } catch {
+    // Fall through to the local clear.
+  }
+
+  const { error } = await auth.signOut({ scope: 'local' })
+  if (error) throw new Error(error.message)
+}
+
+/** Clears this browser only. A server sign-out fails once the User is gone. */
+export async function signOutLocally(auth: SignOutAuth = getSupabase().auth) {
+  const { error } = await auth.signOut({ scope: 'local' })
   if (error) throw new Error(error.message)
 }
 
