@@ -349,6 +349,51 @@ describe('Ladder page', () => {
     expect(screen.queryByRole('tab', { name: /Leaderboard,/ })).not.toBeInTheDocument()
   })
 
+  it('shows medals for the top three Leaderboard ranks and a number from rank 4', async () => {
+    mocks.leaderboard = [
+      { ladderMemberId: 'm1', displayName: 'Sam', rating: 1200, rank: 1, provisional: false },
+      { ladderMemberId: 'm2', displayName: 'Alex', rating: 1100, rank: 2, provisional: true },
+      { ladderMemberId: 'm3', displayName: 'Jordan', rating: 1000, rank: 3, provisional: false },
+      { ladderMemberId: 'm4', displayName: 'Casey', rating: 900, rank: 4, provisional: false },
+    ]
+    await openApp('/ladders/ladder-1')
+
+    const board = await screen.findByRole('region', { name: 'Leaderboard' })
+    const list = await within(board).findByRole('list')
+    expect(list).toHaveClass('divide-y', 'divide-neutral-200', 'overflow-hidden', 'rounded-xl', 'bg-white')
+
+    function rowOf(node: HTMLElement) {
+      const row = node.closest('li')
+      if (!row) throw new Error('Leaderboard row not found')
+      return row
+    }
+
+    const first = within(board).getByRole('img', { name: 'Rank 1' })
+    expect(first).toHaveTextContent('🥇')
+    expect(first).toHaveClass('absolute', 'text-[20px]')
+    expect(first.parentElement).toHaveClass('h-5', 'w-6', 'self-center')
+    expect(rowOf(first)).toHaveClass('bg-amber-100')
+    expect(within(rowOf(first)).getByText('1200')).toHaveClass('font-bold')
+
+    const second = within(board).getByRole('img', { name: 'Rank 2' })
+    expect(second).toHaveTextContent('🥈')
+    const alex = rowOf(second)
+    expect(alex).toHaveClass('bg-slate-100')
+    expect(within(alex).getByText('Provisional')).toBeInTheDocument()
+    expect(within(alex).getByText('1100')).toHaveClass('font-bold')
+
+    const third = within(board).getByRole('img', { name: 'Rank 3' })
+    expect(third).toHaveTextContent('🥉')
+    expect(rowOf(third)).toHaveClass('bg-orange-100')
+    expect(within(rowOf(third)).getByText('1000')).toHaveClass('font-bold')
+
+    const casey = rowOf(within(board).getByRole('link', { name: 'Casey' }))
+    expect(casey).toHaveTextContent('4')
+    expect(within(casey).queryByRole('img')).not.toBeInTheDocument()
+    expect(casey).not.toHaveClass('bg-amber-100', 'bg-slate-100', 'bg-orange-100')
+    expect(within(casey).getByText('900')).not.toHaveClass('font-bold')
+  })
+
   it('hides the Inactive section while it loads and when nobody is Inactive', async () => {
     mocks.blockInactive = true
     await openApp('/ladders/ladder-1')
