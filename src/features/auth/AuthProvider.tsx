@@ -1,5 +1,11 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
-import { getSession, subscribeToAuth, type Session } from '@/data/auth'
+import {
+  checkSession,
+  getSession,
+  signOutLocally,
+  subscribeToAuth,
+  type Session,
+} from '@/data/auth'
 import { fetchProfile, type Profile } from '@/data/profile'
 import { AuthContext } from './authContext'
 
@@ -32,18 +38,35 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let cancelled = false
 
     async function sync(next: Session | null) {
-      setSession(next)
       if (!next?.user) {
         loadedUserIdRef.current = null
         if (!cancelled) {
+          setSession(null)
           setProfile(null)
           setProfileError(false)
           setIsLoading(false)
         }
         return
       }
-      if (loadedUserIdRef.current === next.user.id) return
+      // Profile already loaded for this User. A deletion is caught on the next load.
+      if (loadedUserIdRef.current === next.user.id) {
+        if (!cancelled) setSession(next)
+        return
+      }
       if (!cancelled) setIsLoading(true)
+      // getSession() never contacts the server, so a deleted User still looks signed in.
+      const outcome = await checkSession()
+      if (cancelled) return
+      if (outcome === 'gone') {
+        try {
+          await signOutLocally()
+        } catch {
+          // Stop spinning. The stored session is still there until a later load.
+        }
+        if (!cancelled) setIsLoading(false)
+        return
+      }
+      if (!cancelled) setSession(next)
       try {
         const nextProfile = await fetchProfile(next.user.id)
         if (!cancelled) {

@@ -2,6 +2,7 @@ import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
+import { useSignOut } from '@/data/auth'
 import { createProfile } from '@/data/profile'
 import { useAuth } from '@/features/auth/authContext'
 import { displayNameSchema, type DisplayNameValues } from '@/features/auth/schemas'
@@ -31,6 +32,7 @@ export const Route = createFileRoute('/onboarding')({
 function OnboardingPage() {
   const { refreshProfile } = useAuth()
   const navigate = useNavigate()
+  const signOut = useSignOut()
   const { redirect: returnTo } = Route.useSearch()
   const form = useForm<DisplayNameValues>({
     resolver: zodResolver(displayNameSchema),
@@ -74,6 +76,23 @@ function OnboardingPage() {
           className="w-full rounded-md bg-ink px-3 py-2.5 text-sm font-medium text-white disabled:opacity-60"
         >
           Continue
+        </button>
+        <button
+          type="button"
+          className="mx-auto block min-h-11 text-sm text-neutral-700 underline disabled:opacity-60"
+          disabled={signOut.isPending}
+          onClick={() => {
+            void signOut
+              .mutateAsync()
+              .then(() => navigate({ to: '/login' }))
+              .catch((caught: unknown) => {
+                const message =
+                  caught instanceof Error ? caught.message : 'Could not sign out.'
+                toast.error(message, { id: 'sign-out', duration: Infinity })
+              })
+          }}
+        >
+          Not you? Sign out
         </button>
       </form>
     </main>

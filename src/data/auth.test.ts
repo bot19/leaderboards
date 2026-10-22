@@ -1,7 +1,10 @@
+import { AuthApiError } from '@supabase/supabase-js'
 import { describe, expect, it, vi } from 'vitest'
 import {
+  checkSession,
   signInWithOtp,
   signInWithPassword,
+  signOut,
   signUpWithOtp,
   verifyEmailOtp,
 } from './auth'
@@ -94,5 +97,67 @@ describe('password login', () => {
       email: 'sam@example.com',
       password: 'secret-pass',
     })
+  })
+})
+
+describe('checkSession', () => {
+  it('reports unknown when the server cannot be reached', async () => {
+    const auth = {
+      getUser: vi.fn(async () => {
+        throw new TypeError('Failed to fetch')
+      }),
+    }
+
+    await expect(checkSession(auth)).resolves.toBe('unknown')
+  })
+
+  it('reports gone when the server rejects the User', async () => {
+    const auth = {
+      getUser: vi.fn(async () => ({
+        data: { user: null },
+        error: new AuthApiError('missing user', 404, 'user_not_found'),
+      })),
+    }
+
+    await expect(checkSession(auth)).resolves.toBe('gone')
+  })
+})
+
+describe('signOut', () => {
+  it('clears this browser when the server sign-out fails', async () => {
+    const auth = {
+      signOut: vi
+        .fn()
+        .mockResolvedValueOnce({ error: { message: 'User not found' } })
+        .mockResolvedValueOnce({ error: null }),
+    }
+
+    await signOut(auth)
+
+    expect(auth.signOut).toHaveBeenNthCalledWith(1)
+    expect(auth.signOut).toHaveBeenNthCalledWith(2, { scope: 'local' })
+  })
+
+  it('clears this browser when the server sign-out throws', async () => {
+    const auth = {
+      signOut: vi
+        .fn()
+        .mockRejectedValueOnce(new TypeError('Failed to fetch'))
+        .mockResolvedValueOnce({ error: null }),
+    }
+
+    await signOut(auth)
+
+    expect(auth.signOut).toHaveBeenNthCalledWith(2, { scope: 'local' })
+  })
+
+  it('stops when the server sign-out succeeds', async () => {
+    const auth = {
+      signOut: vi.fn(async () => ({ error: null })),
+    }
+
+    await signOut(auth)
+
+    expect(auth.signOut).toHaveBeenCalledTimes(1)
   })
 })
