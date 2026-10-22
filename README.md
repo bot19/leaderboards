@@ -12,6 +12,18 @@ Tickets are built one at a time by an agent, each in its own git worktree under 
 - The agent applies its worktree's migrations with `pnpm exec supabase db reset`. That wipes local data, which is fine because tests create their own Users.
 - Only one ticket can use the stack at a time. That fits the tickets, which block one another in order.
 
+## Local test Users
+
+`pnpm exec supabase db reset` rebuilds these Users. The shared password is `password123`. Sign in through the local development password form.
+
+| Email | What they're for |
+|---|---|
+| `sam@example.com` | Super admin. Admin of Friday pool and Lunch table tennis. One Friday pool Match is waiting for them. |
+| `alex@example.com` | Player on both Ladders. One Friday pool Match is waiting for them. |
+| `jamie@example.com` | Has a profile and is on no Ladder, so Home is empty. |
+
+Friday pool also has Jordan, Taylor, Morgan, Riley and Casey (`jordan@example.com` and the same pattern). They use the same password.
+
 ## Human: once
 
 ```sh

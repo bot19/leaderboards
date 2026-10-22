@@ -4,7 +4,7 @@ Implement this by following `docs/agents/build-docs.md`.
 
 **Version:** none
 
-**Status:** ready-for-agent
+**Status:** resolved
 
 **Blocked by:** 0.3.0
 
@@ -56,12 +56,12 @@ Insert into `auth.users` **and** `auth.identities` (provider `email`), with `enc
 
 Add a **Local test Users** section to `README.md`, under "The local Supabase stack": the three main emails, the shared password, what each User is for, and that `db reset` rebuilds them.
 
-- [ ] `pnpm exec supabase db reset` runs the seed without errors
-- [ ] Sam, Alex and Jamie can each sign in locally with `password123` and land on Home (not onboarding)
-- [ ] Friday pool shows all of the above: four or more ranked, Taylor Provisional, Morgan Inactive, Riley Left, Casey Removed, Pending, Rejected and Voided Matches
-- [ ] Every Rating shown came from `private.replay_ladder`, and each Ladder member's Rating history adds up to their current Rating
-- [ ] Alex and Sam each see one Match in "Waiting for you"
-- [ ] `pnpm test` passes after a reset with the seed loaded. Check every test that counts rows or lists all Ladders or Users, and fix any that assumed an empty database by scoping it to the Users and Ladders that test created
-- [ ] The README section exists and matches the seed
+- [x] `pnpm exec supabase db reset` runs the seed without errors
+- [x] Sam, Alex and Jamie can each sign in locally with `password123` and land on Home (not onboarding)
+- [x] Friday pool shows all of the above: four or more ranked, Taylor Provisional, Morgan Inactive, Riley Left, Casey Removed, Pending, Rejected and Voided Matches
+- [x] Every Rating shown came from `private.replay_ladder`, and each Ladder member's Rating history adds up to their current Rating
+- [x] Alex and Sam each see one Match in "Waiting for you"
+- [x] `pnpm test` passes after a reset with the seed loaded. Check every test that counts rows or lists all Ladders or Users, and fix any that assumed an empty database by scoping it to the Users and Ladders that test created
+- [x] The README section exists and matches the seed
 
 **Out of scope:** A User with no profile (onboarding); seeding production or the hosted project; a script to re-seed without a reset.
