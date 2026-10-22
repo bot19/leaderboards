@@ -1,0 +1,11 @@
+{
+  "id": "/",
+  "name": "Leaderboards",
+  "short_name": "Leaderboards",
+  "description": "Elo Ladders for office games.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f5f5f5",
+  "theme_color": "#f5f5f5"
+}
