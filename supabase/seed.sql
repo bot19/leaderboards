@@ -105,7 +105,7 @@ values
     '33333333-3333-4333-8333-333333333301',
     'Friday pool',
     (select id from public.games where name = 'pool'),
-    'friday-pool',
+    'FRIDAY',
     'open',
     now() - interval '60 days'
   ),
@@ -113,7 +113,7 @@ values
     '33333333-3333-4333-8333-333333333302',
     'Lunch table tennis',
     '22222222-2222-4222-8222-222222222201',
-    'lunch-table-tennis',
+    'LUNCH1',
     'open',
     now() - interval '1 day'
   );

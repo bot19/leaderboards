@@ -3,6 +3,7 @@ import { afterEach, describe, expect, it } from 'vitest'
 import { createProfile } from '@/data/profile'
 import {
   createLadder,
+  fetchLadderIdByShareToken,
   fetchShareToken,
   joinLadder,
   listLadderMembers,
@@ -11,7 +12,14 @@ import {
   listMyLadders,
   previewLadder,
 } from '@/data/ladder'
-import { createTestUser, deleteTestUser, signInAs, addLadderPlayer } from './harness'
+import {
+  addLadderPlayer,
+  createTestUser,
+  deleteTestUser,
+  query,
+  signInAs,
+  signedOutClient,
+} from './harness'
 
 describe('joining a Ladder from its Share link', () => {
   const created: string[] = []
@@ -161,6 +169,84 @@ describe('joining a Ladder from its Share link', () => {
       ratedMatchCount: 0,
       lastMatchAt: null,
     })
+  })
+
+  it('stores a Join code on create and leaves existing Ladders on one', async () => {
+    const admin = await createTestUser()
+    created.push(admin.id)
+    const adminClient = await signInAs(admin)
+    await createProfile('Sam', adminClient)
+    const ladder = await createLadder('Friday pool', adminClient)
+    const token = await fetchShareToken(ladder.id, adminClient)
+    expect(token).toMatch(/^[1-9A-Z]{6}$/)
+
+    const ids = [
+      ladder.id,
+      '33333333-3333-4333-8333-333333333301',
+      '33333333-3333-4333-8333-333333333302',
+    ]
+    const read = async () => {
+      const rows = await query<{ id: string; share_token: string }>(
+        'select id, share_token from public.ladders where id = any($1::uuid[])',
+        [ids],
+      )
+      return rows.sort((a, b) => a.id.localeCompare(b.id))
+    }
+
+    const before = await read()
+    expect(before).toHaveLength(3)
+    for (const row of before) {
+      expect(row.share_token).toMatch(/^[1-9A-Z]{6}$/)
+    }
+
+    await query('select private.backfill_join_codes()')
+    expect(await read()).toEqual(before)
+
+    await expect(
+      query("update public.ladders set share_token = 'friday-pool' where id = $1", [ladder.id]),
+    ).rejects.toThrow(/check constraint/i)
+  })
+
+  it('previews and joins a Ladder by Join code in any letter case', async () => {
+    const admin = await createTestUser()
+    const joiner = await createTestUser()
+    created.push(admin.id, joiner.id)
+    const adminClient = await signInAs(admin)
+    const joinerClient = await signInAs(joiner)
+    await createProfile('Sam', adminClient)
+    await createProfile('Priya', joinerClient)
+    const ladder = await createLadder('Friday pool', adminClient)
+    const token = await fetchShareToken(ladder.id, adminClient)
+    const messy = ` ${token.toLowerCase()} `
+
+    expect(await previewLadder(messy, joinerClient)).toEqual({
+      name: 'Friday pool',
+      gameName: 'pool',
+      memberCount: 1,
+    })
+    await expect(joinLadder(messy, joinerClient)).resolves.toEqual({ outcome: 'joined' })
+    expect(await fetchLadderIdByShareToken(messy, joinerClient)).toBe(ladder.id)
+  })
+
+  it('refuses an unknown Join code', async () => {
+    const outsider = await createTestUser()
+    created.push(outsider.id)
+    const outsiderClient = await signInAs(outsider)
+    await createProfile('Outsider', outsiderClient)
+
+    await expect(previewLadder('ZZZZZ9', outsiderClient)).rejects.toThrow(/share link/i)
+    await expect(joinLadder('ZZZZZ9', outsiderClient)).rejects.toThrow(/share link/i)
+  })
+
+  it('refuses preview_ladder for a signed-out client', async () => {
+    const admin = await createTestUser()
+    created.push(admin.id)
+    const adminClient = await signInAs(admin)
+    await createProfile('Sam', adminClient)
+    const ladder = await createLadder('Friday pool', adminClient)
+    const token = await fetchShareToken(ladder.id, adminClient)
+
+    await expect(previewLadder(token, signedOutClient())).rejects.toThrow(/permission denied/i)
   })
 
   it('leaves an already-active Ladder member unchanged when they join again', async () => {

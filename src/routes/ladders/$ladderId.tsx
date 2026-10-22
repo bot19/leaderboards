@@ -1,12 +1,14 @@
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
 import { IconHome, IconLink, IconPlus } from '@tabler/icons-react'
+import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { IconButton } from '@/components/ui/IconButton'
 import { fetchLadder, fetchShareToken, listLadderMembers, listLeaderboard } from '@/data/ladder'
 import { listMatches } from '@/data/match'
 import { useAuth } from '@/features/auth/authContext'
 import { GameIcon } from '@/features/ladders/GameIcon'
+import { JoinCodeCard } from '@/features/ladders/JoinCodeCard'
 import { LeaderboardPanel } from '@/features/ladders/LeaderboardPanel'
 import { MembersPanel } from '@/features/ladders/MembersPanel'
 import { ladderSearchSchema, ladderTabs, type LadderTab } from '@/features/ladders/search'
@@ -45,6 +47,8 @@ function LadderPage() {
   const { tab, record } = Route.useSearch()
   const navigate = Route.useNavigate()
   const { profile } = useAuth()
+  const [inviteOpen, setInviteOpen] = useState(false)
+  const [copyState, setCopyState] = useState<'idle' | 'copied' | 'failed'>('idle')
   const ladder = useQuery({
     queryKey: ['ladder', ladderId],
     queryFn: () => fetchLadder(ladderId),
@@ -80,6 +84,12 @@ function LadderPage() {
       : null,
   }
 
+  useEffect(() => {
+    if (copyState === 'idle') return
+    const timer = window.setTimeout(() => setCopyState('idle'), 2000)
+    return () => window.clearTimeout(timer)
+  }, [copyState])
+
   function openRecord() {
     void navigate({
       search: (prev) => ({ ...prev, record: 'open' }),
@@ -112,12 +122,8 @@ function LadderPage() {
               <button
                 type="button"
                 className={`${textLinkClass} shrink-0`}
-                onClick={() => {
-                  void navigator.clipboard.writeText(shareLink).then(
-                    () => toast.success('Share link copied'),
-                    () => toast.error('Could not copy the Share link'),
-                  )
-                }}
+                aria-expanded={inviteOpen}
+                onClick={() => setInviteOpen((open) => !open)}
               >
                 <IconLink size={16} stroke={1.75} aria-hidden />
                 Invite
@@ -125,6 +131,26 @@ function LadderPage() {
             </>
           ) : null}
         </div>
+        {inviteOpen && shareToken.data && shareLink ? (
+          <JoinCodeCard
+            code={shareToken.data}
+            copyState={copyState}
+            onCopyCode={() => {
+              const code = shareToken.data
+              if (!code) return
+              void navigator.clipboard.writeText(code).then(
+                () => setCopyState('copied'),
+                () => setCopyState('failed'),
+              )
+            }}
+            onCopyLink={() => {
+              void navigator.clipboard.writeText(shareLink).then(
+                () => toast.success('Share link copied'),
+                () => toast.error('Could not copy the Share link'),
+              )
+            }}
+          />
+        ) : null}
         {ladder.isLoading ? <p className="text-neutral-600">Loading Ladder…</p> : null}
         {ladder.data ? (
           <h1 className="break-words font-display text-3xl text-ink">{ladder.data.name}</h1>

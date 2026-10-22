@@ -1,7 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
+import { asNumber } from '@/data/numeric'
+import { canonicalJoinCode } from '@/lib/joinCode'
 import { getSupabase } from '@/lib/supabase'
 import type { Database } from '@/types/db'
-import { asNumber } from '@/data/numeric'
 
 type LadderClient = SupabaseClient<Database>
 
@@ -194,7 +195,7 @@ export async function fetchLadderIdByShareToken(
   const { data, error } = await client
     .from('ladders')
     .select('id')
-    .eq('share_token', shareToken)
+    .eq('share_token', canonicalJoinCode(shareToken))
     .maybeSingle()
 
   if (error) throw new Error(error.message)

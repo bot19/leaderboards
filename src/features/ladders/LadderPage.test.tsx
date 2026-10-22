@@ -220,7 +220,7 @@ async function openApp(path: string) {
 }
 
 describe('Ladder page', () => {
-  it('shows Home, the Game name and Invite as text links, and Invite copies the Share link', async () => {
+  it('shows Home, the Game name and Invite as text links, and Invite opens the Join code card', async () => {
     const user = userEvent.setup()
     const { toast } = await import('sonner')
     await openApp('/ladders/ladder-1')
@@ -229,7 +229,7 @@ describe('Ladder page', () => {
     const heading = await screen.findByRole('heading', { level: 1, name: 'Friday pool' })
     const back = within(main).getByRole('link', { name: 'Home' })
     const game = within(main).getByText('Pool')
-    const copy = await within(main).findByRole('button', { name: 'Invite' })
+    const invite = await within(main).findByRole('button', { name: 'Invite' })
     expect(back).toHaveAttribute('href', '/')
     expect(back).toHaveClass('text-base', 'underline', 'hover:text-ink')
     expect(back.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
@@ -237,7 +237,7 @@ describe('Ladder page', () => {
     expect(game.parentElement).toHaveClass('text-base')
     expect(game.parentElement).not.toHaveClass('underline')
     expect(game.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-    expect(copy).toHaveClass('text-base', 'underline', 'hover:text-ink')
+    expect(invite).toHaveClass('text-base', 'underline', 'hover:text-ink')
     expect(within(main).queryByRole('button', { name: 'Link' })).not.toBeInTheDocument()
     expect(screen.queryByRole('textbox', { name: 'Share link' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Copy Share link' })).not.toBeInTheDocument()
@@ -246,18 +246,36 @@ describe('Ladder page', () => {
     expect(heading).toHaveClass('break-words')
 
     const row = back.parentElement
-    const separators = [...(row?.querySelectorAll('[aria-hidden]') ?? [])].filter(
+    if (!row) throw new Error('Home row not found')
+    const separators = [...row.querySelectorAll('[aria-hidden]')].filter(
       (node) => node.textContent === '·',
     )
     expect(separators).toHaveLength(2)
 
-    await user.click(copy)
+    await user.click(invite)
+    expect(toast.success).not.toHaveBeenCalled()
+    const code = screen.getByLabelText('Join code share-token')
+    expect(code).toHaveTextContent('share-token')
+    expect(code).toHaveClass('font-mono', 'tracking-[0.2em]')
+    expect(screen.getByText('Share this code so colleagues can join.')).toBeInTheDocument()
+    expect(code.compareDocumentPosition(row) & Node.DOCUMENT_POSITION_PRECEDING).toBeTruthy()
+
+    await user.click(screen.getByRole('button', { name: 'Copy Join code' }))
+    await waitFor(async () => {
+      expect(await navigator.clipboard.readText()).toBe('share-token')
+    })
+    expect(screen.getByRole('button', { name: 'Copied' })).toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Copy link' }))
     await waitFor(async () => {
       expect(await navigator.clipboard.readText()).toBe(
         `${window.location.origin}/join/share-token`,
       )
       expect(toast.success).toHaveBeenCalledWith('Share link copied')
     })
+
+    await user.click(invite)
+    expect(screen.queryByRole('button', { name: 'Copy link' })).not.toBeInTheDocument()
   })
 
   it('hides Invite until the Share link has loaded', async () => {

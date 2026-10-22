@@ -1,17 +1,25 @@
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { createFileRoute, Link, redirect, useNavigate } from '@tanstack/react-router'
-import { IconPlus, IconX } from '@tabler/icons-react'
+import { IconKey, IconPlus, IconX } from '@tabler/icons-react'
 import { useEffect, useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { toast } from 'sonner'
 import { IconButton } from '@/components/ui/IconButton'
-import { createLadder, listMyLadders } from '@/data/ladder'
+import {
+  createLadder,
+  fetchLadderIdByShareToken,
+  joinLadder,
+  listMyLadders,
+} from '@/data/ladder'
 import { useAuth } from '@/features/auth/authContext'
 import { GameIcon } from '@/features/ladders/GameIcon'
+import { JoinLadderForm } from '@/features/ladders/JoinLadderForm'
 import { ladderNameSchema, type LadderNameValues } from '@/features/ladders/schemas'
+import { useJoinCodeLookup } from '@/features/ladders/useJoinCodeLookup'
 import { SignedInChrome } from '@/features/nav/SignedInChrome'
 import { resolveAuthDestination } from '@/lib/authDestination'
+import { canonicalJoinCode } from '@/lib/joinCode'
 
 export const Route = createFileRoute('/')({
   beforeLoad: ({ context }) => {
@@ -31,7 +39,11 @@ function HomePage() {
   const { profile } = useAuth()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
-  const [newLadderOpen, setNewLadderOpen] = useState(false)
+  const [openForm, setOpenForm] = useState<'join' | 'new' | null>(null)
+  const [joinCode, setJoinCode] = useState('')
+  const [joining, setJoining] = useState(false)
+  const [joinError, setJoinError] = useState<string | null>(null)
+  const lookup = useJoinCodeLookup(joinCode)
   const ladders = useQuery({
     queryKey: ['my-ladders'],
     queryFn: () => listMyLadders(),
@@ -42,9 +54,36 @@ function HomePage() {
   })
 
   useEffect(() => {
-    if (!newLadderOpen) return
-    document.getElementById('ladder-name')?.focus()
-  }, [newLadderOpen])
+    if (openForm === 'new') document.getElementById('ladder-name')?.focus()
+    if (openForm === 'join') document.getElementById('join-code')?.focus()
+  }, [openForm])
+
+  function toggleForm(form: 'join' | 'new') {
+    setOpenForm((current) => (current === form ? null : form))
+  }
+
+  async function onJoin() {
+    const code = canonicalJoinCode(joinCode)
+    setJoining(true)
+    setJoinError(null)
+    try {
+      await joinLadder(code)
+      const ladderId = await fetchLadderIdByShareToken(code)
+      if (!ladderId) throw new Error('Could not open this Ladder')
+      await queryClient.invalidateQueries({ queryKey: ['my-ladders'] })
+      await navigate({
+        to: '/ladders/$ladderId',
+        params: { ladderId },
+        search: { tab: 'leaderboard' },
+      })
+    } catch (caught) {
+      const message = caught instanceof Error ? caught.message : 'Could not join this Ladder.'
+      setJoinError(message)
+      toast.error(message, { id: 'join-ladder', duration: Infinity })
+    } finally {
+      setJoining(false)
+    }
+  }
 
   if (!profile) return null
 
@@ -53,21 +92,49 @@ function HomePage() {
     <main className="mx-auto flex min-h-dvh max-w-lg flex-col gap-6 px-4 pt-5 pb-10">
       <h1 className="font-display text-3xl text-ink">Home</h1>
       <section className="space-y-3">
-        <div className="flex items-center justify-between gap-3">
-          <h2 className="min-w-0 font-display text-2xl text-ink">Your Ladders</h2>
-          <IconButton
-            aria-label={newLadderOpen ? 'Close new Ladder' : 'New Ladder'}
-            className="h-11 w-11"
-            onClick={() => setNewLadderOpen((open) => !open)}
-          >
-            {newLadderOpen ? (
-              <IconX size={22} stroke={1.75} aria-hidden />
-            ) : (
-              <IconPlus size={22} stroke={1.75} aria-hidden />
-            )}
-          </IconButton>
+        <div className="flex items-center justify-between gap-2">
+          <h2 className="min-w-0 font-display text-2xl tracking-tight text-ink">Leaderboards</h2>
+          <div className="flex shrink-0 items-center gap-1">
+            <IconButton
+              aria-label={openForm === 'join' ? 'Close join a Ladder' : 'Join a Ladder'}
+              className="h-11 w-11"
+              onClick={() => toggleForm('join')}
+            >
+              {openForm === 'join' ? (
+                <IconX size={22} stroke={1.75} aria-hidden />
+              ) : (
+                <IconKey size={22} stroke={1.75} aria-hidden />
+              )}
+            </IconButton>
+            <IconButton
+              aria-label={openForm === 'new' ? 'Close new Ladder' : 'New Ladder'}
+              className="h-11 w-11"
+              onClick={() => toggleForm('new')}
+            >
+              {openForm === 'new' ? (
+                <IconX size={22} stroke={1.75} aria-hidden />
+              ) : (
+                <IconPlus size={22} stroke={1.75} aria-hidden />
+              )}
+            </IconButton>
+          </div>
         </div>
-        {newLadderOpen ? (
+        {openForm === 'join' ? (
+          <JoinLadderForm
+            joinCode={joinCode}
+            onJoinCodeChange={(value) => {
+              setJoinCode(value)
+              setJoinError(null)
+            }}
+            lookup={lookup}
+            onJoin={() => {
+              void onJoin()
+            }}
+            joining={joining}
+            joinError={joinError}
+          />
+        ) : null}
+        {openForm === 'new' ? (
           <form
             className="space-y-3"
             onSubmit={ladderForm.handleSubmit(async (values) => {
@@ -107,7 +174,7 @@ function HomePage() {
             </button>
           </form>
         ) : null}
-        {newLadderOpen ? <hr className="border-neutral-200" /> : null}
+        {openForm ? <hr className="border-neutral-200" /> : null}
         {ladders.isLoading ? <p className="text-neutral-600">Loading Ladders…</p> : null}
         {ladders.isError ? (
           <p className="text-sm text-red-700">Could not load your Ladders.</p>
