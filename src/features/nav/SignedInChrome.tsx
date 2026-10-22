@@ -1,7 +1,7 @@
 import { IconMenu2 } from '@tabler/icons-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useRouter, useSearch } from '@tanstack/react-router'
-import { useCallback, useState } from 'react'
+import { useCallback, useState, type ReactNode } from 'react'
 import { NavDrawer } from '@/components/nav/NavDrawer'
 import { NavDrawerActions } from '@/components/nav/NavDrawerActions'
 import { NavFooter } from '@/components/nav/NavFooter'
@@ -36,7 +36,12 @@ function updateSearch(
   void navigate({ search, replace })
 }
 
-export function SignedInChrome() {
+type Props = {
+  /** Rail buttons between the avatar and Nav. */
+  railBeforeNav?: ReactNode
+}
+
+export function SignedInChrome({ railBeforeNav }: Props) {
   const { profile, refreshProfile } = useAuth()
   const { nav } = useSearch({ from: '__root__' })
   const navigate = useNavigate()
@@ -87,6 +92,7 @@ export function SignedInChrome() {
         >
           <UserAvatar username={profile.displayName} />
         </button>
+        {railBeforeNav}
         <IconButton
           aria-label="Nav"
           className="h-10 w-10"

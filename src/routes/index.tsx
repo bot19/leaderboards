@@ -8,8 +8,9 @@ import { toast } from 'sonner'
 import { IconButton } from '@/components/ui/IconButton'
 import { createLadder, listMyLadders } from '@/data/ladder'
 import { useAuth } from '@/features/auth/authContext'
-import { SignedInChrome } from '@/features/nav/SignedInChrome'
+import { GameIcon } from '@/features/ladders/GameIcon'
 import { ladderNameSchema, type LadderNameValues } from '@/features/ladders/schemas'
+import { SignedInChrome } from '@/features/nav/SignedInChrome'
 import { resolveAuthDestination } from '@/lib/authDestination'
 
 export const Route = createFileRoute('/')({
@@ -125,7 +126,10 @@ function HomePage() {
                   className="flex min-w-0 items-baseline justify-between gap-3 px-4 py-3 hover:bg-neutral-50"
                 >
                   <span className="min-w-0 truncate font-medium text-ink">{ladder.name}</span>
-                  <span className="shrink-0 text-sm text-neutral-600">{ladder.gameName}</span>
+                  <span className="inline-flex shrink-0 items-center gap-1 text-sm text-neutral-600">
+                    <GameIcon gameName={ladder.gameName} size={14} />
+                    {ladder.gameName}
+                  </span>
                 </Link>
               </li>
             ))}

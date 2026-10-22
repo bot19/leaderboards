@@ -7,6 +7,7 @@ import {
   joinLadder,
   previewLadder,
 } from '@/data/ladder'
+import { GameIcon } from '@/features/ladders/GameIcon'
 import { SignedInChrome } from '@/features/nav/SignedInChrome'
 import { resolveAuthDestination } from '@/lib/authDestination'
 
@@ -50,7 +51,10 @@ function ShareLinkPreviewPage() {
           <div className="space-y-2">
             <p className="text-sm text-neutral-600">Share link</p>
             <h1 className="font-display text-3xl text-ink">{preview.data.name}</h1>
-            <p className="text-sm text-neutral-600">{preview.data.gameName}</p>
+            <p className="inline-flex items-center gap-1 text-sm text-neutral-600">
+              <GameIcon gameName={preview.data.gameName} size={14} />
+              {preview.data.gameName}
+            </p>
             <p className="text-neutral-800">
               {preview.data.memberCount}{' '}
               {preview.data.memberCount === 1 ? 'Ladder member' : 'Ladder members'}

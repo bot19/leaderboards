@@ -51,13 +51,9 @@ export function LeaderboardPanel({ ladderId }: Props) {
         ) : null}
       </section>
 
-      <section aria-label="Inactive">
-        <h2 className="text-sm font-medium text-neutral-700">Inactive</h2>
-        {inactive.isLoading ? <p className="mt-2 text-neutral-600">Loading Inactive…</p> : null}
-        {inactive.data && inactive.data.length === 0 ? (
-          <p className="mt-2 text-sm text-neutral-600">Nobody is Inactive.</p>
-        ) : null}
-        {inactive.data && inactive.data.length > 0 ? (
+      {inactive.data && inactive.data.length > 0 ? (
+        <section aria-label="Inactive">
+          <h2 className="text-sm font-medium text-neutral-700">Inactive</h2>
           <ul className="mt-2 divide-y divide-neutral-200 overflow-hidden rounded-xl bg-white shadow-sm">
             {inactive.data.map((entry) => (
               <li key={entry.ladderMemberId} className="flex items-baseline justify-between gap-3 px-4 py-3">
@@ -79,8 +75,8 @@ export function LeaderboardPanel({ ladderId }: Props) {
               </li>
             ))}
           </ul>
-        ) : null}
-      </section>
+        </section>
+      ) : null}
     </div>
   )
 }
