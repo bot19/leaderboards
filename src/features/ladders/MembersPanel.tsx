@@ -24,7 +24,7 @@ const statusOrder: Record<LadderMemberRead['status'], number> = {
 }
 
 const statusLabel: Record<LadderMemberRead['status'], string> = {
-  active: 'Active',
+  active: 'Joined',
   left: 'Left',
   removed: 'Removed',
 }

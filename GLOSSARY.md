@@ -11,7 +11,7 @@ A person with an account in the app.
 _Avoid_: account, profile (the profile is just the User's display details)
 
 **Ladder member**:
-A User's or Guest's place on one Ladder, holding their Role, status and Rating for that Ladder. A User has one Ladder member per Ladder they join.
+A User's or Guest's place on one Ladder, holding their Role, whether they are Joined, Left, or Removed, and their Rating for that Ladder. A User has one Ladder member per Ladder they join.
 _Avoid_: member (on its own), entrant, player (see Flagged ambiguities)
 
 **Guest**:
@@ -48,6 +48,10 @@ _Avoid_: invite link
 The 6-character code that identifies a Ladder for joining, typed in the app or carried in the Share link.
 _Avoid_: invite code, ladder code
 
+**Joined**:
+A Ladder member who is still on the Ladder. Left and Removed are the other states. A Joined Ladder member may be Inactive.
+_Avoid_: active, current, enrolled, present
+
 **Left / Removed**:
 A Ladder member who chose to go (Left) or was taken off by an Admin (Removed). Their Matches stay in history. A Left member can rejoin from the Share link; a Removed member returns only when an Admin reinstates them.
 
@@ -66,7 +70,7 @@ A Ladder member's Elo number on one Ladder. Everyone starts at the same Rating, 
 _Avoid_: score, points, rank (rank is a position on the Leaderboard)
 
 **Leaderboard**:
-A Ladder's active Ladder members ordered by Rating.
+A Ladder's Joined Ladder members who are not Inactive, ordered by Rating.
 _Avoid_: ladder (the Ladder is the competition; the Leaderboard is its ranking), table, standings
 
 **Provisional**:
@@ -74,7 +78,7 @@ A Ladder member who has played fewer than a set number of rated Matches on that 
 _Avoid_: new player, unranked
 
 **Inactive**:
-A Ladder member who has not played a Match on the Ladder for a set number of days. Shown apart from the Leaderboard; their Rating is untouched.
+A Joined Ladder member who has not played a Match on the Ladder for a set number of days. Shown apart from the Leaderboard; their Rating is untouched.
 _Avoid_: dormant, decayed
 
 ### Matches
@@ -139,10 +143,11 @@ _Avoid_: recalc, rebuild
 > **Dev:** Say Dave tells an Admin a week later that it was wrong, and the Admin voids it. Do we just undo those four Rating changes?
 > **Domain expert:** No. It had been Confirmed, so we Replay the whole Ladder without it. Later Matches were rated off those numbers.
 > **Dev:** Is "the pool ladder" the Leaderboard?
-> **Domain expert:** The Ladder is the competition. The Leaderboard is just its ranking of active Ladder members.
+> **Domain expert:** The Ladder is the competition. The Leaderboard is its ranking of Joined Ladder members who are not Inactive.
 
 ## Flagged ambiguities
 
+- **"Active"** is used in speech both for someone still on a Ladder and for someone on the Leaderboard. Here someone still on a Ladder is **Joined**. Someone off the Leaderboard for not playing is **Inactive**, and they are still Joined.
 - **"Player"** is used in speech for anyone who plays. In this project it means only the lowest **Role**. Someone in a Match is a **Participant**; someone on a Ladder is a **Ladder member**.
 - **"Game"** is used in speech for a single contest ("we played five games"). Here a **Game** is the kind of contest (pool); one contest is a **Match**.
 - **"Group"** is reserved for a later idea: a set of Users tied together outside any Ladder. It never means a Ladder.

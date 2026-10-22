@@ -24,7 +24,7 @@ export function LeaderboardPanel({ ladderId }: Props) {
         <h2 className="sr-only">Leaderboard</h2>
         {leaderboard.isLoading ? <p className="text-neutral-600">Loading Leaderboard…</p> : null}
         {leaderboard.data && leaderboard.data.length === 0 ? (
-          <p className="text-neutral-700">No active Ladder members on the Leaderboard.</p>
+          <p className="text-neutral-700">No one on the Leaderboard.</p>
         ) : null}
         {leaderboard.data && leaderboard.data.length > 0 ? (
           <ol className="divide-y divide-neutral-200 overflow-hidden rounded-xl bg-white shadow-sm">
