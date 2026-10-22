@@ -11,6 +11,11 @@ import {
   type LadderMemberRead,
 } from '@/data/ladder'
 import { useAuth } from '@/features/auth/authContext'
+import {
+  demoteToPlayerConfirm,
+  leaveLadderConfirm,
+  removeMemberConfirm,
+} from '@/lib/confirmAction'
 
 const statusOrder: Record<LadderMemberRead['status'], number> = {
   active: 0,
@@ -142,7 +147,11 @@ export function MembersPanel({ ladderId }: Props) {
             type="button"
             className="rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-ink"
             disabled={leave.isPending}
-            onClick={() => leave.mutate()}
+            onClick={() => {
+              if (window.confirm(leaveLadderConfirm())) {
+                leave.mutate()
+              }
+            }}
           >
             Leave Ladder
           </button>
@@ -211,7 +220,11 @@ function MemberAdminActions({
           type="button"
           className="rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-sm font-medium text-ink"
           disabled={setRole.isPending}
-          onClick={() => setRole.mutate({ memberId: member.id, role: 'player' })}
+          onClick={() => {
+            if (window.confirm(demoteToPlayerConfirm(member.displayName))) {
+              setRole.mutate({ memberId: member.id, role: 'player' })
+            }
+          }}
         >
           Demote to Player
         </button>
@@ -220,7 +233,11 @@ function MemberAdminActions({
         type="button"
         className="rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-sm font-medium text-ink"
         disabled={remove.isPending}
-        onClick={() => remove.mutate(member.id)}
+        onClick={() => {
+          if (window.confirm(removeMemberConfirm(member.displayName))) {
+            remove.mutate(member.id)
+          }
+        }}
       >
         Remove
       </button>

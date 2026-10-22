@@ -191,7 +191,7 @@ describe('signed-in chrome', () => {
     expect(within(menu).getByRole('heading', { name: 'Leaderboards' })).toBeInTheDocument()
     expect(within(menu).getByText('boards')).toHaveClass('text-primary')
     expect(within(menu).getByText('Who beats whom')).toBeInTheDocument()
-    expect(within(menu).getByText('v0.3.2')).toBeInTheDocument()
+    expect(within(menu).getByText('v0.3.3')).toBeInTheDocument()
     expect(within(menu).queryByRole('textbox', { name: 'Display name' })).not.toBeInTheDocument()
     expect(document.activeElement).toHaveAttribute('data-nav-close')
 
@@ -202,10 +202,10 @@ describe('signed-in chrome', () => {
     const profile = await screen.findByRole('dialog')
     expect(within(profile).getByRole('heading', { name: 'Sam' })).toBeInTheDocument()
     expect(within(profile).getByRole('textbox', { name: 'Display name' })).toBeInTheDocument()
-    expect(within(profile).queryByText('v0.3.2')).not.toBeInTheDocument()
+    expect(within(profile).queryByText('v0.3.3')).not.toBeInTheDocument()
 
     await user.click(within(profile).getByRole('button', { name: 'Nav' }))
-    expect(await screen.findByText('v0.3.2')).toBeInTheDocument()
+    expect(await screen.findByText('v0.3.3')).toBeInTheDocument()
     expect(screen.queryByRole('textbox', { name: 'Display name' })).not.toBeInTheDocument()
   })
 
@@ -313,10 +313,10 @@ describe('text input background', () => {
     expect(base).toContain('@apply bg-white;')
   })
 
-  it('is version 0.3.2', () => {
+  it('is version 0.3.3', () => {
     const pkg = JSON.parse(
       readFileSync(join(dirname(fileURLToPath(import.meta.url)), '../../../package.json'), 'utf8'),
     ) as { version: string }
-    expect(pkg.version).toBe('0.3.2')
+    expect(pkg.version).toBe('0.3.3')
   })
 })

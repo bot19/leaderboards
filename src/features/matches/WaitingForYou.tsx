@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { confirmMatch, listMatchesWaitingForMe, rejectMatch } from '@/data/match'
 import { matchResultLabel, sideNames } from '@/features/matches/labels'
+import { rejectMatchConfirm } from '@/lib/confirmAction'
 
 type Props = {
   ladderId: string
@@ -47,6 +48,7 @@ export function WaitingForYou({ ladderId }: Props) {
                 disabled={busyId === match.id}
                 className="rounded-md border border-neutral-300 bg-white px-3 py-2 text-sm font-medium text-ink disabled:opacity-60"
                 onClick={() => {
+                  if (!window.confirm(rejectMatchConfirm())) return
                   setBusyId(match.id)
                   void rejectMatch(match.id)
                     .then(async () => {
