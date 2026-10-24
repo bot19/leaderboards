@@ -1,15 +1,12 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { toast } from 'sonner'
 import { listLadderMembers } from '@/data/ladder'
-import { listMatches, voidMatch, type MatchRead } from '@/data/match'
+import { listMatchesPage, voidMatch } from '@/data/match'
 import { useAuth } from '@/features/auth/authContext'
-import {
-  formatRatingChange,
-  matchResultLabel,
-  matchStatusLabel,
-  sideNames,
-} from '@/features/matches/labels'
+import { joinMatchPages } from '@/features/matches/joinMatchPages'
+import { MatchCard } from '@/features/matches/MatchCard'
 import { voidMatchConfirm } from '@/lib/confirmAction'
+import { MATCH_PAGE_SIZE, loadMoreLabel } from '@/lib/listPage'
 
 type Props = {
   ladderId: string
@@ -18,9 +15,17 @@ type Props = {
 export function MatchHistory({ ladderId }: Props) {
   const { profile } = useAuth()
   const queryClient = useQueryClient()
-  const matches = useQuery({
-    queryKey: ['matches', ladderId],
-    queryFn: () => listMatches(ladderId),
+  const matches = useInfiniteQuery({
+    queryKey: ['matches', ladderId, 'pages'],
+    queryFn: ({ pageParam }) =>
+      listMatchesPage(ladderId, { offset: pageParam, limit: MATCH_PAGE_SIZE }),
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) => {
+      if (lastPage.matches.length === 0) return undefined
+      const nextOffset = allPages.reduce((sum, page) => sum + page.matches.length, 0)
+      if (nextOffset >= lastPage.total) return undefined
+      return nextOffset
+    },
   })
   const members = useQuery({
     queryKey: ['ladder-members', ladderId],
@@ -48,68 +53,59 @@ export function MatchHistory({ ladderId }: Props) {
     onError: (error: Error) => toast.error(error.message),
   })
 
+  const pages = matches.data?.pages ?? []
+  const items = joinMatchPages(pages)
+  const total = pages.length > 0 ? (pages[pages.length - 1]?.total ?? 0) : 0
+  const remaining = total - items.length
+
   return (
-    <section aria-label="Matches" className="space-y-2">
+    <section aria-label="Matches" className="space-y-3">
       <h2 className="sr-only">Matches</h2>
       {matches.isLoading ? <p className="text-neutral-600">Loading Matches…</p> : null}
       {matches.isError ? <p className="text-sm text-red-700">Could not load Matches.</p> : null}
-      {matches.data && matches.data.length === 0 ? (
+      {matches.isSuccess && items.length === 0 ? (
         <p className="text-neutral-700">No Matches yet.</p>
       ) : null}
-      {matches.data && matches.data.length > 0 ? (
-        <ol className="space-y-3">
-          {matches.data.map((match) => (
-            <li key={match.id} className="space-y-2 rounded-xl bg-white px-4 py-3 shadow-sm">
-              <div className="flex items-baseline justify-between gap-3">
-                <p className="font-medium text-ink">
-                  {sideNames(match, 'a')} vs {sideNames(match, 'b')}
-                </p>
-                <p className="text-sm text-neutral-600">
-                  {matchStatusLabel(match.status, match.voidKind)}
-                </p>
-              </div>
-              <p className="text-sm text-neutral-700">
-                {matchResultLabel(match.result)}
-                {match.notes ? ` · ${match.notes}` : ''}
-              </p>
-              <RatingChanges match={match} />
-              {canVoid && match.status !== 'voided' ? (
-                <div className="pt-1">
-                  <button
-                    type="button"
-                    disabled={voiding.isPending && voiding.variables === match.id}
-                    className="rounded-md border border-neutral-300 bg-white px-3 py-1.5 text-sm font-medium text-ink disabled:opacity-60"
-                    onClick={() => {
-                      if (
-                        match.status !== 'voided' &&
-                        window.confirm(voidMatchConfirm(match.status))
-                      ) {
-                        voiding.mutate(match.id)
-                      }
-                    }}
-                  >
-                    Void
-                  </button>
-                </div>
-              ) : null}
-            </li>
-          ))}
-        </ol>
+      {items.length > 0 ? (
+        <>
+          <ol className="space-y-3">
+            {items.map((match) => (
+              <li key={match.id}>
+                <MatchCard
+                  match={match}
+                  members={members.data ?? []}
+                  voiding={voiding.isPending && voiding.variables === match.id}
+                  onVoid={
+                    canVoid && match.status !== 'voided'
+                      ? () => {
+                          const status = match.status === 'confirmed' ? 'confirmed' : 'pending'
+                          if (window.confirm(voidMatchConfirm(status))) {
+                            voiding.mutate(match.id)
+                          }
+                        }
+                      : undefined
+                  }
+                />
+              </li>
+            ))}
+          </ol>
+          <p className="text-center text-sm text-neutral-600">
+            Showing {items.length} of {total} Matches
+          </p>
+          {matches.hasNextPage ? (
+            <button
+              type="button"
+              disabled={matches.isFetchingNextPage}
+              className="min-h-11 w-full cursor-pointer rounded-md border border-neutral-200 bg-white px-3 py-2.5 text-sm font-medium text-neutral-800 hover:bg-neutral-50 disabled:cursor-not-allowed disabled:opacity-60"
+              onClick={() => {
+                void matches.fetchNextPage()
+              }}
+            >
+              {matches.isFetchingNextPage ? 'Loading…' : loadMoreLabel(remaining, MATCH_PAGE_SIZE)}
+            </button>
+          ) : null}
+        </>
       ) : null}
     </section>
-  )
-}
-
-function RatingChanges({ match }: { match: MatchRead }) {
-  if (match.status !== 'confirmed') return null
-  return (
-    <ul className="space-y-1 text-sm text-neutral-800">
-      {match.participants.map((participant) => (
-        <li key={participant.ladderMemberId} className="flex justify-between gap-3">
-          <span>{participant.displayName}</span>
-          <span className="tabular-nums">{formatRatingChange(participant.ratingChange)}</span>
-        </li>
-      ))}
-    </ul>
   )
 }

@@ -214,7 +214,7 @@ describe("signed-in chrome", () => {
     ).toBeInTheDocument();
     expect(within(menu).getByText("boards")).toHaveClass("text-primary");
     expect(within(menu).getByText("Over 9000?!")).toBeInTheDocument();
-    expect(within(menu).getByText("v0.3.6")).toBeInTheDocument();
+    expect(within(menu).getByText("v1.1.0")).toBeInTheDocument();
     expect(
       within(menu).queryByRole("textbox", { name: "Display name" }),
     ).not.toBeInTheDocument();
@@ -231,10 +231,10 @@ describe("signed-in chrome", () => {
     expect(
       within(profile).getByRole("textbox", { name: "Display name" }),
     ).toBeInTheDocument();
-    expect(within(profile).queryByText("v0.3.6")).not.toBeInTheDocument();
+    expect(within(profile).queryByText("v1.1.0")).not.toBeInTheDocument();
 
     await user.click(within(profile).getByRole("button", { name: "Nav" }));
-    expect(await screen.findByText("v0.3.6")).toBeInTheDocument();
+    expect(await screen.findByText("v1.1.0")).toBeInTheDocument();
     expect(
       screen.queryByRole("textbox", { name: "Display name" }),
     ).not.toBeInTheDocument();
@@ -385,13 +385,13 @@ describe("text input background", () => {
     expect(base).toContain("@apply bg-white;");
   });
 
-  it("is version 0.3.6", () => {
+  it("is version 1.1.0", () => {
     const pkg = JSON.parse(
       readFileSync(
         join(dirname(fileURLToPath(import.meta.url)), "../../../package.json"),
         "utf8",
       ),
     ) as { version: string };
-    expect(pkg.version).toBe("0.3.6");
+    expect(pkg.version).toBe("1.1.0");
   });
 });

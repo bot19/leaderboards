@@ -158,22 +158,61 @@ export async function voidMatch(
   if (error) throw new Error(error.message)
 }
 
+const MATCH_COLUMNS =
+  `id, status, result, notes, recorded_by, recorded_at, confirmed_at,
+   voided_by, voided_at, void_kind,
+   participants(side, rating_before, rating_change, ladder_members(id, user_id, profiles(display_name)))` as const
+
+export type MatchPage = {
+  matches: MatchRead[]
+  total: number
+}
+
 export async function listMatches(
   ladderId: string,
   client: MatchClient = getSupabase(),
 ): Promise<MatchRead[]> {
   const { data, error } = await client
     .from('matches')
-    .select(
-      `id, status, result, notes, recorded_by, recorded_at, confirmed_at,
-       voided_by, voided_at, void_kind,
-       participants(side, rating_before, rating_change, ladder_members(id, user_id, profiles(display_name)))`,
-    )
+    .select(MATCH_COLUMNS)
     .eq('ladder_id', ladderId)
     .order('recorded_at', { ascending: false })
 
   if (error) throw new Error(error.message)
   return (data ?? []).map((row) => toMatch(row))
+}
+
+export async function listMatchesPage(
+  ladderId: string,
+  page: { offset: number; limit: number },
+  client: MatchClient = getSupabase(),
+): Promise<MatchPage> {
+  const { data, error, count } = await client
+    .from('matches')
+    .select(MATCH_COLUMNS, { count: 'exact' })
+    .eq('ladder_id', ladderId)
+    .order('recorded_at', { ascending: false })
+    .order('id', { ascending: false })
+    .range(page.offset, page.offset + page.limit - 1)
+
+  if (error) throw new Error(error.message)
+  return {
+    matches: (data ?? []).map((row) => toMatch(row)),
+    total: count ?? 0,
+  }
+}
+
+export async function countMatches(
+  ladderId: string,
+  client: MatchClient = getSupabase(),
+): Promise<number> {
+  const { count, error } = await client
+    .from('matches')
+    .select('id', { count: 'exact', head: true })
+    .eq('ladder_id', ladderId)
+
+  if (error) throw new Error(error.message)
+  return count ?? 0
 }
 
 export async function listMatchesWaitingForMe(
@@ -185,10 +224,17 @@ export async function listMatchesWaitingForMe(
   const userId = userResult.user?.id
   if (!userId) return []
 
-  const matches = await listMatches(ladderId, client)
-  return matches
+  const { data, error } = await client
+    .from('matches')
+    .select(MATCH_COLUMNS)
+    .eq('ladder_id', ladderId)
+    .eq('status', 'pending')
+    .order('recorded_at', { ascending: true })
+
+  if (error) throw new Error(error.message)
+  return (data ?? [])
+    .map((row) => toMatch(row))
     .filter((match) => isWaitingFor(match, userId))
-    .sort((a, b) => a.recordedAt.localeCompare(b.recordedAt))
 }
 
 export function isWaitingFor(match: MatchRead, userId: string): boolean {

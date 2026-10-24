@@ -131,6 +131,9 @@ vi.mock('@/data/match', async (importOriginal) => {
   return {
     ...actual,
     listMatches: () => Promise.resolve(mocks.matches),
+    listMatchesPage: () =>
+      Promise.resolve({ matches: mocks.matches, total: mocks.matches.length }),
+    countMatches: () => Promise.resolve(mocks.matches.length),
     listMatchesWaitingForMe: () => Promise.resolve([]),
   }
 })

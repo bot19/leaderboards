@@ -1,4 +1,4 @@
-import type { MatchRead, MatchResult, MatchSide, MatchStatus, MatchVoidKind } from '@/data/match'
+import type { MatchResult, MatchSide, MatchStatus, MatchVoidKind } from '@/data/match'
 
 export function formatRating(rating: number): string {
   return Number(rating.toFixed(1)).toString()
@@ -9,12 +9,6 @@ export function formatRatingChange(change: number | null): string {
   const rounded = Number(change.toFixed(1))
   const text = rounded.toString()
   return rounded > 0 ? `+${text}` : text
-}
-
-const resultLabel: Record<MatchResult, string> = {
-  side_a_won: 'Side A won',
-  side_b_won: 'Side B won',
-  draw: 'Draw',
 }
 
 const statusLabel: Record<MatchStatus, string> = {
@@ -28,8 +22,34 @@ const voidKindLabel: Record<MatchVoidKind, string> = {
   admin: 'Voided by Admin',
 }
 
-export function matchResultLabel(result: MatchResult): string {
-  return resultLabel[result]
+export function matchResultLabel(match: {
+  result: MatchResult
+  participants: { side: MatchSide; displayName: string }[]
+}): string {
+  if (match.result === 'draw') return 'Draw'
+  const side: MatchSide = match.result === 'side_a_won' ? 'a' : 'b'
+  return `${sideNames(match, side)} won`
+}
+
+export function formatLocalDateTime(isoDate: string): string {
+  const then = Date.parse(isoDate)
+  if (Number.isNaN(then)) return ''
+  return new Date(then).toLocaleString(undefined, {
+    dateStyle: 'full',
+    timeStyle: 'short',
+  })
+}
+
+export function recorderName(
+  match: { recordedBy: string; participants: { userId: string | null; displayName: string }[] },
+  members: { userId: string | null; displayName: string }[],
+): string | null {
+  const participant = match.participants.find(
+    (entry) => entry.userId != null && entry.userId === match.recordedBy,
+  )
+  if (participant) return participant.displayName
+  const member = members.find((entry) => entry.userId != null && entry.userId === match.recordedBy)
+  return member?.displayName ?? null
 }
 
 export function matchStatusLabel(status: MatchStatus, voidKind: MatchVoidKind | null = null): string {
@@ -37,9 +57,13 @@ export function matchStatusLabel(status: MatchStatus, voidKind: MatchVoidKind | 
   return statusLabel[status]
 }
 
-export function sideNames(match: MatchRead, side: MatchSide): string {
+export function sideNames(
+  match: { participants: { side: MatchSide; displayName: string }[] },
+  side: MatchSide,
+): string {
   const names = match.participants
     .filter((participant) => participant.side === side)
     .map((participant) => participant.displayName)
-  return names.join(' & ')
+    .sort((a, b) => a.localeCompare(b))
+  return names.join(', ')
 }

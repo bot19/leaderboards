@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { IconButton } from '@/components/ui/IconButton'
 import { fetchLadder, fetchShareToken, listLadderMembers, listLeaderboard } from '@/data/ladder'
-import { listMatches } from '@/data/match'
+import { countMatches } from '@/data/match'
 import { useAuth } from '@/features/auth/authContext'
 import { GameIcon } from '@/features/ladders/GameIcon'
 import { JoinCodeCard } from '@/features/ladders/JoinCodeCard'
@@ -66,9 +66,9 @@ function LadderPage() {
     queryFn: () => listLeaderboard(ladderId),
     enabled: Boolean(ladder.data),
   })
-  const matches = useQuery({
-    queryKey: ['matches', ladderId],
-    queryFn: () => listMatches(ladderId),
+  const matchCount = useQuery({
+    queryKey: ['matches', ladderId, 'count'],
+    queryFn: () => countMatches(ladderId),
     enabled: Boolean(ladder.data),
   })
   const ladderMembers = useQuery({
@@ -78,7 +78,7 @@ function LadderPage() {
   })
   const counts: Record<LadderTab, number | null> = {
     leaderboard: leaderboard.data ? leaderboard.data.length : null,
-    matches: matches.data ? matches.data.length : null,
+    matches: matchCount.data == null ? null : matchCount.data,
     members: ladderMembers.data
       ? ladderMembers.data.filter((entry) => entry.status === 'active').length
       : null,

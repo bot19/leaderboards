@@ -54,7 +54,11 @@ vi.mock('@/data/ladder', async (importOriginal) => {
 
 vi.mock('@/data/match', () => ({
   listMatches: () => Promise.resolve([]),
+  listMatchesPage: () => Promise.resolve({ matches: [], total: 0 }),
+  countMatches: () => Promise.resolve(0),
   listMatchesWaitingForMe: () => Promise.resolve([]),
+  confirmMatch: () => Promise.resolve(),
+  rejectMatch: () => Promise.resolve(),
 }))
 
 const session = { user: { id: 'user-1' } } as Session
