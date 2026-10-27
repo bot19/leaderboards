@@ -246,18 +246,9 @@ export type Database = {
           display_name: string
           rating: number
           provisional: boolean
+          inactive: boolean
           rank: number
-        }
-        Relationships: []
-      }
-      inactive_ladder_members: {
-        Row: {
-          ladder_id: string
-          ladder_member_id: string
-          display_name: string
-          rating: number
-          provisional: boolean
-          last_active_at: string
+          rank_change: number | null
         }
         Relationships: []
       }
@@ -359,6 +350,19 @@ export type Database = {
       void_match: {
         Args: { p_match_id: string }
         Returns: undefined
+      }
+      ladder_member_record: {
+        Args: { p_ladder_member_id: string }
+        Returns: {
+          wins: number
+          losses: number
+          draws: number
+          form: string[]
+          streak_result: string | null
+          streak_length: number
+          peak_rating: number | null
+          peak_at: string | null
+        }[]
       }
     }
     Enums: {

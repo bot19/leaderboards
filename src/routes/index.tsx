@@ -1,4 +1,5 @@
 import { createFileRoute, redirect } from '@tanstack/react-router'
+import { bottomNavMainPaddingClass } from '@/components/nav/BottomNavBar'
 import { useAuth } from '@/features/auth/authContext'
 import { redirectSearchSchema } from '@/features/auth/redirectSearch'
 import { LaddersSection } from '@/features/ladders/LaddersSection'
@@ -39,7 +40,7 @@ function HomePage() {
 
   return (
     <>
-      <main className="mx-auto flex min-h-dvh max-w-lg flex-col gap-6 px-4 pt-5 pb-10">
+      <main className={`mx-auto flex min-h-dvh max-w-lg flex-col gap-6 px-4 pt-5 ${bottomNavMainPaddingClass}`}>
         <h1 className="font-display text-3xl text-ink">Home</h1>
         <LaddersSection />
       </main>

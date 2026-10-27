@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { Link, useNavigate } from '@tanstack/react-router'
+import { useNavigate } from '@tanstack/react-router'
 import { toast } from 'sonner'
 import {
   deleteLadder,
@@ -35,7 +35,7 @@ type Props = {
 
 export function MembersPanel({ ladderId }: Props) {
   const { profile, refreshProfile } = useAuth()
-  const navigate = useNavigate()
+  const navigate = useNavigate({ from: '/ladders/$ladderId' })
   const queryClient = useQueryClient()
   const members = useQuery({
     queryKey: ['ladder-members', ladderId],
@@ -57,7 +57,6 @@ export function MembersPanel({ ladderId }: Props) {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['ladder-members', ladderId] }),
       queryClient.invalidateQueries({ queryKey: ['leaderboard', ladderId] }),
-      queryClient.invalidateQueries({ queryKey: ['inactive-members', ladderId] }),
       queryClient.invalidateQueries({ queryKey: ['my-ladders'] }),
       queryClient.invalidateQueries({ queryKey: ['roster', ladderId] }),
     ])
@@ -126,13 +125,21 @@ export function MembersPanel({ ladderId }: Props) {
             <li key={member.id} className="flex flex-col gap-2 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
               <div className="min-w-0">
                 <p className="font-medium text-ink">
-                  <Link
-                    to="/ladders/$ladderId/members/$memberId"
-                    params={{ ladderId, memberId: member.id }}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      void navigate({
+                        search: (prev) => ({
+                          ...prev,
+                          nav: 'member' as const,
+                          member: member.id,
+                        }),
+                      })
+                    }}
                     className="underline-offset-2 hover:underline"
                   >
                     {member.displayName}
-                  </Link>
+                  </button>
                 </p>
                 <p className="text-sm text-neutral-600">
                   {member.role === 'admin' ? 'Admin' : 'Player'} · {statusLabel[member.status]}

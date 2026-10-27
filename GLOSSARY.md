@@ -74,16 +74,19 @@ A Ladder member's Elo number on one Ladder. Everyone starts at the same Rating, 
 _Avoid_: score, points, rank (rank is a position on the Leaderboard)
 
 **Leaderboard**:
-A Ladder's Joined Ladder members who are not Inactive, ordered by Rating.
+A Ladder's Joined Ladder members, ordered by Rating. Inactive members stay on it, marked as Inactive.
 _Avoid_: ladder (the Ladder is the competition; the Leaderboard is its ranking), table, standings
 
 **Provisional**:
-A Ladder member who has played fewer than a set number of rated Matches on that Ladder. Their Rating moves faster while Provisional.
+A Ladder member who has played fewer than a set number of rated Matches on that Ladder. Their Rating moves faster while Provisional. Shown on screen as **New**.
 _Avoid_: new player, unranked
 
 **Inactive**:
-A Joined Ladder member who has not played a Match on the Ladder for a set number of days. Shown apart from the Leaderboard; their Rating is untouched.
+A Joined Ladder member who has not played a Match on the Ladder for a set number of days. Stays on the Leaderboard at their rank, marked Inactive. Their Rating is untouched.
 _Avoid_: dormant, decayed
+
+**Rank movement**:
+How many places a Ladder member's rank changed with the Ladder's latest Confirmed Match.
 
 ### Matches
 
@@ -147,7 +150,7 @@ _Avoid_: recalc, rebuild
 > **Dev:** Say Dave tells an Admin a week later that it was wrong, and the Admin voids it. Do we just undo those four Rating changes?
 > **Domain expert:** No. It had been Confirmed, so we Replay the whole Ladder without it. Later Matches were rated off those numbers.
 > **Dev:** Is "the pool ladder" the Leaderboard?
-> **Domain expert:** The Ladder is the competition. The Leaderboard is its ranking of Joined Ladder members who are not Inactive.
+> **Domain expert:** The Ladder is the competition. The Leaderboard is its ranking of Joined Ladder members, including Inactive ones.
 
 ## Flagged ambiguities
 

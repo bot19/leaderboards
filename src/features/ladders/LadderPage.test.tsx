@@ -8,7 +8,7 @@ import { act, cleanup, render, screen, waitFor, within } from '@testing-library/
 import userEvent from '@testing-library/user-event'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import type { Session } from '@/data/auth'
-import type { InactiveMember, LadderMemberRead, LadderSummary, LeaderboardEntry } from '@/data/ladder'
+import type { LadderMemberRead, LadderSummary, LeaderboardEntry } from '@/data/ladder'
 import type { MatchRead } from '@/data/match'
 import { AuthContext, type AuthState } from '@/features/auth/authContext'
 import { routeTree } from '@/routeTree.gen'
@@ -23,19 +23,33 @@ const mocks = vi.hoisted(() => ({
   shareError: false,
   blockLeaderboard: false,
   leaderboardError: false,
-  blockInactive: false,
   leaderboard: [
-    { ladderMemberId: 'm1', displayName: 'Sam', rating: 1200, rank: 1, provisional: false },
-    { ladderMemberId: 'm2', displayName: 'Alex', rating: 1100, rank: 2, provisional: true },
+    {
+      ladderMemberId: '00000000-0000-4000-8000-000000000001',
+      displayName: 'Sam',
+      rating: 1200,
+      rank: 1,
+      provisional: false,
+      inactive: false,
+      rankChange: null,
+    },
+    {
+      ladderMemberId: '00000000-0000-4000-8000-000000000002',
+      displayName: 'Alex',
+      rating: 1100,
+      rank: 2,
+      provisional: true,
+      inactive: false,
+      rankChange: null,
+    },
   ] as LeaderboardEntry[],
-  inactive: [] as InactiveMember[],
   members: [
-    member('m1', 'Sam', 'active', 'user-1', 'admin'),
-    member('m2', 'Alex', 'active', 'user-2', 'player'),
-    member('m3', 'Jordan', 'active', 'user-3', 'player'),
-    member('m4', 'Casey', 'active', null, 'player'),
-    member('m5', 'Riley', 'left', 'user-5', 'player'),
-    member('m6', 'Morgan', 'removed', 'user-6', 'player'),
+    member('00000000-0000-4000-8000-000000000001', 'Sam', 'active', 'user-1', 'admin'),
+    member('00000000-0000-4000-8000-000000000002', 'Alex', 'active', 'user-2', 'player'),
+    member('00000000-0000-4000-8000-000000000003', 'Jordan', 'active', 'user-3', 'player'),
+    member('00000000-0000-4000-8000-000000000004', 'Casey', 'active', null, 'player'),
+    member('00000000-0000-4000-8000-000000000005', 'Riley', 'left', 'user-5', 'player'),
+    member('00000000-0000-4000-8000-000000000006', 'Morgan', 'removed', 'user-6', 'player'),
   ] as LadderMemberRead[],
   matches: [
     match('match-pending', 'pending'),
@@ -116,13 +130,20 @@ vi.mock('@/data/ladder', async (importOriginal) => {
       if (mocks.blockLeaderboard) return new Promise(() => {})
       return Promise.resolve(mocks.leaderboard)
     },
-    listInactiveMembers: () => {
-      if (mocks.blockInactive) return new Promise(() => {})
-      return Promise.resolve(mocks.inactive)
-    },
     listLadderMembers: () => Promise.resolve(mocks.members),
     listRoster: () => Promise.resolve([]),
-    listRatingHistory: () => Promise.resolve([]),
+    fetchLadderMember: () => Promise.resolve(null),
+    fetchLadderMemberRecord: () =>
+      Promise.resolve({
+        wins: 0,
+        losses: 0,
+        draws: 0,
+        form: [],
+        streakResult: null,
+        streakLength: 0,
+        peakRating: null,
+        peakAt: null,
+      }),
   }
 })
 
@@ -160,19 +181,33 @@ afterEach(async () => {
   mocks.shareError = false
   mocks.blockLeaderboard = false
   mocks.leaderboardError = false
-  mocks.blockInactive = false
   mocks.leaderboard = [
-    { ladderMemberId: 'm1', displayName: 'Sam', rating: 1200, rank: 1, provisional: false },
-    { ladderMemberId: 'm2', displayName: 'Alex', rating: 1100, rank: 2, provisional: true },
+    {
+      ladderMemberId: '00000000-0000-4000-8000-000000000001',
+      displayName: 'Sam',
+      rating: 1200,
+      rank: 1,
+      provisional: false,
+      inactive: false,
+      rankChange: null,
+    },
+    {
+      ladderMemberId: '00000000-0000-4000-8000-000000000002',
+      displayName: 'Alex',
+      rating: 1100,
+      rank: 2,
+      provisional: true,
+      inactive: false,
+      rankChange: null,
+    },
   ]
-  mocks.inactive = []
   mocks.members = [
-    member('m1', 'Sam', 'active', 'user-1', 'admin'),
-    member('m2', 'Alex', 'active', 'user-2', 'player'),
-    member('m3', 'Jordan', 'active', 'user-3', 'player'),
-    member('m4', 'Casey', 'active', null, 'player'),
-    member('m5', 'Riley', 'left', 'user-5', 'player'),
-    member('m6', 'Morgan', 'removed', 'user-6', 'player'),
+    member('00000000-0000-4000-8000-000000000001', 'Sam', 'active', 'user-1', 'admin'),
+    member('00000000-0000-4000-8000-000000000002', 'Alex', 'active', 'user-2', 'player'),
+    member('00000000-0000-4000-8000-000000000003', 'Jordan', 'active', 'user-3', 'player'),
+    member('00000000-0000-4000-8000-000000000004', 'Casey', 'active', null, 'player'),
+    member('00000000-0000-4000-8000-000000000005', 'Riley', 'left', 'user-5', 'player'),
+    member('00000000-0000-4000-8000-000000000006', 'Morgan', 'removed', 'user-6', 'player'),
   ]
   mocks.matches = [
     match('match-pending', 'pending'),
@@ -243,7 +278,10 @@ describe('Ladder page', () => {
     expect(within(main).queryByRole('button', { name: 'Link' })).not.toBeInTheDocument()
     expect(screen.queryByRole('textbox', { name: 'Share link' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Copy Share link' })).not.toBeInTheDocument()
-    expect(main).toHaveClass('pt-5', 'pb-10')
+    expect(main).toHaveClass(
+      'pt-5',
+      'pb-[calc(5.5rem+env(safe-area-inset-bottom))]',
+    )
     expect(main).not.toHaveClass('py-10')
     expect(heading).toHaveClass('break-words')
 
@@ -300,39 +338,40 @@ describe('Ladder page', () => {
     expect(screen.queryByRole('button', { name: 'Home' })).not.toBeInTheDocument()
   })
 
-  it('puts Record a Match under the avatar, then Nav, and opens the panel', async () => {
+  it('puts Record a Match between Profile and Nav, and opens the panel', async () => {
     const user = userEvent.setup()
     const { router } = await openApp('/ladders/ladder-1')
 
-    const rail = await screen.findByRole('navigation', { name: 'Side menu' })
-    await within(rail).findByRole('button', { name: 'Record a Match' })
-    const controls = [...rail.querySelectorAll('a, button')]
+    const bar = await screen.findByRole('navigation', { name: 'Primary' })
+    await within(bar).findByRole('button', { name: 'Record a Match' })
+    const controls = [...bar.querySelectorAll('a, button')]
     expect(controls.map((control) => control.getAttribute('aria-label'))).toEqual([
       'Profile',
       'Record a Match',
       'Nav',
     ])
-    const record = within(rail).getByRole('button', { name: 'Record a Match' })
+    const record = within(bar).getByRole('button', { name: 'Record a Match' })
     expect(record).toHaveClass('!bg-neutral-200', 'hover:!bg-neutral-300')
     expect(record).not.toHaveClass('!bg-primary')
-    expect(within(rail).queryByRole('link', { name: 'Home' })).not.toBeInTheDocument()
+    expect(within(bar).queryByRole('link', { name: 'Home' })).not.toBeInTheDocument()
     expect(within(screen.getByRole('main')).queryByRole('button', { name: 'Record a Match' })).not.toBeInTheDocument()
 
-    await user.click(within(rail).getByRole('button', { name: 'Record a Match' }))
+    await user.click(within(bar).getByRole('button', { name: 'Record a Match' }))
     expect(await screen.findByRole('dialog', { name: 'Record a Match' })).toBeInTheDocument()
     expect(router.state.location.search).toMatchObject({ record: 'open' })
 
     cleanup()
     await openApp('/')
-    const homeRail = screen.getByRole('navigation', { name: 'Side menu' })
-    expect(within(homeRail).queryByRole('button', { name: 'Record a Match' })).not.toBeInTheDocument()
-    expect(within(homeRail).queryByRole('link', { name: 'Home' })).not.toBeInTheDocument()
+    const homeBar = screen.getByRole('navigation', { name: 'Primary' })
+    expect(within(homeBar).queryByRole('button', { name: 'Record a Match' })).not.toBeInTheDocument()
+    expect(within(homeBar).queryByRole('link', { name: 'Home' })).not.toBeInTheDocument()
 
     cleanup()
-    await openApp('/ladders/ladder-1/members/m1')
-    const memberRail = await screen.findByRole('navigation', { name: 'Side menu' })
-    expect(within(memberRail).queryByRole('button', { name: 'Record a Match' })).not.toBeInTheDocument()
-    expect(within(memberRail).queryByRole('link', { name: 'Home' })).not.toBeInTheDocument()
+    await openApp('/ladders/ladder-1?nav=member&member=00000000-0000-4000-8000-000000000001')
+    const memberBar = await screen.findByRole('navigation', { name: 'Primary' })
+    // Member view is a drawer on the Ladder page, so Record a Match stays on the bar.
+    expect(within(memberBar).getByRole('button', { name: 'Record a Match' })).toBeInTheDocument()
+    expect(within(memberBar).queryByRole('link', { name: 'Home' })).not.toBeInTheDocument()
   })
 
   it('counts Leaderboard entries, every Match, and active Ladder members only', async () => {
@@ -349,7 +388,9 @@ describe('Ladder page', () => {
     mocks.leaderboard = mocks.leaderboard.slice(0, 1)
     mocks.matches = mocks.matches.slice(0, 1)
     mocks.members = mocks.members.map((entry) =>
-      entry.id === 'm4' ? { ...entry, status: 'left' } : entry,
+      entry.id === '00000000-0000-4000-8000-000000000004'
+        ? { ...entry, status: 'left' }
+        : entry,
     )
     await act(async () => {
       await queryClient.invalidateQueries({ queryKey: ['leaderboard', 'ladder-1'] })
@@ -381,10 +422,42 @@ describe('Ladder page', () => {
 
   it('shows medals for the top three Leaderboard ranks and a number from rank 4', async () => {
     mocks.leaderboard = [
-      { ladderMemberId: 'm1', displayName: 'Sam', rating: 1200, rank: 1, provisional: false },
-      { ladderMemberId: 'm2', displayName: 'Alex', rating: 1100, rank: 2, provisional: true },
-      { ladderMemberId: 'm3', displayName: 'Jordan', rating: 1000, rank: 3, provisional: false },
-      { ladderMemberId: 'm4', displayName: 'Casey', rating: 900, rank: 4, provisional: false },
+      {
+        ladderMemberId: '00000000-0000-4000-8000-000000000001',
+        displayName: 'Sam',
+        rating: 1200,
+        rank: 1,
+        provisional: false,
+        inactive: false,
+        rankChange: 1,
+      },
+      {
+        ladderMemberId: '00000000-0000-4000-8000-000000000002',
+        displayName: 'Alex',
+        rating: 1100,
+        rank: 2,
+        provisional: true,
+        inactive: false,
+        rankChange: -1,
+      },
+      {
+        ladderMemberId: '00000000-0000-4000-8000-000000000003',
+        displayName: 'Jordan',
+        rating: 1000,
+        rank: 3,
+        provisional: false,
+        inactive: false,
+        rankChange: 0,
+      },
+      {
+        ladderMemberId: '00000000-0000-4000-8000-000000000004',
+        displayName: 'Casey',
+        rating: 900,
+        rank: 4,
+        provisional: false,
+        inactive: false,
+        rankChange: null,
+      },
     ]
     await openApp('/ladders/ladder-1')
 
@@ -409,55 +482,82 @@ describe('Ladder page', () => {
     expect(second).toHaveTextContent('🥈')
     const alex = rowOf(second)
     expect(alex).toHaveClass('bg-slate-100')
-    expect(within(alex).getByText('Provisional')).toBeInTheDocument()
+    expect(within(alex).getByText('New')).toBeInTheDocument()
     expect(within(alex).getByText('1100')).toHaveClass('font-bold')
+    expect(within(alex).getByLabelText('Down 1 place')).toHaveClass('text-red-700')
+    expect(within(alex).getByLabelText('Down 1 place')).toHaveTextContent('−1')
+
+    const firstRow = rowOf(first)
+    expect(within(firstRow).getByLabelText('Up 1 place')).toHaveClass('text-green-700')
+    expect(within(firstRow).getByLabelText('Up 1 place')).toHaveTextContent('+1')
 
     const third = within(board).getByRole('img', { name: 'Rank 3' })
     expect(third).toHaveTextContent('🥉')
     expect(rowOf(third)).toHaveClass('bg-orange-100')
     expect(within(rowOf(third)).getByText('1000')).toHaveClass('font-bold')
+    expect(within(rowOf(third)).queryByLabelText(/Up|Down/)).not.toBeInTheDocument()
 
-    const casey = rowOf(within(board).getByRole('link', { name: 'Casey' }))
+    const casey = rowOf(within(board).getByRole('button', { name: 'Casey' }))
     expect(casey).toHaveTextContent('4')
     expect(within(casey).queryByRole('img')).not.toBeInTheDocument()
     expect(casey).not.toHaveClass('bg-amber-100', 'bg-slate-100', 'bg-orange-100')
     expect(within(casey).getByText('900')).not.toHaveClass('font-bold')
+    expect(within(casey).queryByLabelText(/Up|Down/)).not.toBeInTheDocument()
   })
 
-  it('hides the Inactive section while it loads and when nobody is Inactive', async () => {
-    mocks.blockInactive = true
-    await openApp('/ladders/ladder-1')
-
-    expect(await screen.findByRole('heading', { name: 'Friday pool' })).toBeInTheDocument()
-    expect(screen.queryByRole('region', { name: 'Inactive' })).not.toBeInTheDocument()
-    expect(screen.queryByText('Nobody is Inactive.')).not.toBeInTheDocument()
-    expect(screen.queryByText('Loading Inactive…')).not.toBeInTheDocument()
-
-    cleanup()
-    mocks.blockInactive = false
-    mocks.inactive = []
-    await openApp('/ladders/ladder-1')
-
-    expect(await screen.findByRole('heading', { name: 'Friday pool' })).toBeInTheDocument()
-    await waitFor(() => {
-      expect(screen.queryByRole('region', { name: 'Inactive' })).not.toBeInTheDocument()
-    })
-    expect(screen.queryByText('Nobody is Inactive.')).not.toBeInTheDocument()
-  })
-
-  it('shows the Inactive section when a Ladder member is Inactive', async () => {
-    mocks.inactive = [
+  it('keeps Inactive members in the Leaderboard list, dimmed and badged', async () => {
+    mocks.leaderboard = [
       {
-        ladderMemberId: 'm4',
-        displayName: 'Casey',
-        rating: 1000,
+        ladderMemberId: '00000000-0000-4000-8000-000000000001',
+        displayName: 'Sam',
+        rating: 1200,
+        rank: 1,
         provisional: false,
-        lastActiveAt: '2026-01-01T00:00:00Z',
+        inactive: false,
+        rankChange: null,
+      },
+      {
+        ladderMemberId: '00000000-0000-4000-8000-000000000004',
+        displayName: 'Casey',
+        rating: 1100,
+        rank: 2,
+        provisional: true,
+        inactive: true,
+        rankChange: -1,
       },
     ]
     await openApp('/ladders/ladder-1')
 
-    const section = await screen.findByRole('region', { name: 'Inactive' })
-    expect(within(section).getByRole('link', { name: 'Casey' })).toBeInTheDocument()
+    const board = await screen.findByRole('region', { name: 'Leaderboard' })
+    expect(screen.queryByRole('region', { name: 'Inactive' })).not.toBeInTheDocument()
+
+    const casey = within(board).getByRole('button', { name: 'Casey' }).closest('li')
+    if (!casey) throw new Error('Casey row not found')
+    expect(casey).toHaveClass('opacity-60')
+    expect(within(casey).getByText('New')).toBeInTheDocument()
+    expect(within(casey).getByText('Inactive')).toBeInTheDocument()
+    expect(within(casey).getByLabelText('Down 1 place')).toBeInTheDocument()
+    expect(within(casey).getByRole('img', { name: 'Rank 2' })).toBeInTheDocument()
+  })
+
+  it('opens the member view from a Leaderboard or Members name and keeps the tab', async () => {
+    const user = userEvent.setup()
+    const { router } = await openApp('/ladders/ladder-1?tab=leaderboard')
+
+    await user.click(await screen.findByRole('button', { name: 'Sam' }))
+    expect(router.state.location.search).toMatchObject({
+      tab: 'leaderboard',
+      nav: 'member',
+      member: '00000000-0000-4000-8000-000000000001',
+    })
+
+    cleanup()
+    const opened = await openApp('/ladders/ladder-1?tab=members')
+    await user.click(await screen.findByRole('button', { name: 'Jordan' }))
+    expect(opened.router.state.location.search).toMatchObject({
+      tab: 'members',
+      nav: 'member',
+      member: '00000000-0000-4000-8000-000000000003',
+    })
   })
 })

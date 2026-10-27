@@ -1,12 +1,13 @@
 import { z } from 'zod'
 
-export const navViews = ['menu', 'profile'] as const
+export const navViews = ['menu', 'profile', 'member'] as const
 
 export type NavView = (typeof navViews)[number]
 
 /** Drawer view. Declared on the root route so every screen keeps it. */
 export const navSearchSchema = z.object({
   nav: z.enum(navViews).optional().catch(undefined),
+  member: z.string().uuid().optional().catch(undefined),
 })
 
 export function ladderCountLabel(count: number | undefined): string {

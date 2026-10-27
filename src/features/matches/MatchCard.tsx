@@ -1,6 +1,6 @@
 import { IconBan, IconCircleCheck, IconCircleX, IconClock, type Icon } from '@tabler/icons-react'
 import type { ReactNode } from 'react'
-import type { MatchRead, MatchSide, MatchStatus } from '@/data/match'
+import type { MatchRead, MatchSide } from '@/data/match'
 import {
   formatLocalDateTime,
   formatRatingChange,
@@ -9,6 +9,7 @@ import {
   recorderName,
   sideNames,
 } from '@/features/matches/labels'
+import { confirmedSideTone, matchCardClassName } from '@/features/matches/matchStyles'
 import { formatRelativeTime } from '@/lib/relativeTime'
 
 type MemberName = {
@@ -24,12 +25,6 @@ type Props = {
   children?: ReactNode
 }
 
-const cardClassName: Record<MatchStatus, string> = {
-  pending: 'space-y-2 rounded-xl border border-orange-200 bg-orange-50 px-4 py-3 shadow-sm',
-  confirmed: 'space-y-2 rounded-xl bg-white px-4 py-3 shadow-sm',
-  voided: 'space-y-2 rounded-xl bg-white px-4 py-3 opacity-60 shadow-sm',
-}
-
 export function MatchCard({ match, members, onVoid, voiding = false, children }: Props) {
   const status = statusPresentation(match)
   const StatusIcon = status?.icon
@@ -37,7 +32,7 @@ export function MatchCard({ match, members, onVoid, voiding = false, children }:
   const summary = matchSummary(match)
 
   return (
-    <article className={cardClassName[match.status]}>
+    <article className={matchCardClassName[match.status]}>
       <div className="flex items-start justify-between gap-3">
         <p className="min-w-0 font-medium break-words text-ink">
           {sideNames(match, 'a')} vs {sideNames(match, 'b')}
@@ -141,7 +136,7 @@ function rowTone(match: MatchRead, side: MatchSide): string {
   const won =
     (match.result === 'side_a_won' && side === 'a') ||
     (match.result === 'side_b_won' && side === 'b')
-  return won ? 'text-green-700' : 'text-red-700'
+  return confirmedSideTone(won)
 }
 
 function RatingChanges({ match }: { match: MatchRead }) {

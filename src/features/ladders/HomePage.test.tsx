@@ -51,7 +51,6 @@ vi.mock('@/data/ladder', async (importOriginal) => {
       }),
     fetchShareToken: () => Promise.resolve('FP7K2Q'),
     listLeaderboard: () => Promise.resolve([]),
-    listInactiveMembers: () => Promise.resolve([]),
     listLadderMembers: () => Promise.resolve([]),
     listRoster: () => Promise.resolve([]),
   }

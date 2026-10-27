@@ -3,11 +3,9 @@ import { describe, expect, it } from 'vitest'
 import { listMatches, listMatchesWaitingForMe } from '@/data/match'
 import { fetchProfile } from '@/data/profile'
 import {
-  listInactiveMembers,
   listLadderMembers,
   listLeaderboard,
   listMyLadders,
-  listRatingHistory,
   listRoster,
 } from '@/data/ladder'
 import { resolveAuthDestination } from '@/lib/authDestination'
@@ -76,19 +74,24 @@ describe('seeded local data', () => {
     expect(board.map((entry) => entry.displayName).sort()).toEqual([
       'Alex',
       'Jordan',
+      'Morgan',
       'Sam',
       'Taylor',
     ])
-    expect(board.map((entry) => entry.rank).sort()).toEqual([1, 2, 3, 4])
+    expect(board.map((entry) => entry.rank).sort()).toEqual([1, 2, 3, 4, 5])
     expect(board.find((entry) => entry.displayName === 'Taylor')?.provisional).toBe(true)
-    expect(board.filter((entry) => entry.displayName !== 'Taylor').every((entry) => !entry.provisional)).toBe(true)
-
-    const inactive = await listInactiveMembers(friday.id, client)
-    expect(inactive.map((member) => member.displayName)).toEqual(['Morgan'])
-    const morgan = inactive[0]
+    expect(board.find((entry) => entry.displayName === 'Morgan')?.provisional).toBe(true)
+    expect(
+      board
+        .filter((entry) => entry.displayName !== 'Taylor' && entry.displayName !== 'Morgan')
+        .every((entry) => !entry.provisional),
+    ).toBe(true)
+    const morgan = board.find((entry) => entry.displayName === 'Morgan')
     if (!morgan) throw new Error('Morgan is missing')
-    expect(daysAgo(morgan.lastActiveAt)).toBeGreaterThan(44)
-    expect(daysAgo(morgan.lastActiveAt)).toBeLessThan(46)
+    expect(morgan.inactive).toBe(true)
+    expect(board.filter((entry) => entry.displayName !== 'Morgan').every((entry) => !entry.inactive)).toBe(
+      true,
+    )
 
     const roster = await listRoster(friday.id, client)
     expect(roster.find((member) => member.displayName === 'Riley')?.status).toBe('left')
@@ -133,7 +136,9 @@ describe('seeded local data', () => {
     expect(lunchRoster.map((member) => member.displayName).sort()).toEqual(['Alex', 'Sam'])
     expect(lunchRoster.find((member) => member.displayName === 'Sam')?.status).toBe('active')
     expect(await listLeaderboard(lunch.id, client)).toHaveLength(2)
-    expect(await listInactiveMembers(lunch.id, client)).toEqual([])
+    expect(await listLeaderboard(lunch.id, client).then((rows) => rows.every((r) => !r.inactive))).toBe(
+      true,
+    )
     expect(await listMatches(lunch.id, client)).toEqual([])
   })
 
@@ -156,11 +161,20 @@ describe('seeded local data', () => {
       )
 
       for (const member of after) {
-        const history = await listRatingHistory(member.id, client)
+        const history = await query<{
+          rating_before: number
+          rating_change: number
+        }>(
+          `select rating_before, rating_change
+           from public.rating_history
+           where ladder_member_id = $1::uuid
+           order by confirmed_at asc, match_id asc`,
+          [member.id],
+        )
         let rating = starting
         for (const entry of history) {
-          expect(entry.ratingBefore).toBeCloseTo(rating, 5)
-          rating += entry.ratingChange
+          expect(Number(entry.rating_before)).toBeCloseTo(rating, 5)
+          rating += Number(entry.rating_change)
         }
         expect(rating).toBeCloseTo(member.rating, 5)
         expect(history).toHaveLength(member.ratedMatchCount)
@@ -174,7 +188,11 @@ describe('seeded local data', () => {
       const member = roster.find((entry) => entry.displayName === name)
       if (!member) throw new Error(`${name} is missing`)
       expect(member.ratedMatchCount).toBeGreaterThan(0)
-      expect(await listRatingHistory(member.id, client)).toHaveLength(member.ratedMatchCount)
+      const history = await query(
+        `select match_id from public.rating_history where ladder_member_id = $1::uuid`,
+        [member.id],
+      )
+      expect(history).toHaveLength(member.ratedMatchCount)
     }
   })
 })

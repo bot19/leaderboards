@@ -108,7 +108,6 @@ vi.mock('@/data/ladder', async (importOriginal) => {
     fetchShareToken: () => Promise.resolve('share-token'),
     listMyLadders: () => Promise.resolve([]),
     listLeaderboard: () => Promise.resolve([]),
-    listInactiveMembers: () => Promise.resolve([]),
     listLadderMembers: () => Promise.resolve(mocks.members),
     listRoster: () => Promise.resolve([]),
     leaveLadder: (ladderId: string) => mocks.leaveLadder(ladderId),
@@ -196,7 +195,7 @@ async function openApp(path: string) {
 }
 
 async function rowOf(name: string) {
-  const row = (await screen.findByRole('link', { name })).closest('li')
+  const row = (await screen.findByRole('button', { name })).closest('li')
   if (!row) throw new Error(`No row for ${name}`)
   return row
 }
