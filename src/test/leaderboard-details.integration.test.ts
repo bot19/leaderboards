@@ -7,7 +7,6 @@ import {
   createLadder,
   listInactiveMembers,
   listLeaderboard,
-  listRatingHistory,
   listRoster,
 } from '@/data/ladder'
 import type { Database } from '@/types/db'
@@ -276,13 +275,24 @@ describe('Leaderboard details', () => {
         }
       })
 
-    expect(await listRatingHistory(idOf('Sam'), who('Sam').client)).toEqual(
-      samHistoryFromMatches.map((entry) => ({
-        matchId: entry.matchId,
-        confirmedAt: expect.any(String),
-        ratingBefore: entry.ratingBefore,
-        ratingChange: entry.ratingChange,
-      })),
+    const history = await query<{
+      match_id: string
+      confirmed_at: string
+      rating_before: string
+      rating_change: string
+    }>(
+      `select match_id, confirmed_at, rating_before::text, rating_change::text
+       from public.rating_history
+       where ladder_member_id = $1::uuid
+       order by confirmed_at asc, match_id asc`,
+      [idOf('Sam')],
     )
+    expect(
+      history.map((entry) => ({
+        matchId: entry.match_id,
+        ratingBefore: Number(entry.rating_before),
+        ratingChange: Number(entry.rating_change),
+      })),
+    ).toEqual(samHistoryFromMatches)
   })
 })

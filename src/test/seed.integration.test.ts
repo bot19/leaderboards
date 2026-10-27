@@ -7,7 +7,6 @@ import {
   listLadderMembers,
   listLeaderboard,
   listMyLadders,
-  listRatingHistory,
   listRoster,
 } from '@/data/ladder'
 import { resolveAuthDestination } from '@/lib/authDestination'
@@ -156,11 +155,20 @@ describe('seeded local data', () => {
       )
 
       for (const member of after) {
-        const history = await listRatingHistory(member.id, client)
+        const history = await query<{
+          rating_before: number
+          rating_change: number
+        }>(
+          `select rating_before, rating_change
+           from public.rating_history
+           where ladder_member_id = $1::uuid
+           order by confirmed_at asc, match_id asc`,
+          [member.id],
+        )
         let rating = starting
         for (const entry of history) {
-          expect(entry.ratingBefore).toBeCloseTo(rating, 5)
-          rating += entry.ratingChange
+          expect(Number(entry.rating_before)).toBeCloseTo(rating, 5)
+          rating += Number(entry.rating_change)
         }
         expect(rating).toBeCloseTo(member.rating, 5)
         expect(history).toHaveLength(member.ratedMatchCount)
@@ -174,7 +182,11 @@ describe('seeded local data', () => {
       const member = roster.find((entry) => entry.displayName === name)
       if (!member) throw new Error(`${name} is missing`)
       expect(member.ratedMatchCount).toBeGreaterThan(0)
-      expect(await listRatingHistory(member.id, client)).toHaveLength(member.ratedMatchCount)
+      const history = await query(
+        `select match_id from public.rating_history where ladder_member_id = $1::uuid`,
+        [member.id],
+      )
+      expect(history).toHaveLength(member.ratedMatchCount)
     }
   })
 })

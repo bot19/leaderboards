@@ -360,6 +360,19 @@ export type Database = {
         Args: { p_match_id: string }
         Returns: undefined
       }
+      ladder_member_record: {
+        Args: { p_ladder_member_id: string }
+        Returns: {
+          wins: number
+          losses: number
+          draws: number
+          form: string[]
+          streak_result: string | null
+          streak_length: number
+          peak_rating: number | null
+          peak_at: string | null
+        }[]
+      }
     }
     Enums: {
       join_policy: 'open'

@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { Link } from '@tanstack/react-router'
+import { useNavigate } from '@tanstack/react-router'
 import { listInactiveMembers, listLeaderboard } from '@/data/ladder'
 import { formatRating } from '@/features/matches/labels'
 import { leaderboardPodium } from '@/lib/leaderboardPodium'
@@ -9,6 +9,7 @@ type Props = {
 }
 
 export function LeaderboardPanel({ ladderId }: Props) {
+  const navigate = useNavigate({ from: '/ladders/$ladderId' })
   const leaderboard = useQuery({
     queryKey: ['leaderboard', ladderId],
     queryFn: () => listLeaderboard(ladderId),
@@ -17,6 +18,12 @@ export function LeaderboardPanel({ ladderId }: Props) {
     queryKey: ['inactive-members', ladderId],
     queryFn: () => listInactiveMembers(ladderId),
   })
+
+  function openMember(memberId: string) {
+    void navigate({
+      search: (prev) => ({ ...prev, nav: 'member', member: memberId }),
+    })
+  }
 
   return (
     <div className="space-y-6">
@@ -49,13 +56,13 @@ export function LeaderboardPanel({ ladderId }: Props) {
                     ) : (
                       <span className="w-6 shrink-0 tabular-nums text-sm text-neutral-500">{entry.rank}</span>
                     )}
-                    <Link
-                      to="/ladders/$ladderId/members/$memberId"
-                      params={{ ladderId, memberId: entry.ladderMemberId }}
+                    <button
+                      type="button"
+                      onClick={() => openMember(entry.ladderMemberId)}
                       className="truncate font-medium text-ink underline-offset-2 hover:underline"
                     >
                       {entry.displayName}
-                    </Link>
+                    </button>
                     {entry.provisional ? (
                       <span className="shrink-0 text-xs font-medium uppercase tracking-wide text-neutral-500">
                         Provisional
@@ -79,13 +86,13 @@ export function LeaderboardPanel({ ladderId }: Props) {
             {inactive.data.map((entry) => (
               <li key={entry.ladderMemberId} className="flex items-baseline justify-between gap-3 px-4 py-3">
                 <div className="flex min-w-0 items-baseline gap-2">
-                  <Link
-                    to="/ladders/$ladderId/members/$memberId"
-                    params={{ ladderId, memberId: entry.ladderMemberId }}
+                  <button
+                    type="button"
+                    onClick={() => openMember(entry.ladderMemberId)}
                     className="truncate font-medium text-ink underline-offset-2 hover:underline"
                   >
                     {entry.displayName}
-                  </Link>
+                  </button>
                   {entry.provisional ? (
                     <span className="shrink-0 text-xs font-medium uppercase tracking-wide text-neutral-500">
                       Provisional

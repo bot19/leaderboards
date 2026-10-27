@@ -61,6 +61,40 @@ vi.mock("@/data/ladder", async (importOriginal) => {
   return {
     ...actual,
     listMyLadders: () => Promise.resolve(mocks.ladders),
+    fetchLadderMember: (id: string) =>
+      Promise.resolve({
+        id,
+        ladderId: "ladder-1",
+        ladderName: "Friday pool",
+        drawsAllowed: false,
+        displayName: "Priya",
+        role: "player" as const,
+        status: "active" as const,
+        rating: 1500,
+        ratedMatchCount: 3,
+        provisional: true,
+      }),
+    fetchLadderMemberRecord: () =>
+      Promise.resolve({
+        wins: 1,
+        losses: 0,
+        draws: 0,
+        form: ["W"] as Array<"W" | "L" | "D">,
+        streakResult: "W" as const,
+        streakLength: 1,
+        peakRating: 1510,
+        peakAt: "2026-01-01T00:00:00.000Z",
+      }),
+    listLeaderboard: () => Promise.resolve([]),
+    listInactiveMembers: () => Promise.resolve([]),
+  };
+});
+
+vi.mock("@/data/match", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/data/match")>();
+  return {
+    ...actual,
+    listMemberMatchesPage: () => Promise.resolve({ matches: [], total: 0 }),
   };
 });
 
@@ -169,18 +203,15 @@ describe("signed-in chrome", () => {
     const signedIn = [
       "/",
       "/ladders/ladder-1?tab=leaderboard",
-      "/ladders/ladder-1/members/member-1",
+      "/ladders/ladder-1?nav=member&member=00000000-0000-4000-8000-000000000001",
       "/join/share-token",
     ];
     for (const path of signedIn) {
       cleanup();
       await openApp(path);
-      expect(
-        await screen.findByRole("button", { name: "Nav" }),
-      ).toBeInTheDocument();
-      expect(
-        screen.getByRole("button", { name: "Profile" }),
-      ).toBeInTheDocument();
+      const bar = await screen.findByRole("navigation", { name: "Primary" });
+      expect(within(bar).getByRole("button", { name: "Nav" })).toBeInTheDocument();
+      expect(within(bar).getByRole("button", { name: "Profile" })).toBeInTheDocument();
     }
 
     const signedOut: Array<
@@ -214,7 +245,7 @@ describe("signed-in chrome", () => {
     ).toBeInTheDocument();
     expect(within(menu).getByText("boards")).toHaveClass("text-primary");
     expect(within(menu).getByText("Over 9000?!")).toBeInTheDocument();
-    expect(within(menu).getByText("v1.3.0")).toBeInTheDocument();
+    expect(within(menu).getByText("v1.4.0")).toBeInTheDocument();
     expect(
       within(menu).getByRole("heading", {
         level: 2,
@@ -240,13 +271,57 @@ describe("signed-in chrome", () => {
     expect(
       within(profile).getByRole("textbox", { name: "Display name" }),
     ).toBeInTheDocument();
-    expect(within(profile).queryByText("v1.3.0")).not.toBeInTheDocument();
+    expect(within(profile).queryByText("v1.4.0")).not.toBeInTheDocument();
 
     await user.click(within(profile).getByRole("button", { name: "Nav" }));
-    expect(await screen.findByText("v1.3.0")).toBeInTheDocument();
+    expect(await screen.findByText("v1.4.0")).toBeInTheDocument();
     expect(
       screen.queryByRole("textbox", { name: "Display name" }),
     ).not.toBeInTheDocument();
+  });
+
+  it("opens a member view from search params, and Nav and Close clear member", async () => {
+    const user = userEvent.setup();
+    const memberId = "00000000-0000-4000-8000-000000000001";
+    const { router } = await openApp(
+      `/ladders/ladder-1?tab=leaderboard&nav=member&member=${memberId}`,
+    );
+
+    expect(await screen.findByRole("dialog")).toBeInTheDocument();
+    expect(router.state.location.search).toMatchObject({
+      tab: "leaderboard",
+      nav: "member",
+      member: memberId,
+    });
+
+    const dialog = await screen.findByRole("dialog");
+    await user.click(within(dialog).getByRole("button", { name: "Nav" }));
+    await waitFor(() => {
+      expect(router.state.location.search).toMatchObject({
+        tab: "leaderboard",
+        nav: "menu",
+      });
+      expect(router.state.location.search).not.toHaveProperty("member");
+    });
+    expect(
+      within(screen.getByRole("dialog")).getByText("v1.4.0"),
+    ).toBeInTheDocument();
+
+    await act(async () => {
+      await router.navigate({
+        to: "/ladders/$ladderId",
+        params: { ladderId: "ladder-1" },
+        search: { tab: "leaderboard", nav: "member", member: memberId },
+      });
+    });
+    const memberDialog = await screen.findByRole("dialog");
+    await user.click(within(memberDialog).getByText("Close"));
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+      expect(router.state.location.search).not.toHaveProperty("nav");
+      expect(router.state.location.search).not.toHaveProperty("member");
+      expect(router.state.location.search).toMatchObject({ tab: "leaderboard" });
+    });
   });
 
   it("opens the profile view from the avatar", async () => {
@@ -429,13 +504,13 @@ describe("text input background", () => {
     expect(base).toContain("@apply bg-white;");
   });
 
-  it("is version 1.3.0", () => {
+  it("is version 1.4.0", () => {
     const pkg = JSON.parse(
       readFileSync(
         join(dirname(fileURLToPath(import.meta.url)), "../../../package.json"),
         "utf8",
       ),
     ) as { version: string };
-    expect(pkg.version).toBe("1.3.0");
+    expect(pkg.version).toBe("1.4.0");
   });
 });

@@ -196,7 +196,7 @@ async function openApp(path: string) {
 }
 
 async function rowOf(name: string) {
-  const row = (await screen.findByRole('link', { name })).closest('li')
+  const row = (await screen.findByRole('button', { name })).closest('li')
   if (!row) throw new Error(`No row for ${name}`)
   return row
 }

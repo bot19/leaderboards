@@ -25,17 +25,17 @@ const mocks = vi.hoisted(() => ({
   leaderboardError: false,
   blockInactive: false,
   leaderboard: [
-    { ladderMemberId: 'm1', displayName: 'Sam', rating: 1200, rank: 1, provisional: false },
-    { ladderMemberId: 'm2', displayName: 'Alex', rating: 1100, rank: 2, provisional: true },
+    { ladderMemberId: '00000000-0000-4000-8000-000000000001', displayName: 'Sam', rating: 1200, rank: 1, provisional: false },
+    { ladderMemberId: '00000000-0000-4000-8000-000000000002', displayName: 'Alex', rating: 1100, rank: 2, provisional: true },
   ] as LeaderboardEntry[],
   inactive: [] as InactiveMember[],
   members: [
-    member('m1', 'Sam', 'active', 'user-1', 'admin'),
-    member('m2', 'Alex', 'active', 'user-2', 'player'),
-    member('m3', 'Jordan', 'active', 'user-3', 'player'),
-    member('m4', 'Casey', 'active', null, 'player'),
-    member('m5', 'Riley', 'left', 'user-5', 'player'),
-    member('m6', 'Morgan', 'removed', 'user-6', 'player'),
+    member('00000000-0000-4000-8000-000000000001', 'Sam', 'active', 'user-1', 'admin'),
+    member('00000000-0000-4000-8000-000000000002', 'Alex', 'active', 'user-2', 'player'),
+    member('00000000-0000-4000-8000-000000000003', 'Jordan', 'active', 'user-3', 'player'),
+    member('00000000-0000-4000-8000-000000000004', 'Casey', 'active', null, 'player'),
+    member('00000000-0000-4000-8000-000000000005', 'Riley', 'left', 'user-5', 'player'),
+    member('00000000-0000-4000-8000-000000000006', 'Morgan', 'removed', 'user-6', 'player'),
   ] as LadderMemberRead[],
   matches: [
     match('match-pending', 'pending'),
@@ -122,7 +122,18 @@ vi.mock('@/data/ladder', async (importOriginal) => {
     },
     listLadderMembers: () => Promise.resolve(mocks.members),
     listRoster: () => Promise.resolve([]),
-    listRatingHistory: () => Promise.resolve([]),
+    fetchLadderMember: () => Promise.resolve(null),
+    fetchLadderMemberRecord: () =>
+      Promise.resolve({
+        wins: 0,
+        losses: 0,
+        draws: 0,
+        form: [],
+        streakResult: null,
+        streakLength: 0,
+        peakRating: null,
+        peakAt: null,
+      }),
   }
 })
 
@@ -162,17 +173,17 @@ afterEach(async () => {
   mocks.leaderboardError = false
   mocks.blockInactive = false
   mocks.leaderboard = [
-    { ladderMemberId: 'm1', displayName: 'Sam', rating: 1200, rank: 1, provisional: false },
-    { ladderMemberId: 'm2', displayName: 'Alex', rating: 1100, rank: 2, provisional: true },
+    { ladderMemberId: '00000000-0000-4000-8000-000000000001', displayName: 'Sam', rating: 1200, rank: 1, provisional: false },
+    { ladderMemberId: '00000000-0000-4000-8000-000000000002', displayName: 'Alex', rating: 1100, rank: 2, provisional: true },
   ]
   mocks.inactive = []
   mocks.members = [
-    member('m1', 'Sam', 'active', 'user-1', 'admin'),
-    member('m2', 'Alex', 'active', 'user-2', 'player'),
-    member('m3', 'Jordan', 'active', 'user-3', 'player'),
-    member('m4', 'Casey', 'active', null, 'player'),
-    member('m5', 'Riley', 'left', 'user-5', 'player'),
-    member('m6', 'Morgan', 'removed', 'user-6', 'player'),
+    member('00000000-0000-4000-8000-000000000001', 'Sam', 'active', 'user-1', 'admin'),
+    member('00000000-0000-4000-8000-000000000002', 'Alex', 'active', 'user-2', 'player'),
+    member('00000000-0000-4000-8000-000000000003', 'Jordan', 'active', 'user-3', 'player'),
+    member('00000000-0000-4000-8000-000000000004', 'Casey', 'active', null, 'player'),
+    member('00000000-0000-4000-8000-000000000005', 'Riley', 'left', 'user-5', 'player'),
+    member('00000000-0000-4000-8000-000000000006', 'Morgan', 'removed', 'user-6', 'player'),
   ]
   mocks.matches = [
     match('match-pending', 'pending'),
@@ -332,9 +343,10 @@ describe('Ladder page', () => {
     expect(within(homeBar).queryByRole('link', { name: 'Home' })).not.toBeInTheDocument()
 
     cleanup()
-    await openApp('/ladders/ladder-1/members/m1')
+    await openApp('/ladders/ladder-1?nav=member&member=00000000-0000-4000-8000-000000000001')
     const memberBar = await screen.findByRole('navigation', { name: 'Primary' })
-    expect(within(memberBar).queryByRole('button', { name: 'Record a Match' })).not.toBeInTheDocument()
+    // Member view is a drawer on the Ladder page, so Record a Match stays on the bar.
+    expect(within(memberBar).getByRole('button', { name: 'Record a Match' })).toBeInTheDocument()
     expect(within(memberBar).queryByRole('link', { name: 'Home' })).not.toBeInTheDocument()
   })
 
@@ -352,7 +364,9 @@ describe('Ladder page', () => {
     mocks.leaderboard = mocks.leaderboard.slice(0, 1)
     mocks.matches = mocks.matches.slice(0, 1)
     mocks.members = mocks.members.map((entry) =>
-      entry.id === 'm4' ? { ...entry, status: 'left' } : entry,
+      entry.id === '00000000-0000-4000-8000-000000000004'
+        ? { ...entry, status: 'left' }
+        : entry,
     )
     await act(async () => {
       await queryClient.invalidateQueries({ queryKey: ['leaderboard', 'ladder-1'] })
@@ -384,10 +398,10 @@ describe('Ladder page', () => {
 
   it('shows medals for the top three Leaderboard ranks and a number from rank 4', async () => {
     mocks.leaderboard = [
-      { ladderMemberId: 'm1', displayName: 'Sam', rating: 1200, rank: 1, provisional: false },
-      { ladderMemberId: 'm2', displayName: 'Alex', rating: 1100, rank: 2, provisional: true },
-      { ladderMemberId: 'm3', displayName: 'Jordan', rating: 1000, rank: 3, provisional: false },
-      { ladderMemberId: 'm4', displayName: 'Casey', rating: 900, rank: 4, provisional: false },
+      { ladderMemberId: '00000000-0000-4000-8000-000000000001', displayName: 'Sam', rating: 1200, rank: 1, provisional: false },
+      { ladderMemberId: '00000000-0000-4000-8000-000000000002', displayName: 'Alex', rating: 1100, rank: 2, provisional: true },
+      { ladderMemberId: '00000000-0000-4000-8000-000000000003', displayName: 'Jordan', rating: 1000, rank: 3, provisional: false },
+      { ladderMemberId: '00000000-0000-4000-8000-000000000004', displayName: 'Casey', rating: 900, rank: 4, provisional: false },
     ]
     await openApp('/ladders/ladder-1')
 
@@ -420,7 +434,7 @@ describe('Ladder page', () => {
     expect(rowOf(third)).toHaveClass('bg-orange-100')
     expect(within(rowOf(third)).getByText('1000')).toHaveClass('font-bold')
 
-    const casey = rowOf(within(board).getByRole('link', { name: 'Casey' }))
+    const casey = rowOf(within(board).getByRole('button', { name: 'Casey' }))
     expect(casey).toHaveTextContent('4')
     expect(within(casey).queryByRole('img')).not.toBeInTheDocument()
     expect(casey).not.toHaveClass('bg-amber-100', 'bg-slate-100', 'bg-orange-100')
@@ -451,7 +465,7 @@ describe('Ladder page', () => {
   it('shows the Inactive section when a Ladder member is Inactive', async () => {
     mocks.inactive = [
       {
-        ladderMemberId: 'm4',
+        ladderMemberId: '00000000-0000-4000-8000-000000000004',
         displayName: 'Casey',
         rating: 1000,
         provisional: false,
@@ -461,6 +475,27 @@ describe('Ladder page', () => {
     await openApp('/ladders/ladder-1')
 
     const section = await screen.findByRole('region', { name: 'Inactive' })
-    expect(within(section).getByRole('link', { name: 'Casey' })).toBeInTheDocument()
+    expect(within(section).getByRole('button', { name: 'Casey' })).toBeInTheDocument()
+  })
+
+  it('opens the member view from a Leaderboard or Members name and keeps the tab', async () => {
+    const user = userEvent.setup()
+    const { router } = await openApp('/ladders/ladder-1?tab=leaderboard')
+
+    await user.click(await screen.findByRole('button', { name: 'Sam' }))
+    expect(router.state.location.search).toMatchObject({
+      tab: 'leaderboard',
+      nav: 'member',
+      member: '00000000-0000-4000-8000-000000000001',
+    })
+
+    cleanup()
+    const opened = await openApp('/ladders/ladder-1?tab=members')
+    await user.click(await screen.findByRole('button', { name: 'Jordan' }))
+    expect(opened.router.state.location.search).toMatchObject({
+      tab: 'members',
+      nav: 'member',
+      member: '00000000-0000-4000-8000-000000000003',
+    })
   })
 })

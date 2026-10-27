@@ -35,11 +35,28 @@ export type InactiveMember = {
   lastActiveAt: string
 }
 
-export type RatingHistoryEntry = {
-  matchId: string
-  confirmedAt: string
-  ratingBefore: number
-  ratingChange: number
+export type LadderMemberRecord = {
+  wins: number
+  losses: number
+  draws: number
+  form: Array<'W' | 'L' | 'D'>
+  streakResult: 'W' | 'L' | 'D' | null
+  streakLength: number
+  peakRating: number | null
+  peakAt: string | null
+}
+
+export type LadderMemberDetail = {
+  id: string
+  ladderId: string
+  ladderName: string
+  drawsAllowed: boolean
+  displayName: string
+  role: 'admin' | 'player'
+  status: 'active' | 'left' | 'removed'
+  rating: number
+  ratedMatchCount: number
+  provisional: boolean
 }
 
 export type LadderMemberRead = {
@@ -347,25 +364,81 @@ export async function listInactiveMembers(
   }))
 }
 
-export async function listRatingHistory(
+const PROVISIONAL_THRESHOLD = 5
+
+function asFormResult(value: string): 'W' | 'L' | 'D' {
+  if (value === 'W' || value === 'L' || value === 'D') return value
+  throw new Error(`Unexpected form result: ${value}`)
+}
+
+export async function fetchLadderMember(
   ladderMemberId: string,
   client: LadderClient = getSupabase(),
-): Promise<RatingHistoryEntry[]> {
+): Promise<LadderMemberDetail | null> {
   const { data, error } = await client
-    .from('rating_history')
-    .select('match_id, confirmed_at, rating_before, rating_change')
-    .eq('ladder_member_id', ladderMemberId)
-    .order('confirmed_at', { ascending: true })
-    .order('match_id', { ascending: true })
+    .from('ladder_members')
+    .select(
+      'id, ladder_id, role, status, rating, rated_match_count, profiles(display_name), ladders(name, games(draws_allowed))',
+    )
+    .eq('id', ladderMemberId)
+    .maybeSingle()
 
   if (error) throw new Error(error.message)
+  if (!data) return null
 
-  return (data ?? []).map((row) => ({
-    matchId: row.match_id,
-    confirmedAt: row.confirmed_at,
-    ratingBefore: asNumber(row.rating_before),
-    ratingChange: asNumber(row.rating_change),
-  }))
+  const displayName = embeddedDisplayName(data.profiles)
+  if (!displayName) throw new Error('Ladder member is missing a display name')
+
+  const ladder = Array.isArray(data.ladders) ? data.ladders[0] : data.ladders
+  if (!ladder) throw new Error('Ladder member is missing its Ladder')
+  const game = Array.isArray(ladder.games) ? ladder.games[0] : ladder.games
+  if (!game) throw new Error('Ladder is missing its Game')
+
+  return {
+    id: data.id,
+    ladderId: data.ladder_id,
+    ladderName: ladder.name,
+    drawsAllowed: game.draws_allowed,
+    displayName,
+    role: data.role,
+    status: data.status,
+    rating: asNumber(data.rating),
+    ratedMatchCount: data.rated_match_count,
+    provisional: data.rated_match_count < PROVISIONAL_THRESHOLD,
+  }
+}
+
+export async function fetchLadderMemberRecord(
+  ladderMemberId: string,
+  client: LadderClient = getSupabase(),
+): Promise<LadderMemberRecord> {
+  const { data, error } = await client.rpc('ladder_member_record', {
+    p_ladder_member_id: ladderMemberId,
+  })
+  if (error) throw new Error(error.message)
+  const row = data?.[0]
+  if (!row) {
+    return {
+      wins: 0,
+      losses: 0,
+      draws: 0,
+      form: [],
+      streakResult: null,
+      streakLength: 0,
+      peakRating: null,
+      peakAt: null,
+    }
+  }
+  return {
+    wins: row.wins,
+    losses: row.losses,
+    draws: row.draws,
+    form: (row.form ?? []).map(asFormResult),
+    streakResult: row.streak_result ? asFormResult(row.streak_result) : null,
+    streakLength: row.streak_length,
+    peakRating: row.peak_rating == null ? null : asNumber(row.peak_rating),
+    peakAt: row.peak_at,
+  }
 }
 
 export async function listLadderMembers(

@@ -10,14 +10,16 @@ import { NavProfile } from '@/components/nav/NavProfile'
 import { IconButton } from '@/components/ui/IconButton'
 import { UserAvatar } from '@/components/user/UserAvatar'
 import { useSignOut } from '@/data/auth'
-import { listMyLadders } from '@/data/ladder'
+import { fetchLadderMember, listMyLadders } from '@/data/ladder'
 import { useAuth } from '@/features/auth/authContext'
 import { LaddersSection } from '@/features/ladders/LaddersSection'
 import { DisplayNameForm } from './DisplayNameForm'
+import { MemberPanel } from './MemberPanel'
 import { ladderCountLabel, type NavView } from './navSearch'
 
 type AppSearch = {
   nav?: NavView
+  member?: string
   tab?: 'leaderboard' | 'matches' | 'members'
   record?: 'open'
   redirect?: string
@@ -51,7 +53,7 @@ const drawerFooterClass =
 
 export function SignedInChrome({ barBeforeNav }: Props) {
   const { profile, refreshProfile } = useAuth()
-  const { nav } = useSearch({ from: '__root__' })
+  const { nav, member: memberId } = useSearch({ from: '__root__' })
   const navigate = useNavigate()
   const router = useRouter()
   const queryClient = useQueryClient()
@@ -60,23 +62,62 @@ export function SignedInChrome({ barBeforeNav }: Props) {
     queryKey: ['my-ladders'],
     queryFn: () => listMyLadders(),
   })
+  const member = useQuery({
+    queryKey: ['ladder-member', memberId],
+    queryFn: () => {
+      if (!memberId) throw new Error('Missing Ladder member id')
+      return fetchLadderMember(memberId)
+    },
+    enabled: Boolean(memberId) && nav === 'member',
+  })
 
-  const isOpen = nav === 'menu' || nav === 'profile'
+  const isOpen = nav === 'menu' || nav === 'profile' || nav === 'member'
   // Remember the open view so the panel can slide out without swapping content.
-  const [view, setView] = useState<NavView>(nav === 'profile' ? 'profile' : 'menu')
+  const [view, setView] = useState<NavView>(
+    nav === 'profile' || nav === 'member' ? nav : 'menu',
+  )
+  const [prevNav, setPrevNav] = useState(nav)
+  if (nav !== prevNav) {
+    setPrevNav(nav)
+    if (nav === 'menu' || nav === 'profile' || nav === 'member') {
+      setView(nav)
+    }
+  }
 
   const setNav = useCallback(
     (next: NavView) => {
       setView(next)
       const open = router.state.location.search.nav
+      const drawerOpen = open === 'menu' || open === 'profile' || open === 'member'
       // useNavigate() isn't tied to one route, so its search callback types as never.
-      void updateSearch(navigate as unknown as SearchNavigate, (prev) => ({ ...prev, nav: next }), open === 'menu' || open === 'profile')
+      void updateSearch(
+        navigate as unknown as SearchNavigate,
+        (prev) => ({
+          ...prev,
+          nav: next,
+          member: next === 'member' ? prev.member : undefined,
+        }),
+        drawerOpen,
+      )
     },
     [navigate, router],
   )
 
   const close = useCallback(() => {
-    void updateSearch(navigate as unknown as SearchNavigate, (prev) => ({ ...prev, nav: undefined }), true)
+    void updateSearch(
+      navigate as unknown as SearchNavigate,
+      (prev) => ({ ...prev, nav: undefined, member: undefined }),
+      true,
+    )
+  }, [navigate])
+
+  const openMenu = useCallback(() => {
+    setView('menu')
+    void updateSearch(
+      navigate as unknown as SearchNavigate,
+      (prev) => ({ ...prev, nav: 'menu', member: undefined }),
+      true,
+    )
   }, [navigate])
 
   const refresh = useCallback(async () => {
@@ -91,6 +132,13 @@ export function SignedInChrome({ barBeforeNav }: Props) {
 
   const profileOpen = nav === 'profile'
   const menuOpen = nav === 'menu'
+  const drawerTitle =
+    view === 'profile'
+      ? profile.displayName
+      : view === 'member'
+        ? (member.data?.displayName ?? 'Ladder member')
+        : undefined
+  const drawerTagline = view === 'member' ? (member.data?.ladderName ?? '') : undefined
 
   return (
     <>
@@ -123,7 +171,8 @@ export function SignedInChrome({ barBeforeNav }: Props) {
       </BottomNavBar>
       <NavDrawer
         shown={isOpen}
-        title={view === 'profile' ? profile.displayName : undefined}
+        title={drawerTitle}
+        tagline={drawerTagline}
         showVersion={view === 'menu'}
         onRefresh={view === 'menu' ? refresh : undefined}
         onClose={close}
@@ -146,13 +195,22 @@ export function SignedInChrome({ barBeforeNav }: Props) {
               />
             </div>
           </div>
+        ) : view === 'member' && memberId ? (
+          <div className="flex min-h-0 flex-1 flex-col">
+            <div className={drawerContentClass}>
+              <MemberPanel memberId={memberId} />
+            </div>
+            <div className={drawerFooterClass}>
+              <NavDrawerActions onOpenNav={openMenu} onClose={close} />
+            </div>
+          </div>
         ) : (
           <div className="flex min-h-0 flex-1 flex-col">
             <div className={drawerContentClass}>
               <DisplayNameForm />
             </div>
             <div className={drawerFooterClass}>
-              <NavDrawerActions onOpenNav={() => setNav('menu')} onClose={close} />
+              <NavDrawerActions onOpenNav={openMenu} onClose={close} />
             </div>
           </div>
         )}

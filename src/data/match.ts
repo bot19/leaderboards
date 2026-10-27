@@ -202,6 +202,31 @@ export async function listMatchesPage(
   }
 }
 
+const MEMBER_MATCH_COLUMNS =
+  `${MATCH_COLUMNS}, filter_me:participants!inner(ladder_member_id)` as const
+
+/** Confirmed and Pending Matches this Ladder member took part in, newest first. */
+export async function listMemberMatchesPage(
+  ladderMemberId: string,
+  page: { offset: number; limit: number },
+  client: MatchClient = getSupabase(),
+): Promise<MatchPage> {
+  const { data, error, count } = await client
+    .from('matches')
+    .select(MEMBER_MATCH_COLUMNS, { count: 'exact' })
+    .eq('filter_me.ladder_member_id', ladderMemberId)
+    .in('status', ['confirmed', 'pending'])
+    .order('recorded_at', { ascending: false })
+    .order('id', { ascending: false })
+    .range(page.offset, page.offset + page.limit - 1)
+
+  if (error) throw new Error(error.message)
+  return {
+    matches: (data ?? []).map((row) => toMatch(row)),
+    total: count ?? 0,
+  }
+}
+
 export async function countMatches(
   ladderId: string,
   client: MatchClient = getSupabase(),
