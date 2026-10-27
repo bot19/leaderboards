@@ -335,16 +335,16 @@ begin
     now() - interval '4 days', null, jordan, now() - interval '3 days', 'rejected'
   );
 
-  -- Pending an hour ago. Alex and Sam each have one Match waiting.
+  -- Pending within the Confirmation window. Alex and Sam each have one waiting.
   perform pg_temp.seed_match(
     '55555555-5555-4555-8555-555555555519', friday, 'pending', 'side_a_won', null,
     jordan, array[jordan], array[alex],
-    now() - interval '70 minutes', null, null, null, null
+    now() - interval '10 minutes', null, null, null, null
   );
   perform pg_temp.seed_match(
     '55555555-5555-4555-8555-555555555520', friday, 'pending', 'side_a_won', null,
     alex, array[alex], array[sam],
-    now() - interval '50 minutes', null, null, null, null
+    now() - interval '5 minutes', null, null, null, null
   );
 end;
 $$;

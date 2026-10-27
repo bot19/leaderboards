@@ -59,8 +59,8 @@ async function backdateRecordedAt(matchId: string, recordedAt: string) {
   if (error) throw new Error(error.message)
 }
 
-function hoursBefore(asOf: Date, hours: number): string {
-  return new Date(asOf.getTime() - hours * 60 * 60 * 1000).toISOString()
+function minutesBefore(asOf: Date, minutes: number): string {
+  return new Date(asOf.getTime() - minutes * 60 * 1000).toISOString()
 }
 
 describe('auto-confirm after the Confirmation window', () => {
@@ -118,11 +118,11 @@ describe('auto-confirm after the Confirmation window', () => {
   }
 
   it('reads the Confirmation window from the tunable constants', async () => {
-    const rows = await query<{ confirmation_window_hours: number }>(
-      `select confirmation_window_hours from public.rating_constants()`,
+    const rows = await query<{ confirmation_window_minutes: number }>(
+      `select confirmation_window_minutes from public.rating_constants()`,
     )
 
-    expect(rows[0]?.confirmation_window_hours).toBe(48)
+    expect(rows[0]?.confirmation_window_minutes).toBe(30)
   })
 
   it('schedules pg_cron to confirm expired Pending Matches', async () => {
@@ -148,7 +148,7 @@ describe('auto-confirm after the Confirmation window', () => {
       },
       who('Sam').client,
     )
-    await backdateRecordedAt(match.id, hoursBefore(asOf, 47))
+    await backdateRecordedAt(match.id, minutesBefore(asOf, 29))
 
     await confirmExpiredAsOf(asOf.toISOString())
 
@@ -162,7 +162,7 @@ describe('auto-confirm after the Confirmation window', () => {
   it('confirms an expired Pending Match and rates it through the rating module', async () => {
     const { ladder, idOf, who } = await ladderWith('Sam', 'Priya')
     const asOf = new Date('2026-06-01T12:00:00.000Z')
-    const recordedAt = hoursBefore(asOf, 49)
+    const recordedAt = minutesBefore(asOf, 31)
     const match = await recordMatch(
       {
         ladderId: ladder.id,
@@ -195,7 +195,7 @@ describe('auto-confirm after the Confirmation window', () => {
     expect(confirmed?.id).toBe(match.id)
     expect(confirmed?.status).toBe('confirmed')
     expect(new Date(confirmed?.confirmedAt ?? '').getTime()).toBe(
-      new Date(recordedAt).getTime() + 48 * 60 * 60 * 1000,
+      new Date(recordedAt).getTime() + 30 * 60 * 1000,
     )
     expect(confirmed?.participants.find((participant) => participant.displayName === 'Sam')).toMatchObject({
       ratingBefore: 1000,
@@ -229,8 +229,8 @@ describe('auto-confirm after the Confirmation window', () => {
       who('Sam').client,
     )
     // Newer Match expired first (recorded earlier relative to the window).
-    await backdateRecordedAt(newer.id, hoursBefore(asOf, 50))
-    await backdateRecordedAt(older.id, hoursBefore(asOf, 49))
+    await backdateRecordedAt(newer.id, minutesBefore(asOf, 40))
+    await backdateRecordedAt(older.id, minutesBefore(asOf, 35))
 
     await confirmExpiredAsOf(asOf.toISOString())
 
