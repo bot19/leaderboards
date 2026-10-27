@@ -87,7 +87,7 @@ function renderHistory() {
   })
   const auth: AuthState = {
     session: { user: { id: 'user-1' } } as Session,
-    profile: { id: 'user-1', displayName: 'Sam', isSuperAdmin: false },
+    profile: { id: 'user-1', displayName: 'Sam', isSuperAdmin: false, defaultLadderId: null },
     profileError: false,
     isLoading: false,
     refreshProfile: async () => {},

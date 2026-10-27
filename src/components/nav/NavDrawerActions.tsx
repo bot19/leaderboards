@@ -9,7 +9,7 @@ type Props = {
 
 export function NavDrawerActions({ onOpenNav, onClose }: Props) {
   return (
-    <div className="flex shrink-0 gap-2 pt-6">
+    <div className="flex shrink-0 gap-2">
       <button
         type="button"
         onClick={onOpenNav}

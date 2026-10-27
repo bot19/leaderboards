@@ -128,12 +128,30 @@ export async function previewLadder(
   }
 }
 
+type LadderWriteOptions = {
+  makeDefault?: boolean
+  client?: LadderClient
+}
+
+function resolveLadderCall(
+  clientOrOptions?: LadderClient | LadderWriteOptions,
+): { client: LadderClient; makeDefault: boolean } {
+  if (!clientOrOptions) return { client: getSupabase(), makeDefault: false }
+  if ('rpc' in clientOrOptions) return { client: clientOrOptions, makeDefault: false }
+  return {
+    client: clientOrOptions.client ?? getSupabase(),
+    makeDefault: clientOrOptions.makeDefault ?? false,
+  }
+}
+
 export async function joinLadder(
   shareToken: string,
-  client: LadderClient = getSupabase(),
+  clientOrOptions?: LadderClient | LadderWriteOptions,
 ): Promise<{ outcome: 'joined' }> {
+  const { client, makeDefault } = resolveLadderCall(clientOrOptions)
   const { data, error } = await client.rpc('join_ladder', {
     p_share_token: shareToken,
+    p_make_default: makeDefault,
   })
   if (error) throw new Error(error.message)
   if (data !== 'joined') throw new Error('Could not join this Ladder')
@@ -202,11 +220,25 @@ export async function fetchLadderIdByShareToken(
   return data?.id ?? null
 }
 
+export async function setDefaultLadder(
+  ladderId: string,
+  client: LadderClient = getSupabase(),
+) {
+  const { error } = await client.rpc('set_default_ladder', {
+    p_ladder_id: ladderId,
+  })
+  if (error) throw new Error(error.message)
+}
+
 export async function createLadder(
   name: string,
-  client: LadderClient = getSupabase(),
+  clientOrOptions?: LadderClient | LadderWriteOptions,
 ): Promise<{ id: string }> {
-  const { data, error } = await client.rpc('create_ladder', { p_name: name })
+  const { client, makeDefault } = resolveLadderCall(clientOrOptions)
+  const { data, error } = await client.rpc('create_ladder', {
+    p_name: name,
+    p_make_default: makeDefault,
+  })
   if (error) throw new Error(error.message)
   if (!data) throw new Error('Could not create a Ladder')
   return { id: data }

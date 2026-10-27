@@ -55,6 +55,10 @@ _Avoid_: active, current, enrolled, present
 **Left / Removed**:
 A Ladder member who chose to go (Left) or was taken off by an Admin (Removed). Their Matches stay in history. A Left member can rejoin from the Share link; a Removed member returns only when an Admin reinstates them.
 
+**Default Ladder**:
+The Ladder a User opens on when they sign in. It's always one they're Joined to. Their only Ladder becomes it automatically, and they can move it to another Ladder but not clear it.
+_Avoid_: home Ladder, main Ladder, favourite
+
 ### Competition
 
 **Ladder**:

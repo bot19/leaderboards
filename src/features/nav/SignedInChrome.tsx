@@ -12,6 +12,7 @@ import { UserAvatar } from '@/components/user/UserAvatar'
 import { useSignOut } from '@/data/auth'
 import { listMyLadders } from '@/data/ladder'
 import { useAuth } from '@/features/auth/authContext'
+import { LaddersSection } from '@/features/ladders/LaddersSection'
 import { DisplayNameForm } from './DisplayNameForm'
 import { ladderCountLabel, type NavView } from './navSearch'
 
@@ -40,6 +41,13 @@ type Props = {
   /** Rail buttons between the avatar and Nav. */
   railBeforeNav?: ReactNode
 }
+
+/** Scrollable middle of the drawer. Side inset is 20px; 16px where it meets the header and footer. */
+const drawerContentClass = 'min-h-0 flex-1 overflow-y-auto px-5 py-4'
+
+/** Pinned bottom of the drawer. Owns the side inset, the divider, and the bottom safe area. */
+const drawerFooterClass =
+  'shrink-0 border-t border-neutral-100 px-5 pt-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]'
 
 export function SignedInChrome({ railBeforeNav }: Props) {
   const { profile, refreshProfile } = useAuth()
@@ -108,30 +116,34 @@ export function SignedInChrome({ railBeforeNav }: Props) {
         onRefresh={view === 'menu' ? refresh : undefined}
         onClose={close}
       >
-          {view === 'menu' ? (
-            <div className="flex min-h-0 flex-1 flex-col">
-              <div className="min-h-0 flex-1" />
-              <div className="-mx-5 shrink-0 space-y-3 border-t border-neutral-100 px-5 pt-4">
-                <NavProfile
-                  displayName={profile.displayName}
-                  ladderLabel={ladderCountLabel(ladders.data?.length)}
-                  onOpenProfile={() => setNav('profile')}
-                />
-                <NavFooter
-                  onSignOut={handleSignOut}
-                  isSigningOut={signOut.isPending}
-                  onClose={close}
-                />
-              </div>
+        {view === 'menu' ? (
+          <div className="flex min-h-0 flex-1 flex-col">
+            <div className={drawerContentClass}>
+              <LaddersSection idPrefix="drawer-" variant="drawer" />
             </div>
-          ) : (
-            <div className="flex min-h-0 flex-1 flex-col">
-              <div className="min-h-0 flex-1 overflow-y-auto py-5">
-                <DisplayNameForm />
-              </div>
+            <div className={`${drawerFooterClass} space-y-3`}>
+              <NavProfile
+                displayName={profile.displayName}
+                ladderLabel={ladderCountLabel(ladders.data?.length)}
+                onOpenProfile={() => setNav('profile')}
+              />
+              <NavFooter
+                onSignOut={handleSignOut}
+                isSigningOut={signOut.isPending}
+                onClose={close}
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="flex min-h-0 flex-1 flex-col">
+            <div className={drawerContentClass}>
+              <DisplayNameForm />
+            </div>
+            <div className={drawerFooterClass}>
               <NavDrawerActions onOpenNav={() => setNav('menu')} onClose={close} />
             </div>
-          )}
+          </div>
+        )}
       </NavDrawer>
     </>
   )

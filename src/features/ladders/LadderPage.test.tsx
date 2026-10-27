@@ -187,7 +187,7 @@ function renderAt(path: string) {
   })
   const auth: AuthState = {
     session,
-    profile: { id: 'user-1', displayName: 'Sam', isSuperAdmin: false },
+    profile: { id: 'user-1', displayName: 'Sam', isSuperAdmin: false, defaultLadderId: null },
     profileError: false,
     isLoading: false,
     refreshProfile: async () => {},
@@ -223,20 +223,19 @@ async function openApp(path: string) {
 }
 
 describe('Ladder page', () => {
-  it('shows Home, the Game name and Invite as text links, and Invite opens the Join code card', async () => {
+  it('shows Ladders, the Game name and Invite as text controls, and Invite opens the Join code card', async () => {
     const user = userEvent.setup()
     const { toast } = await import('sonner')
     await openApp('/ladders/ladder-1')
 
     const main = screen.getByRole('main')
     const heading = await screen.findByRole('heading', { level: 1, name: 'Friday pool' })
-    const back = within(main).getByRole('link', { name: 'Home' })
+    const ladders = within(main).getByRole('button', { name: 'Ladders' })
     const game = within(main).getByText('Pool')
     const invite = await within(main).findByRole('button', { name: 'Invite' })
-    expect(back).toHaveAttribute('href', '/')
-    expect(back).toHaveClass('text-base', 'underline', 'hover:text-ink')
-    expect(back.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
-    expect(back.parentElement).toHaveClass('flex-nowrap')
+    expect(ladders).toHaveClass('text-base', 'underline', 'hover:text-ink')
+    expect(ladders.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+    expect(ladders.parentElement).toHaveClass('flex-nowrap')
     expect(game.parentElement).toHaveClass('text-base')
     expect(game.parentElement).not.toHaveClass('underline')
     expect(game.compareDocumentPosition(heading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
@@ -248,8 +247,8 @@ describe('Ladder page', () => {
     expect(main).not.toHaveClass('py-10')
     expect(heading).toHaveClass('break-words')
 
-    const row = back.parentElement
-    if (!row) throw new Error('Home row not found')
+    const row = ladders.parentElement
+    if (!row) throw new Error('Ladders row not found')
     const separators = [...row.querySelectorAll('[aria-hidden]')].filter(
       (node) => node.textContent === '·',
     )
@@ -290,7 +289,18 @@ describe('Ladder page', () => {
     expect(screen.queryByRole('button', { name: 'Invite' })).not.toBeInTheDocument()
   })
 
-  it('puts Record a Match under the avatar, then Home, then Nav, and opens the panel', async () => {
+  it('opens the drawer from Ladders', async () => {
+    const user = userEvent.setup()
+    const { router } = await openApp('/ladders/ladder-1')
+
+    await user.click(await within(screen.getByRole('main')).findByRole('button', { name: 'Ladders' }))
+    expect(router.state.location.search).toMatchObject({ nav: 'menu' })
+    expect(await screen.findByRole('dialog')).toBeInTheDocument()
+    expect(screen.queryByRole('link', { name: 'Home' })).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: 'Home' })).not.toBeInTheDocument()
+  })
+
+  it('puts Record a Match under the avatar, then Nav, and opens the panel', async () => {
     const user = userEvent.setup()
     const { router } = await openApp('/ladders/ladder-1')
 
@@ -300,13 +310,12 @@ describe('Ladder page', () => {
     expect(controls.map((control) => control.getAttribute('aria-label'))).toEqual([
       'Profile',
       'Record a Match',
-      'Home',
       'Nav',
     ])
     const record = within(rail).getByRole('button', { name: 'Record a Match' })
     expect(record).toHaveClass('!bg-neutral-200', 'hover:!bg-neutral-300')
     expect(record).not.toHaveClass('!bg-primary')
-    expect(within(rail).getByRole('link', { name: 'Home' })).toHaveAttribute('href', '/')
+    expect(within(rail).queryByRole('link', { name: 'Home' })).not.toBeInTheDocument()
     expect(within(screen.getByRole('main')).queryByRole('button', { name: 'Record a Match' })).not.toBeInTheDocument()
 
     await user.click(within(rail).getByRole('button', { name: 'Record a Match' }))

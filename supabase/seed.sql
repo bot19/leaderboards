@@ -351,3 +351,14 @@ $$;
 
 select private.replay_ladder('33333333-3333-4333-8333-333333333301');
 select private.replay_ladder('33333333-3333-4333-8333-333333333302');
+
+-- Seed rows are inserted after the migration backfill, so settle them here.
+do $$
+declare
+  profile_id uuid;
+begin
+  for profile_id in select id from public.profiles loop
+    perform private.settle_default_ladder(profile_id);
+  end loop;
+end;
+$$;

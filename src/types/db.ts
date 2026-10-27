@@ -6,17 +6,28 @@ export type Database = {
           id: string
           display_name: string
           is_super_admin: boolean
+          default_ladder_id: string | null
         }
         Insert: {
           id: string
           display_name: string
           is_super_admin?: boolean
+          default_ladder_id?: string | null
         }
         Update: {
           display_name?: string
           is_super_admin?: boolean
+          default_ladder_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: 'profiles_default_ladder_id_fkey'
+            columns: ['default_ladder_id']
+            isOneToOne: false
+            referencedRelation: 'ladders'
+            referencedColumns: ['id']
+          },
+        ]
       }
       games: {
         Row: {
@@ -281,8 +292,12 @@ export type Database = {
         Returns: undefined
       }
       create_ladder: {
-        Args: { p_name: string }
+        Args: { p_name: string; p_make_default?: boolean }
         Returns: string
+      }
+      set_default_ladder: {
+        Args: { p_ladder_id: string }
+        Returns: undefined
       }
       assert_active_ladder_admin: {
         Args: { p_ladder_id: string }
@@ -297,7 +312,7 @@ export type Database = {
         }
       }
       join_ladder: {
-        Args: { p_share_token: string }
+        Args: { p_share_token: string; p_make_default?: boolean }
         Returns: string
       }
       leave_ladder: {

@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
+import { flushSync } from 'react-dom'
 import {
   checkSession,
   getSession,
@@ -20,17 +21,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const current = await getSession()
     if (!current?.user) {
       loadedUserIdRef.current = null
-      setProfile(null)
-      setProfileError(false)
+      flushSync(() => {
+        setProfile(null)
+        setProfileError(false)
+      })
       return
     }
     try {
-      setProfile(await fetchProfile(current.user.id))
+      const nextProfile = await fetchProfile(current.user.id)
       loadedUserIdRef.current = current.user.id
-      setProfileError(false)
+      flushSync(() => {
+        setProfile(nextProfile)
+        setProfileError(false)
+      })
     } catch {
       loadedUserIdRef.current = null
-      setProfileError(true)
+      flushSync(() => {
+        setProfileError(true)
+      })
     }
   }, [])
 

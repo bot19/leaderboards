@@ -116,7 +116,7 @@ export function NavDrawer({
         aria-labelledby={titleId}
         className={`absolute inset-y-0 right-0 flex h-full w-[90%] max-w-md flex-col bg-white shadow-2xl motion-safe:transition-transform motion-safe:duration-300 motion-safe:ease-out ${shown ? 'pointer-events-auto translate-x-0' : 'translate-x-full'}`}
       >
-        <div className="flex items-start justify-between gap-2 border-b border-neutral-100 px-4 pt-[max(1.25rem,env(safe-area-inset-top))] pb-4">
+        <div className="flex items-start justify-between gap-2 border-b border-neutral-100 px-5 pt-[max(1.25rem,env(safe-area-inset-top))] pb-4">
           <div className="min-w-0 flex-1">
             {isBrand ? (
               <div className="flex min-w-0 flex-wrap items-start gap-x-1">
@@ -175,9 +175,7 @@ export function NavDrawer({
           </div>
         </div>
 
-        <div className="flex min-h-0 flex-1 flex-col px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))]">
-          {children}
-        </div>
+        <div className="flex min-h-0 flex-1 flex-col">{children}</div>
       </div>
     </div>
   )

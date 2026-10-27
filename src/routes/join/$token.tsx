@@ -1,13 +1,16 @@
 import { useQuery } from '@tanstack/react-query'
-import { createFileRoute, redirect, useNavigate } from '@tanstack/react-router'
+import { createFileRoute, redirect } from '@tanstack/react-router'
 import { useState } from 'react'
 import { toast } from 'sonner'
 import {
   fetchLadderIdByShareToken,
   joinLadder,
+  listMyLadders,
   previewLadder,
 } from '@/data/ladder'
 import { GameIcon } from '@/features/ladders/GameIcon'
+import { MakeDefaultLadderCheckbox } from '@/features/ladders/MakeDefaultLadderCheckbox'
+import { useOpenLadder } from '@/features/ladders/useOpenLadder'
 import { SignedInChrome } from '@/features/nav/SignedInChrome'
 import { resolveAuthDestination } from '@/lib/authDestination'
 
@@ -31,13 +34,19 @@ export const Route = createFileRoute('/join/$token')({
 
 function ShareLinkPreviewPage() {
   const { token } = Route.useParams()
-  const navigate = useNavigate()
+  const openLadder = useOpenLadder()
   const [error, setError] = useState<string | null>(null)
   const [pending, setPending] = useState(false)
+  const [makeDefault, setMakeDefault] = useState(false)
   const preview = useQuery({
     queryKey: ['ladder-preview', token],
     queryFn: () => previewLadder(token),
   })
+  const ladders = useQuery({
+    queryKey: ['my-ladders'],
+    queryFn: () => listMyLadders(),
+  })
+  const hasLadder = (ladders.data?.length ?? 0) > 0
 
   return (
     <>
@@ -61,6 +70,9 @@ function ShareLinkPreviewPage() {
             </p>
           </div>
           {error ? <p className="text-sm text-red-700">{error}</p> : null}
+          {hasLadder ? (
+            <MakeDefaultLadderCheckbox checked={makeDefault} onCheckedChange={setMakeDefault} />
+          ) : null}
           <button
             type="button"
             disabled={pending}
@@ -68,15 +80,11 @@ function ShareLinkPreviewPage() {
             onClick={() => {
               setPending(true)
               setError(null)
-              void joinLadder(token)
+              void joinLadder(token, { makeDefault })
                 .then(async () => {
                   const ladderId = await fetchLadderIdByShareToken(token)
                   if (!ladderId) throw new Error('Could not open this Ladder')
-                  await navigate({
-                    to: '/ladders/$ladderId',
-                    params: { ladderId },
-                    search: { tab: 'leaderboard' },
-                  })
+                  await openLadder(ladderId)
                 })
                 .catch((caught: unknown) => {
                   const message = caught instanceof Error ? caught.message : 'Could not join this Ladder.'

@@ -107,7 +107,7 @@ function renderAt(
       session: isSignedIn ? session : null,
       profile:
         hasProfile && isSignedIn
-          ? { id: "user-1", displayName: name, isSuperAdmin: false }
+          ? { id: "user-1", displayName: name, isSuperAdmin: false, defaultLadderId: null }
           : null,
       profileError: false,
       isLoading: loading,
@@ -126,7 +126,7 @@ function renderAt(
     session: hasSession ? session : null,
     profile:
       hasProfile && hasSession
-        ? { id: "user-1", displayName: "Sam", isSuperAdmin: false }
+        ? { id: "user-1", displayName: "Sam", isSuperAdmin: false, defaultLadderId: null }
         : null,
     profileError: false,
     isLoading: loading,
@@ -210,11 +210,20 @@ describe("signed-in chrome", () => {
     await user.click(screen.getByRole("button", { name: "Nav" }));
     const menu = await screen.findByRole("dialog");
     expect(
-      within(menu).getByRole("heading", { name: "Leaderboards" }),
+      within(menu).getByRole("heading", { level: 1, name: "Leaderboards" }),
     ).toBeInTheDocument();
     expect(within(menu).getByText("boards")).toHaveClass("text-primary");
     expect(within(menu).getByText("Over 9000?!")).toBeInTheDocument();
-    expect(within(menu).getByText("v1.1.0")).toBeInTheDocument();
+    expect(within(menu).getByText("v1.2.0")).toBeInTheDocument();
+    expect(
+      within(menu).getByRole("heading", {
+        level: 2,
+        name: "Manage your Leaderboards (3)",
+      }),
+    ).toHaveClass("text-xs", "uppercase", "tracking-wide", "text-neutral-500");
+    expect(
+      within(menu).getByRole("button", { name: "Join a Ladder" }),
+    ).toHaveClass("h-10", "w-10");
     expect(
       within(menu).queryByRole("textbox", { name: "Display name" }),
     ).not.toBeInTheDocument();
@@ -231,10 +240,10 @@ describe("signed-in chrome", () => {
     expect(
       within(profile).getByRole("textbox", { name: "Display name" }),
     ).toBeInTheDocument();
-    expect(within(profile).queryByText("v1.1.0")).not.toBeInTheDocument();
+    expect(within(profile).queryByText("v1.2.0")).not.toBeInTheDocument();
 
     await user.click(within(profile).getByRole("button", { name: "Nav" }));
-    expect(await screen.findByText("v1.1.0")).toBeInTheDocument();
+    expect(await screen.findByText("v1.2.0")).toBeInTheDocument();
     expect(
       screen.queryByRole("textbox", { name: "Display name" }),
     ).not.toBeInTheDocument();
@@ -358,7 +367,7 @@ describe("signed-in chrome", () => {
       screen.queryByRole("textbox", { name: "New Ladder" }),
     ).not.toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "New Ladder" }));
+    await user.click(await screen.findByRole("button", { name: "New Ladder" }));
     const input = screen.getByRole("textbox", { name: "New Ladder" });
     expect(input).toHaveFocus();
     expect(screen.getByRole("separator")).toBeInTheDocument();
@@ -385,13 +394,13 @@ describe("text input background", () => {
     expect(base).toContain("@apply bg-white;");
   });
 
-  it("is version 1.1.0", () => {
+  it("is version 1.2.0", () => {
     const pkg = JSON.parse(
       readFileSync(
         join(dirname(fileURLToPath(import.meta.url)), "../../../package.json"),
         "utf8",
       ),
     ) as { version: string };
-    expect(pkg.version).toBe("1.1.0");
+    expect(pkg.version).toBe("1.2.0");
   });
 });
