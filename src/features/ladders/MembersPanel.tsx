@@ -24,7 +24,7 @@ const statusOrder: Record<LadderMemberRead['status'], number> = {
 }
 
 const statusLabel: Record<LadderMemberRead['status'], string> = {
-  active: 'Active',
+  active: 'Joined',
   left: 'Left',
   removed: 'Removed',
 }
@@ -34,7 +34,7 @@ type Props = {
 }
 
 export function MembersPanel({ ladderId }: Props) {
-  const { profile } = useAuth()
+  const { profile, refreshProfile } = useAuth()
   const navigate = useNavigate()
   const queryClient = useQueryClient()
   const members = useQuery({
@@ -68,6 +68,7 @@ export function MembersPanel({ ladderId }: Props) {
     onSuccess: async () => {
       toast.success('You left this Ladder')
       await refresh()
+      await refreshProfile()
       await navigate({ to: '/' })
     },
     onError: (error: Error) => toast.error(error.message),
@@ -106,6 +107,7 @@ export function MembersPanel({ ladderId }: Props) {
     onSuccess: async () => {
       toast.success('Ladder deleted')
       await queryClient.invalidateQueries({ queryKey: ['my-ladders'] })
+      await refreshProfile()
       await navigate({ to: '/' })
     },
     onError: (error: Error) => toast.error(error.message),

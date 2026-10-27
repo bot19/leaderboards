@@ -30,6 +30,7 @@ describe('profile creation', () => {
       id: user.id,
       displayName: 'Sam',
       isSuperAdmin: false,
+      defaultLadderId: null,
     })
   })
 
@@ -45,6 +46,7 @@ describe('profile creation', () => {
       id: user.id,
       displayName: 'Sammy',
       isSuperAdmin: false,
+      defaultLadderId: null,
     })
   })
 
@@ -82,6 +84,7 @@ describe('profile creation', () => {
       id: user.id,
       displayName: 'Sammy',
       isSuperAdmin: true,
+      defaultLadderId: null,
     })
   })
 })

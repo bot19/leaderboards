@@ -6,6 +6,7 @@ export type Profile = {
   id: string
   displayName: string
   isSuperAdmin: boolean
+  defaultLadderId: string | null
 }
 
 type ProfileClient = SupabaseClient<Database>
@@ -17,6 +18,7 @@ function mapProfile(row: ProfileRow): Profile {
     id: row.id,
     displayName: row.display_name,
     isSuperAdmin: row.is_super_admin,
+    defaultLadderId: row.default_ladder_id,
   }
 }
 
@@ -26,7 +28,7 @@ export async function fetchProfile(
 ): Promise<Profile | null> {
   const { data, error } = await client
     .from('profiles')
-    .select('id, display_name, is_super_admin')
+    .select('id, display_name, is_super_admin, default_ladder_id')
     .eq('id', userId)
     .maybeSingle()
 

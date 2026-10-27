@@ -1,11 +1,11 @@
 import { useQuery } from '@tanstack/react-query'
-import { createFileRoute, Link, redirect } from '@tanstack/react-router'
-import { IconHome, IconLink, IconPlus } from '@tabler/icons-react'
+import { createFileRoute, redirect } from '@tanstack/react-router'
+import { IconLink, IconList, IconPlus } from '@tabler/icons-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
 import { IconButton } from '@/components/ui/IconButton'
 import { fetchLadder, fetchShareToken, listLadderMembers, listLeaderboard } from '@/data/ladder'
-import { listMatches } from '@/data/match'
+import { countMatches } from '@/data/match'
 import { useAuth } from '@/features/auth/authContext'
 import { GameIcon } from '@/features/ladders/GameIcon'
 import { JoinCodeCard } from '@/features/ladders/JoinCodeCard'
@@ -66,9 +66,9 @@ function LadderPage() {
     queryFn: () => listLeaderboard(ladderId),
     enabled: Boolean(ladder.data),
   })
-  const matches = useQuery({
-    queryKey: ['matches', ladderId],
-    queryFn: () => listMatches(ladderId),
+  const matchCount = useQuery({
+    queryKey: ['matches', ladderId, 'count'],
+    queryFn: () => countMatches(ladderId),
     enabled: Boolean(ladder.data),
   })
   const ladderMembers = useQuery({
@@ -78,7 +78,7 @@ function LadderPage() {
   })
   const counts: Record<LadderTab, number | null> = {
     leaderboard: leaderboard.data ? leaderboard.data.length : null,
-    matches: matches.data ? matches.data.length : null,
+    matches: matchCount.data == null ? null : matchCount.data,
     members: ladderMembers.data
       ? ladderMembers.data.filter((entry) => entry.status === 'active').length
       : null,
@@ -103,10 +103,18 @@ function LadderPage() {
     <main className="mx-auto flex min-h-dvh max-w-lg flex-col gap-6 px-4 pt-5 pb-10">
       <div className="min-w-0 space-y-2">
         <div className="flex min-w-0 flex-nowrap items-center gap-2">
-          <Link to="/" className={`${textLinkClass} shrink-0`}>
-            <IconHome size={16} stroke={1.75} aria-hidden />
-            Home
-          </Link>
+          <button
+            type="button"
+            className={`${textLinkClass} shrink-0`}
+            onClick={() => {
+              void navigate({
+                search: (prev) => ({ ...prev, nav: 'menu' }),
+              })
+            }}
+          >
+            <IconList size={16} stroke={1.75} aria-hidden />
+            Ladders
+          </button>
           {ladder.data ? (
             <>
               <span aria-hidden className="text-neutral-400">·</span>
@@ -221,13 +229,6 @@ function LadderPage() {
               <IconPlus size={22} stroke={2} />
             </IconButton>
           ) : null}
-          <Link
-            to="/"
-            aria-label="Home"
-            className="inline-flex h-10 w-10 items-center justify-center rounded-md text-neutral-700 hover:bg-neutral-300 hover:text-ink"
-          >
-            <IconHome size={22} stroke={1.75} aria-hidden />
-          </Link>
         </>
       }
     />

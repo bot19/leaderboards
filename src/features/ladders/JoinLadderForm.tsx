@@ -1,15 +1,18 @@
 // Copied from food-friends: src/components/nav/NavAddFriends.tsx — Join code field and live lookup.
 
 import { IconLoader2 } from '@tabler/icons-react'
+import type { ReactNode } from 'react'
 import type { JoinCodeLookup } from '@/features/ladders/useJoinCodeLookup'
 
 type Props = {
+  inputId?: string
   joinCode: string
   onJoinCodeChange: (value: string) => void
   lookup: JoinCodeLookup
   onJoin: () => void
   joining: boolean
   joinError: string | null
+  makeDefaultControl?: ReactNode
 }
 
 function memberLabel(count: number): string {
@@ -17,12 +20,14 @@ function memberLabel(count: number): string {
 }
 
 export function JoinLadderForm({
+  inputId = 'join-code',
   joinCode,
   onJoinCodeChange,
   lookup,
   onJoin,
   joining,
   joinError,
+  makeDefaultControl,
 }: Props) {
   const describedBy = [
     lookup.status === 'found' ? 'join-code-found' : null,
@@ -40,11 +45,11 @@ export function JoinLadderForm({
         if (lookup.status === 'found' && !joining) onJoin()
       }}
     >
-      <label className="block text-sm font-medium text-neutral-800" htmlFor="join-code">
+      <label className="block text-sm font-medium text-neutral-800" htmlFor={inputId}>
         Join code
       </label>
       <input
-        id="join-code"
+        id={inputId}
         type="text"
         inputMode="text"
         autoComplete="off"
@@ -62,6 +67,7 @@ export function JoinLadderForm({
       {lookup.status === 'checking' ? (
         <p className="text-sm text-neutral-500">Checking…</p>
       ) : null}
+      {makeDefaultControl}
       {lookup.status === 'found' ? (
         <div className="flex min-w-0 flex-wrap items-center justify-between gap-2">
           <p id="join-code-found" className="min-w-0 flex-1 break-words text-sm text-neutral-700">

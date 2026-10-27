@@ -1,7 +1,14 @@
 // @vitest-environment node
 import { afterEach, describe, expect, it } from 'vitest'
 import type { SupabaseClient } from '@supabase/supabase-js'
-import { confirmMatch, listMatches, listMatchesWaitingForMe, recordMatch } from '@/data/match'
+import {
+  confirmMatch,
+  countMatches,
+  listMatches,
+  listMatchesPage,
+  listMatchesWaitingForMe,
+  recordMatch,
+} from '@/data/match'
 import { createProfile } from '@/data/profile'
 import { createLadder, listLeaderboard, listRoster } from '@/data/ladder'
 import type { Database } from '@/types/db'
@@ -487,5 +494,58 @@ describe('recording and confirming a Match', () => {
     const visible = await listMatches(ladder.id, keeper.client)
     expect(visible).toHaveLength(1)
     expect(visible[0]?.participants).toHaveLength(2)
+  })
+
+  it('pages the newest Matches and still finds an older Pending Match', async () => {
+    const { ladder, idOf, who } = await ladderWith('Sam', 'Priya')
+    const ids: string[] = []
+    for (let index = 0; index < 12; index += 1) {
+      const match = await recordMatch(
+        {
+          ladderId: ladder.id,
+          sideA: [idOf('Sam')],
+          sideB: [idOf('Priya')],
+          result: 'side_a_won',
+        },
+        who('Sam').client,
+      )
+      ids.push(match.id)
+    }
+
+    for (const [index, id] of ids.entries()) {
+      const recordedAt = new Date(Date.UTC(2026, 0, 1, 0, index)).toISOString()
+      const { error } = await serviceRole()
+        .from('matches')
+        .update({ recorded_at: recordedAt })
+        .eq('id', id)
+      if (error) throw new Error(error.message)
+    }
+
+    const newestFirst = [...ids].reverse()
+    const first = await listMatchesPage(
+      ladder.id,
+      { offset: 0, limit: 10 },
+      who('Sam').client,
+    )
+    const second = await listMatchesPage(
+      ladder.id,
+      { offset: 10, limit: 10 },
+      who('Sam').client,
+    )
+
+    expect(first.total).toBe(12)
+    expect(first.matches.map((match) => match.id)).toEqual(newestFirst.slice(0, 10))
+    expect(second.total).toBe(12)
+    expect(second.matches.map((match) => match.id)).toEqual(newestFirst.slice(10))
+    const firstIds = new Set(first.matches.map((match) => match.id))
+    expect(second.matches.every((match) => !firstIds.has(match.id))).toBe(true)
+    expect(await countMatches(ladder.id, who('Sam').client)).toBe(12)
+
+    const oldestId = ids[0]
+    expect(first.matches.some((match) => match.id === oldestId)).toBe(false)
+    const waiting = await listMatchesWaitingForMe(ladder.id, who('Priya').client)
+    expect(waiting.map((match) => match.id)).toContain(oldestId)
+    expect(waiting.every((match) => match.status === 'pending')).toBe(true)
+    expect(await listMatchesWaitingForMe(ladder.id, who('Sam').client)).toEqual([])
   })
 })

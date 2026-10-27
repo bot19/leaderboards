@@ -123,6 +123,9 @@ vi.mock('@/data/match', async (importOriginal) => {
   return {
     ...actual,
     listMatches: () => Promise.resolve(mocks.matches),
+    listMatchesPage: () =>
+      Promise.resolve({ matches: mocks.matches, total: mocks.matches.length }),
+    countMatches: () => Promise.resolve(mocks.matches.length),
     listMatchesWaitingForMe: () => Promise.resolve(mocks.waiting),
     voidMatch: (matchId: string) => mocks.voidMatch(matchId),
     rejectMatch: (matchId: string) => mocks.rejectMatch(matchId),
@@ -158,7 +161,7 @@ function renderAt(path: string) {
   })
   const auth: AuthState = {
     session,
-    profile: { id: 'user-1', displayName: 'Sam', isSuperAdmin: false },
+    profile: { id: 'user-1', displayName: 'Sam', isSuperAdmin: false, defaultLadderId: null },
     profileError: false,
     isLoading: false,
     refreshProfile: async () => {},
@@ -195,12 +198,6 @@ async function openApp(path: string) {
 async function rowOf(name: string) {
   const row = (await screen.findByRole('link', { name })).closest('li')
   if (!row) throw new Error(`No row for ${name}`)
-  return row
-}
-
-async function matchRow(status: string) {
-  const row = (await screen.findByText(status)).closest('li')
-  if (!row) throw new Error(`No Match row for ${status}`)
   return row
 }
 
@@ -270,7 +267,10 @@ describe('confirm impactful actions', () => {
     const { toast } = await import('sonner')
     await openApp('/ladders/ladder-1?tab=matches')
 
-    const pending = await within(await matchRow('Pending')).findByRole('button', { name: 'Void' })
+    const voidButtons = await screen.findAllByRole('button', { name: 'Void' })
+    const pending = voidButtons[0]
+    const confirmed = voidButtons[1]
+    if (!pending || !confirmed) throw new Error('Missing Void controls')
     confirm.mockReturnValue(false)
     await user.click(pending)
     expect(confirm).toHaveBeenCalledWith(voidMatchConfirm('pending'))
@@ -284,7 +284,6 @@ describe('confirm impactful actions', () => {
       expect(mocks.voidMatch).toHaveBeenCalledWith('match-pending')
     })
 
-    const confirmed = within(await matchRow('Confirmed')).getByRole('button', { name: 'Void' })
     confirm.mockReturnValue(false)
     await user.click(confirmed)
     expect(confirm).toHaveBeenCalledWith(voidMatchConfirm('confirmed'))
