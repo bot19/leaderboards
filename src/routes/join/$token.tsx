@@ -2,6 +2,7 @@ import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, redirect } from '@tanstack/react-router'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { bottomNavMainPaddingClass } from '@/components/nav/BottomNavBar'
 import {
   fetchLadderIdByShareToken,
   joinLadder,
@@ -50,7 +51,7 @@ function ShareLinkPreviewPage() {
 
   return (
     <>
-    <main className="mx-auto flex min-h-dvh max-w-lg flex-col gap-6 px-4 py-10">
+    <main className={`mx-auto flex min-h-dvh max-w-lg flex-col gap-6 px-4 pt-10 ${bottomNavMainPaddingClass}`}>
       {preview.isLoading ? <p className="text-neutral-600">Loading preview…</p> : null}
       {preview.isError ? (
         <h1 className="font-display text-3xl text-ink">This Share link does not match a Ladder.</h1>

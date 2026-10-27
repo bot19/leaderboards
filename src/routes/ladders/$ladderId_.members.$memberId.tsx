@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { createFileRoute, Link, redirect } from '@tanstack/react-router'
+import { bottomNavMainPaddingClass } from '@/components/nav/BottomNavBar'
 import { fetchLadder, listLadderMembers, listRatingHistory } from '@/data/ladder'
 import { formatRating, formatRatingChange } from '@/features/matches/labels'
 import { SignedInChrome } from '@/features/nav/SignedInChrome'
@@ -40,7 +41,7 @@ function RatingHistoryPage() {
 
   return (
     <>
-    <main className="mx-auto flex min-h-dvh max-w-lg flex-col gap-6 px-4 py-10">
+    <main className={`mx-auto flex min-h-dvh max-w-lg flex-col gap-6 px-4 pt-10 ${bottomNavMainPaddingClass}`}>
       <div className="space-y-2">
         <Link
           to="/ladders/$ladderId"

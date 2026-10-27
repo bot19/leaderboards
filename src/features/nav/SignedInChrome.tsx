@@ -2,11 +2,11 @@ import { IconMenu2 } from '@tabler/icons-react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { useNavigate, useRouter, useSearch } from '@tanstack/react-router'
 import { useCallback, useState, type ReactNode } from 'react'
+import { BottomNavBar } from '@/components/nav/BottomNavBar'
 import { NavDrawer } from '@/components/nav/NavDrawer'
 import { NavDrawerActions } from '@/components/nav/NavDrawerActions'
 import { NavFooter } from '@/components/nav/NavFooter'
 import { NavProfile } from '@/components/nav/NavProfile'
-import { SideRail } from '@/components/nav/SideRail'
 import { IconButton } from '@/components/ui/IconButton'
 import { UserAvatar } from '@/components/user/UserAvatar'
 import { useSignOut } from '@/data/auth'
@@ -38,8 +38,8 @@ function updateSearch(
 }
 
 type Props = {
-  /** Rail buttons between the avatar and Nav. */
-  railBeforeNav?: ReactNode
+  /** Bar buttons between the avatar and Nav. */
+  barBeforeNav?: ReactNode
 }
 
 /** Scrollable middle of the drawer. Side inset is 20px; 16px where it meets the header and footer. */
@@ -49,7 +49,7 @@ const drawerContentClass = 'min-h-0 flex-1 overflow-y-auto px-5 py-4'
 const drawerFooterClass =
   'shrink-0 border-t border-neutral-100 px-5 pt-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]'
 
-export function SignedInChrome({ railBeforeNav }: Props) {
+export function SignedInChrome({ barBeforeNav }: Props) {
   const { profile, refreshProfile } = useAuth()
   const { nav } = useSearch({ from: '__root__' })
   const navigate = useNavigate()
@@ -89,26 +89,38 @@ export function SignedInChrome({ railBeforeNav }: Props) {
 
   if (!profile) return null
 
+  const profileOpen = nav === 'profile'
+  const menuOpen = nav === 'menu'
+
   return (
     <>
-      <SideRail>
+      <BottomNavBar>
         <button
           type="button"
           aria-label="Profile"
-          className="inline-flex h-10 w-10 items-center justify-center rounded-md hover:bg-neutral-300"
+          aria-current={profileOpen ? 'page' : undefined}
+          className={`inline-flex h-10 w-10 items-center justify-center rounded-md ${
+            profileOpen
+              ? 'bg-ink text-white hover:bg-neutral-800 hover:text-white'
+              : 'hover:bg-neutral-300'
+          }`}
           onClick={() => setNav('profile')}
         >
-          <UserAvatar username={profile.displayName} />
+          <UserAvatar
+            username={profile.displayName}
+            className="h-10 w-10 rounded-lg text-xs font-semibold !tracking-normal"
+          />
         </button>
-        {railBeforeNav}
+        {barBeforeNav}
         <IconButton
           aria-label="Nav"
+          isActive={menuOpen}
           className="h-10 w-10"
           onClick={() => setNav('menu')}
         >
           <IconMenu2 size={22} stroke={1.75} />
         </IconButton>
-      </SideRail>
+      </BottomNavBar>
       <NavDrawer
         shown={isOpen}
         title={view === 'profile' ? profile.displayName : undefined}

@@ -3,6 +3,7 @@ import { createFileRoute, redirect } from '@tanstack/react-router'
 import { IconLink, IconList, IconPlus } from '@tabler/icons-react'
 import { useEffect, useState } from 'react'
 import { toast } from 'sonner'
+import { bottomNavMainPaddingClass } from '@/components/nav/BottomNavBar'
 import { IconButton } from '@/components/ui/IconButton'
 import { fetchLadder, fetchShareToken, listLadderMembers, listLeaderboard } from '@/data/ladder'
 import { countMatches } from '@/data/match'
@@ -100,7 +101,7 @@ function LadderPage() {
 
   return (
     <>
-    <main className="mx-auto flex min-h-dvh max-w-lg flex-col gap-6 px-4 pt-5 pb-10">
+    <main className={`mx-auto flex min-h-dvh max-w-lg flex-col gap-6 px-4 pt-5 ${bottomNavMainPaddingClass}`}>
       <div className="min-w-0 space-y-2">
         <div className="flex min-w-0 flex-nowrap items-center gap-2">
           <button
@@ -218,7 +219,7 @@ function LadderPage() {
       ) : null}
     </main>
     <SignedInChrome
-      railBeforeNav={
+      barBeforeNav={
         <>
           {ladder.data ? (
             <IconButton

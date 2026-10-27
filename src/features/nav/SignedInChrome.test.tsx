@@ -165,7 +165,7 @@ describe("ladder count label", () => {
 });
 
 describe("signed-in chrome", () => {
-  it("shows the rail on signed-in screens and hides it on signed-out screens", async () => {
+  it("shows the bottom bar on signed-in screens and hides it on signed-out screens", async () => {
     const signedIn = [
       "/",
       "/ladders/ladder-1?tab=leaderboard",
@@ -214,7 +214,7 @@ describe("signed-in chrome", () => {
     ).toBeInTheDocument();
     expect(within(menu).getByText("boards")).toHaveClass("text-primary");
     expect(within(menu).getByText("Over 9000?!")).toBeInTheDocument();
-    expect(within(menu).getByText("v1.2.0")).toBeInTheDocument();
+    expect(within(menu).getByText("v1.3.0")).toBeInTheDocument();
     expect(
       within(menu).getByRole("heading", {
         level: 2,
@@ -240,10 +240,10 @@ describe("signed-in chrome", () => {
     expect(
       within(profile).getByRole("textbox", { name: "Display name" }),
     ).toBeInTheDocument();
-    expect(within(profile).queryByText("v1.2.0")).not.toBeInTheDocument();
+    expect(within(profile).queryByText("v1.3.0")).not.toBeInTheDocument();
 
     await user.click(within(profile).getByRole("button", { name: "Nav" }));
-    expect(await screen.findByText("v1.2.0")).toBeInTheDocument();
+    expect(await screen.findByText("v1.3.0")).toBeInTheDocument();
     expect(
       screen.queryByRole("textbox", { name: "Display name" }),
     ).not.toBeInTheDocument();
@@ -263,6 +263,38 @@ describe("signed-in chrome", () => {
     expect(screen.getByRole("textbox", { name: "Display name" })).toHaveValue(
       "Sam",
     );
+  });
+
+  it("marks Nav and Profile active while their drawer view is open", async () => {
+    const user = userEvent.setup();
+    await openApp("/");
+
+    const bar = screen.getByRole("navigation", { name: "Primary" });
+    const nav = within(bar).getByRole("button", { name: "Nav" });
+    const profile = within(bar).getByRole("button", { name: "Profile" });
+    expect(nav).not.toHaveAttribute("aria-current");
+    expect(profile).not.toHaveAttribute("aria-current");
+
+    await user.click(nav);
+    expect(nav).toHaveAttribute("aria-current", "page");
+    expect(profile).not.toHaveAttribute("aria-current");
+
+    await user.click(await screen.findByRole("button", { name: /3 Ladders/ }));
+    expect(
+      within(bar).getByRole("button", { name: "Profile" }),
+    ).toHaveAttribute("aria-current", "page");
+    expect(
+      within(bar).getByRole("button", { name: "Nav" }),
+    ).not.toHaveAttribute("aria-current");
+  });
+
+  it("shows both avatar initials at a readable size on the bar", async () => {
+    await openApp("/");
+    const avatar = screen
+      .getByRole("button", { name: "Profile" })
+      .querySelector("[aria-hidden]");
+    expect(avatar).toHaveClass("text-xs", "!tracking-normal");
+    expect(avatar).toHaveTextContent("SA");
   });
 
   it("closes from Close, the backdrop, Escape, and Back, and returns focus to the opener", async () => {
@@ -355,7 +387,10 @@ describe("signed-in chrome", () => {
     await openApp("/");
 
     const main = screen.getByRole("main");
-    expect(main).toHaveClass("pt-5", "pb-10");
+    expect(main).toHaveClass(
+      "pt-5",
+      "pb-[calc(5.5rem+env(safe-area-inset-bottom))]",
+    );
     expect(screen.getByRole("heading", { name: "Home" })).toBeInTheDocument();
     expect(
       screen.queryByRole("button", { name: "Sign out" }),
@@ -394,13 +429,13 @@ describe("text input background", () => {
     expect(base).toContain("@apply bg-white;");
   });
 
-  it("is version 1.2.0", () => {
+  it("is version 1.3.0", () => {
     const pkg = JSON.parse(
       readFileSync(
         join(dirname(fileURLToPath(import.meta.url)), "../../../package.json"),
         "utf8",
       ),
     ) as { version: string };
-    expect(pkg.version).toBe("1.2.0");
+    expect(pkg.version).toBe("1.3.0");
   });
 });

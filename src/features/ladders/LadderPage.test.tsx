@@ -243,7 +243,10 @@ describe('Ladder page', () => {
     expect(within(main).queryByRole('button', { name: 'Link' })).not.toBeInTheDocument()
     expect(screen.queryByRole('textbox', { name: 'Share link' })).not.toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Copy Share link' })).not.toBeInTheDocument()
-    expect(main).toHaveClass('pt-5', 'pb-10')
+    expect(main).toHaveClass(
+      'pt-5',
+      'pb-[calc(5.5rem+env(safe-area-inset-bottom))]',
+    )
     expect(main).not.toHaveClass('py-10')
     expect(heading).toHaveClass('break-words')
 
@@ -300,39 +303,39 @@ describe('Ladder page', () => {
     expect(screen.queryByRole('button', { name: 'Home' })).not.toBeInTheDocument()
   })
 
-  it('puts Record a Match under the avatar, then Nav, and opens the panel', async () => {
+  it('puts Record a Match between Profile and Nav, and opens the panel', async () => {
     const user = userEvent.setup()
     const { router } = await openApp('/ladders/ladder-1')
 
-    const rail = await screen.findByRole('navigation', { name: 'Side menu' })
-    await within(rail).findByRole('button', { name: 'Record a Match' })
-    const controls = [...rail.querySelectorAll('a, button')]
+    const bar = await screen.findByRole('navigation', { name: 'Primary' })
+    await within(bar).findByRole('button', { name: 'Record a Match' })
+    const controls = [...bar.querySelectorAll('a, button')]
     expect(controls.map((control) => control.getAttribute('aria-label'))).toEqual([
       'Profile',
       'Record a Match',
       'Nav',
     ])
-    const record = within(rail).getByRole('button', { name: 'Record a Match' })
+    const record = within(bar).getByRole('button', { name: 'Record a Match' })
     expect(record).toHaveClass('!bg-neutral-200', 'hover:!bg-neutral-300')
     expect(record).not.toHaveClass('!bg-primary')
-    expect(within(rail).queryByRole('link', { name: 'Home' })).not.toBeInTheDocument()
+    expect(within(bar).queryByRole('link', { name: 'Home' })).not.toBeInTheDocument()
     expect(within(screen.getByRole('main')).queryByRole('button', { name: 'Record a Match' })).not.toBeInTheDocument()
 
-    await user.click(within(rail).getByRole('button', { name: 'Record a Match' }))
+    await user.click(within(bar).getByRole('button', { name: 'Record a Match' }))
     expect(await screen.findByRole('dialog', { name: 'Record a Match' })).toBeInTheDocument()
     expect(router.state.location.search).toMatchObject({ record: 'open' })
 
     cleanup()
     await openApp('/')
-    const homeRail = screen.getByRole('navigation', { name: 'Side menu' })
-    expect(within(homeRail).queryByRole('button', { name: 'Record a Match' })).not.toBeInTheDocument()
-    expect(within(homeRail).queryByRole('link', { name: 'Home' })).not.toBeInTheDocument()
+    const homeBar = screen.getByRole('navigation', { name: 'Primary' })
+    expect(within(homeBar).queryByRole('button', { name: 'Record a Match' })).not.toBeInTheDocument()
+    expect(within(homeBar).queryByRole('link', { name: 'Home' })).not.toBeInTheDocument()
 
     cleanup()
     await openApp('/ladders/ladder-1/members/m1')
-    const memberRail = await screen.findByRole('navigation', { name: 'Side menu' })
-    expect(within(memberRail).queryByRole('button', { name: 'Record a Match' })).not.toBeInTheDocument()
-    expect(within(memberRail).queryByRole('link', { name: 'Home' })).not.toBeInTheDocument()
+    const memberBar = await screen.findByRole('navigation', { name: 'Primary' })
+    expect(within(memberBar).queryByRole('button', { name: 'Record a Match' })).not.toBeInTheDocument()
+    expect(within(memberBar).queryByRole('link', { name: 'Home' })).not.toBeInTheDocument()
   })
 
   it('counts Leaderboard entries, every Match, and active Ladder members only', async () => {
