@@ -1,7 +1,10 @@
+import { IconArrowDown, IconArrowUp } from '@tabler/icons-react'
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from '@tanstack/react-router'
-import { listInactiveMembers, listLeaderboard } from '@/data/ladder'
+import { listLeaderboard, type LeaderboardEntry } from '@/data/ladder'
+import { inactiveBadgeLabel, provisionalBadgeLabel } from '@/features/ladders/badges'
 import { formatRating } from '@/features/matches/labels'
+import { memberOutcomeTone } from '@/features/matches/matchStyles'
 import { leaderboardPodium } from '@/lib/leaderboardPodium'
 
 type Props = {
@@ -13,10 +16,6 @@ export function LeaderboardPanel({ ladderId }: Props) {
   const leaderboard = useQuery({
     queryKey: ['leaderboard', ladderId],
     queryFn: () => listLeaderboard(ladderId),
-  })
-  const inactive = useQuery({
-    queryKey: ['inactive-members', ladderId],
-    queryFn: () => listInactiveMembers(ladderId),
   })
 
   function openMember(memberId: string) {
@@ -40,7 +39,7 @@ export function LeaderboardPanel({ ladderId }: Props) {
               return (
                 <li
                   key={entry.ladderMemberId}
-                  className={`flex items-baseline justify-between gap-3 px-4 py-3${podium ? ` ${podium.className}` : ''}`}
+                  className={`flex items-baseline justify-between gap-3 px-4 py-3${podium ? ` ${podium.className}` : ''}${entry.inactive ? ' opacity-60' : ''}`}
                 >
                   <div className="flex min-w-0 items-baseline gap-3">
                     {podium ? (
@@ -54,57 +53,64 @@ export function LeaderboardPanel({ ladderId }: Props) {
                         </span>
                       </span>
                     ) : (
-                      <span className="w-6 shrink-0 tabular-nums text-sm text-neutral-500">{entry.rank}</span>
+                      <span className="w-6 shrink-0 tabular-nums text-sm text-neutral-500">
+                        {entry.rank}
+                      </span>
                     )}
                     <button
                       type="button"
                       onClick={() => openMember(entry.ladderMemberId)}
-                      className="truncate font-medium text-ink underline-offset-2 hover:underline"
+                      className="min-w-0 truncate font-medium text-ink underline-offset-2 hover:underline"
                     >
                       {entry.displayName}
                     </button>
                     {entry.provisional ? (
                       <span className="shrink-0 text-xs font-medium uppercase tracking-wide text-neutral-500">
-                        Provisional
+                        {provisionalBadgeLabel}
+                      </span>
+                    ) : null}
+                    {entry.inactive ? (
+                      <span className="shrink-0 text-xs font-medium uppercase tracking-wide text-neutral-500">
+                        {inactiveBadgeLabel}
                       </span>
                     ) : null}
                   </div>
-                  <span className={`tabular-nums text-neutral-800${podium ? ' font-bold' : ''}`}>
-                    {formatRating(entry.rating)}
-                  </span>
+                  <div className="flex shrink-0 items-baseline gap-1.5">
+                    <RankMovement change={entry.rankChange} />
+                    <span className={`tabular-nums text-neutral-800${podium ? ' font-bold' : ''}`}>
+                      {formatRating(entry.rating)}
+                    </span>
+                  </div>
                 </li>
               )
             })}
           </ol>
         ) : null}
       </section>
-
-      {inactive.data && inactive.data.length > 0 ? (
-        <section aria-label="Inactive">
-          <h2 className="text-sm font-medium text-neutral-700">Inactive</h2>
-          <ul className="mt-2 divide-y divide-neutral-200 overflow-hidden rounded-xl bg-white shadow-sm">
-            {inactive.data.map((entry) => (
-              <li key={entry.ladderMemberId} className="flex items-baseline justify-between gap-3 px-4 py-3">
-                <div className="flex min-w-0 items-baseline gap-2">
-                  <button
-                    type="button"
-                    onClick={() => openMember(entry.ladderMemberId)}
-                    className="truncate font-medium text-ink underline-offset-2 hover:underline"
-                  >
-                    {entry.displayName}
-                  </button>
-                  {entry.provisional ? (
-                    <span className="shrink-0 text-xs font-medium uppercase tracking-wide text-neutral-500">
-                      Provisional
-                    </span>
-                  ) : null}
-                </div>
-                <span className="tabular-nums text-neutral-800">{formatRating(entry.rating)}</span>
-              </li>
-            ))}
-          </ul>
-        </section>
-      ) : null}
     </div>
+  )
+}
+
+function RankMovement({ change }: { change: LeaderboardEntry['rankChange'] }) {
+  if (change == null || change === 0) return null
+
+  const up = change > 0
+  const places = Math.abs(change)
+  const Icon = up ? IconArrowUp : IconArrowDown
+  const label = up
+    ? `Up ${places} ${places === 1 ? 'place' : 'places'}`
+    : `Down ${places} ${places === 1 ? 'place' : 'places'}`
+
+  return (
+    <span
+      className={`inline-flex items-baseline gap-0.5 tabular-nums ${memberOutcomeTone(up ? 'won' : 'lost')}`}
+      aria-label={label}
+    >
+      <Icon size={14} aria-hidden className="self-center" />
+      <span>
+        {up ? '+' : '−'}
+        {places}
+      </span>
+    </span>
   )
 }

@@ -3,12 +3,13 @@ import { SkeletonBlock, SkeletonText } from '@/components/ui/skeleton'
 import {
   fetchLadderMember,
   fetchLadderMemberRecord,
-  listInactiveMembers,
   listLeaderboard,
   type LadderMemberDetail,
   type LadderMemberRecord,
+  type LeaderboardEntry,
 } from '@/data/ladder'
 import { listMemberMatchesPage } from '@/data/match'
+import { inactiveBadgeLabel, provisionalBadgeLabel } from '@/features/ladders/badges'
 import { joinMatchPages } from '@/features/matches/joinMatchPages'
 import { formatRating } from '@/features/matches/labels'
 import { MemberMatchRow } from '@/features/matches/MemberMatchRow'
@@ -47,10 +48,6 @@ function MemberPanelBody({ member }: { member: LadderMemberDetail }) {
     queryKey: ['leaderboard', member.ladderId],
     queryFn: () => listLeaderboard(member.ladderId),
   })
-  const inactive = useQuery({
-    queryKey: ['inactive-members', member.ladderId],
-    queryFn: () => listInactiveMembers(member.ladderId),
-  })
   const matches = useInfiniteQuery({
     queryKey: ['member-matches', member.id, 'pages'],
     queryFn: ({ pageParam }) =>
@@ -68,21 +65,27 @@ function MemberPanelBody({ member }: { member: LadderMemberDetail }) {
   const items = joinMatchPages(pages)
   const total = pages.length > 0 ? (pages[pages.length - 1]?.total ?? 0) : 0
   const remaining = total - items.length
+  const entry = leaderboard.data?.find((row) => row.ladderMemberId === member.id)
   const rankLabel = memberRankLabel({
     member,
     leaderboard: leaderboard.data,
-    inactiveIds: new Set((inactive.data ?? []).map((entry) => entry.ladderMemberId)),
+    entry,
   })
 
   return (
     <div className="space-y-4">
-      {record.isLoading || leaderboard.isLoading || inactive.isLoading ? (
+      {record.isLoading || leaderboard.isLoading ? (
         <div className="space-y-2" aria-hidden>
           <SkeletonText className="w-32" />
           <SkeletonBlock className="h-20 w-full rounded-lg" />
         </div>
       ) : record.data ? (
-        <MemberSummary member={member} record={record.data} rankLabel={rankLabel} />
+        <MemberSummary
+          member={member}
+          record={record.data}
+          rankLabel={rankLabel}
+          inactive={entry?.inactive ?? false}
+        />
       ) : null}
 
       <section aria-label="Matches" className="space-y-3">
@@ -135,10 +138,12 @@ function MemberSummary({
   member,
   record,
   rankLabel,
+  inactive,
 }: {
   member: LadderMemberDetail
   record: LadderMemberRecord
   rankLabel: string
+  inactive: boolean
 }) {
   const recordParts = [
     `${record.wins}W`,
@@ -155,7 +160,12 @@ function MemberSummary({
         </span>
         {member.provisional ? (
           <span className="text-xs font-medium uppercase tracking-wide text-neutral-500">
-            Provisional
+            {provisionalBadgeLabel}
+          </span>
+        ) : null}
+        {inactive ? (
+          <span className="text-xs font-medium uppercase tracking-wide text-neutral-500">
+            {inactiveBadgeLabel}
           </span>
         ) : null}
         <span className="text-neutral-500">·</span>
@@ -223,16 +233,14 @@ function streakToResult(result: 'W' | 'L' | 'D') {
 function memberRankLabel({
   member,
   leaderboard,
-  inactiveIds,
+  entry,
 }: {
   member: LadderMemberDetail
-  leaderboard: { ladderMemberId: string; rank: number }[] | undefined
-  inactiveIds: Set<string>
+  leaderboard: LeaderboardEntry[] | undefined
+  entry: LeaderboardEntry | undefined
 }): string {
   if (member.status === 'left') return 'Left'
   if (member.status === 'removed') return 'Removed'
-  if (inactiveIds.has(member.id)) return 'Inactive'
-  const entry = leaderboard?.find((row) => row.ladderMemberId === member.id)
   if (entry && leaderboard) return `#${entry.rank} of ${leaderboard.length}`
   return 'Inactive'
 }

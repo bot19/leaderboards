@@ -2,7 +2,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { cleanup, render, screen, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { afterEach, describe, expect, it, vi } from 'vitest'
-import type { LadderMemberDetail, LadderMemberRecord } from '@/data/ladder'
+import type { LadderMemberDetail, LadderMemberRecord, LeaderboardEntry } from '@/data/ladder'
 import type { MatchRead } from '@/data/match'
 import { MemberPanel } from './MemberPanel'
 
@@ -10,8 +10,7 @@ const mocks = vi.hoisted(() => {
   const state: {
     member: LadderMemberDetail | null
     record: LadderMemberRecord
-    leaderboard: { ladderMemberId: string; rank: number; displayName: string; rating: number; provisional: boolean }[]
-    inactive: { ladderMemberId: string; displayName: string; rating: number; provisional: boolean; lastActiveAt: string }[]
+    leaderboard: LeaderboardEntry[]
     pages: Map<number, { matches: MatchRead[]; total: number }>
   } = {
     member: {
@@ -37,11 +36,34 @@ const mocks = vi.hoisted(() => {
       peakAt: '2026-10-12T12:00:00.000Z',
     },
     leaderboard: [
-      { ladderMemberId: 'm0', rank: 1, displayName: 'Sam', rating: 1600, provisional: false },
-      { ladderMemberId: 'm2', rank: 2, displayName: 'Alex', rating: 1550, provisional: false },
-      { ladderMemberId: 'm1', rank: 3, displayName: 'Priya', rating: 1512, provisional: false },
+      {
+        ladderMemberId: 'm0',
+        rank: 1,
+        displayName: 'Sam',
+        rating: 1600,
+        provisional: false,
+        inactive: false,
+        rankChange: null,
+      },
+      {
+        ladderMemberId: 'm2',
+        rank: 2,
+        displayName: 'Alex',
+        rating: 1550,
+        provisional: false,
+        inactive: false,
+        rankChange: null,
+      },
+      {
+        ladderMemberId: 'm1',
+        rank: 3,
+        displayName: 'Priya',
+        rating: 1512,
+        provisional: false,
+        inactive: false,
+        rankChange: null,
+      },
     ],
-    inactive: [],
     pages: new Map(),
   }
   return state
@@ -84,7 +106,6 @@ vi.mock('@/data/ladder', () => ({
   fetchLadderMember: () => Promise.resolve(mocks.member),
   fetchLadderMemberRecord: () => Promise.resolve(mocks.record),
   listLeaderboard: () => Promise.resolve(mocks.leaderboard),
-  listInactiveMembers: () => Promise.resolve(mocks.inactive),
 }))
 
 vi.mock('@/data/match', () => ({
@@ -120,11 +141,34 @@ afterEach(() => {
     peakAt: '2026-10-12T12:00:00.000Z',
   }
   mocks.leaderboard = [
-    { ladderMemberId: 'm0', rank: 1, displayName: 'Sam', rating: 1600, provisional: false },
-    { ladderMemberId: 'm2', rank: 2, displayName: 'Alex', rating: 1550, provisional: false },
-    { ladderMemberId: 'm1', rank: 3, displayName: 'Priya', rating: 1512, provisional: false },
+    {
+      ladderMemberId: 'm0',
+      rank: 1,
+      displayName: 'Sam',
+      rating: 1600,
+      provisional: false,
+      inactive: false,
+      rankChange: null,
+    },
+    {
+      ladderMemberId: 'm2',
+      rank: 2,
+      displayName: 'Alex',
+      rating: 1550,
+      provisional: false,
+      inactive: false,
+      rankChange: null,
+    },
+    {
+      ladderMemberId: 'm1',
+      rank: 3,
+      displayName: 'Priya',
+      rating: 1512,
+      provisional: false,
+      inactive: false,
+      rankChange: null,
+    },
   ]
-  mocks.inactive = []
   mocks.pages = new Map([
     [0, { matches: [sampleMatch('match-1')], total: 1 }],
   ])
@@ -157,7 +201,7 @@ describe('MemberPanel', () => {
     expect(screen.getByText('+12')).toBeInTheDocument()
   })
 
-  it('replaces rank with status for Inactive, Left and Removed members', async () => {
+  it('shows rank with an Inactive badge, and status for Left and Removed', async () => {
     const base = mocks.member
     if (!base) throw new Error('Expected a Ladder member mock')
     mocks.member = { ...base, status: 'left' }
@@ -173,19 +217,28 @@ describe('MemberPanel', () => {
     cleanup()
     mocks.member = { ...base, status: 'active' }
     mocks.leaderboard = [
-      { ladderMemberId: 'm0', rank: 1, displayName: 'Sam', rating: 1600, provisional: false },
-    ]
-    mocks.inactive = [
+      {
+        ladderMemberId: 'm0',
+        rank: 1,
+        displayName: 'Sam',
+        rating: 1600,
+        provisional: false,
+        inactive: false,
+        rankChange: null,
+      },
       {
         ladderMemberId: 'm1',
+        rank: 2,
         displayName: 'Priya',
         rating: 1512,
         provisional: false,
-        lastActiveAt: '2026-01-01T00:00:00.000Z',
+        inactive: true,
+        rankChange: null,
       },
     ]
     renderPanel()
-    expect(await screen.findByText('Inactive')).toBeInTheDocument()
+    expect(await screen.findByText('#2 of 2')).toBeInTheDocument()
+    expect(screen.getByText('Inactive')).toBeInTheDocument()
   })
 
   it('shows the not-found message for an unknown id', async () => {
@@ -211,13 +264,14 @@ describe('MemberPanel', () => {
     })
   })
 
-  it('shows Provisional and omits Draws when the Game forbids them and Draws are 0', async () => {
+  it('shows New for Provisional and omits Draws when the Game forbids them and Draws are 0', async () => {
     const base = mocks.member
     if (!base) throw new Error('Expected a Ladder member mock')
     mocks.member = { ...base, provisional: true, ratedMatchCount: 2 }
     mocks.record = { ...mocks.record, draws: 0 }
     renderPanel()
-    expect(await screen.findByText('Provisional')).toBeInTheDocument()
+    expect(await screen.findByText('New')).toBeInTheDocument()
+    expect(screen.queryByText('Provisional')).not.toBeInTheDocument()
     expect(screen.getByText('12W · 5L')).toBeInTheDocument()
     expect(screen.queryByText(/12W · 5L · 0D/)).not.toBeInTheDocument()
   })

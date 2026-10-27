@@ -86,7 +86,6 @@ vi.mock("@/data/ladder", async (importOriginal) => {
         peakAt: "2026-01-01T00:00:00.000Z",
       }),
     listLeaderboard: () => Promise.resolve([]),
-    listInactiveMembers: () => Promise.resolve([]),
   };
 });
 
@@ -245,7 +244,7 @@ describe("signed-in chrome", () => {
     ).toBeInTheDocument();
     expect(within(menu).getByText("boards")).toHaveClass("text-primary");
     expect(within(menu).getByText("Over 9000?!")).toBeInTheDocument();
-    expect(within(menu).getByText("v1.4.0")).toBeInTheDocument();
+    expect(within(menu).getByText("v1.5.0")).toBeInTheDocument();
     expect(
       within(menu).getByRole("heading", {
         level: 2,
@@ -271,10 +270,10 @@ describe("signed-in chrome", () => {
     expect(
       within(profile).getByRole("textbox", { name: "Display name" }),
     ).toBeInTheDocument();
-    expect(within(profile).queryByText("v1.4.0")).not.toBeInTheDocument();
+    expect(within(profile).queryByText("v1.5.0")).not.toBeInTheDocument();
 
     await user.click(within(profile).getByRole("button", { name: "Nav" }));
-    expect(await screen.findByText("v1.4.0")).toBeInTheDocument();
+    expect(await screen.findByText("v1.5.0")).toBeInTheDocument();
     expect(
       screen.queryByRole("textbox", { name: "Display name" }),
     ).not.toBeInTheDocument();
@@ -304,7 +303,7 @@ describe("signed-in chrome", () => {
       expect(router.state.location.search).not.toHaveProperty("member");
     });
     expect(
-      within(screen.getByRole("dialog")).getByText("v1.4.0"),
+      within(screen.getByRole("dialog")).getByText("v1.5.0"),
     ).toBeInTheDocument();
 
     await act(async () => {
@@ -504,13 +503,13 @@ describe("text input background", () => {
     expect(base).toContain("@apply bg-white;");
   });
 
-  it("is version 1.4.0", () => {
+  it("is version 1.5.0", () => {
     const pkg = JSON.parse(
       readFileSync(
         join(dirname(fileURLToPath(import.meta.url)), "../../../package.json"),
         "utf8",
       ),
     ) as { version: string };
-    expect(pkg.version).toBe("1.4.0");
+    expect(pkg.version).toBe("1.5.0");
   });
 });

@@ -28,7 +28,6 @@ export function WaitingForYou({ ladderId }: Props) {
     await queryClient.invalidateQueries({ queryKey: ['matches', ladderId] })
     await queryClient.invalidateQueries({ queryKey: ['matches-waiting', ladderId] })
     await queryClient.invalidateQueries({ queryKey: ['leaderboard', ladderId] })
-    await queryClient.invalidateQueries({ queryKey: ['inactive-members', ladderId] })
     await queryClient.invalidateQueries({ queryKey: ['roster', ladderId] })
   }
 

@@ -246,18 +246,9 @@ export type Database = {
           display_name: string
           rating: number
           provisional: boolean
+          inactive: boolean
           rank: number
-        }
-        Relationships: []
-      }
-      inactive_ladder_members: {
-        Row: {
-          ladder_id: string
-          ladder_member_id: string
-          display_name: string
-          rating: number
-          provisional: boolean
-          last_active_at: string
+          rank_change: number | null
         }
         Relationships: []
       }

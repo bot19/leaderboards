@@ -108,7 +108,6 @@ vi.mock('@/data/ladder', async (importOriginal) => {
     fetchShareToken: () => Promise.resolve('share-token'),
     listMyLadders: () => Promise.resolve([]),
     listLeaderboard: () => Promise.resolve([]),
-    listInactiveMembers: () => Promise.resolve([]),
     listLadderMembers: () => Promise.resolve(mocks.members),
     listRoster: () => Promise.resolve([]),
     leaveLadder: (ladderId: string) => mocks.leaveLadder(ladderId),

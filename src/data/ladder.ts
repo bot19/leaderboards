@@ -25,14 +25,8 @@ export type LeaderboardEntry = {
   rating: number
   rank: number
   provisional: boolean
-}
-
-export type InactiveMember = {
-  ladderMemberId: string
-  displayName: string
-  rating: number
-  provisional: boolean
-  lastActiveAt: string
+  inactive: boolean
+  rankChange: number | null
 }
 
 export type LadderMemberRecord = {
@@ -328,7 +322,7 @@ export async function listLeaderboard(
 ): Promise<LeaderboardEntry[]> {
   const { data, error } = await client
     .from('leaderboard')
-    .select('ladder_member_id, display_name, rating, provisional, rank')
+    .select('ladder_member_id, display_name, rating, provisional, inactive, rank, rank_change')
     .eq('ladder_id', ladderId)
     .order('rank', { ascending: true })
 
@@ -340,27 +334,8 @@ export async function listLeaderboard(
     rating: asNumber(row.rating),
     rank: asNumber(row.rank),
     provisional: row.provisional,
-  }))
-}
-
-export async function listInactiveMembers(
-  ladderId: string,
-  client: LadderClient = getSupabase(),
-): Promise<InactiveMember[]> {
-  const { data, error } = await client
-    .from('inactive_ladder_members')
-    .select('ladder_member_id, display_name, rating, provisional, last_active_at')
-    .eq('ladder_id', ladderId)
-    .order('display_name', { ascending: true })
-
-  if (error) throw new Error(error.message)
-
-  return (data ?? []).map((row) => ({
-    ladderMemberId: row.ladder_member_id,
-    displayName: row.display_name,
-    rating: asNumber(row.rating),
-    provisional: row.provisional,
-    lastActiveAt: row.last_active_at,
+    inactive: row.inactive,
+    rankChange: row.rank_change == null ? null : asNumber(row.rank_change),
   }))
 }
 

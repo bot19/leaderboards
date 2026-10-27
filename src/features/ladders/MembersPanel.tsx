@@ -57,7 +57,6 @@ export function MembersPanel({ ladderId }: Props) {
     await Promise.all([
       queryClient.invalidateQueries({ queryKey: ['ladder-members', ladderId] }),
       queryClient.invalidateQueries({ queryKey: ['leaderboard', ladderId] }),
-      queryClient.invalidateQueries({ queryKey: ['inactive-members', ladderId] }),
       queryClient.invalidateQueries({ queryKey: ['my-ladders'] }),
       queryClient.invalidateQueries({ queryKey: ['roster', ladderId] }),
     ])

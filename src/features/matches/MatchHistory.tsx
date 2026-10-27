@@ -45,7 +45,6 @@ export function MatchHistory({ ladderId }: Props) {
         queryClient.invalidateQueries({ queryKey: ['matches', ladderId] }),
         queryClient.invalidateQueries({ queryKey: ['matches-waiting', ladderId] }),
         queryClient.invalidateQueries({ queryKey: ['leaderboard', ladderId] }),
-        queryClient.invalidateQueries({ queryKey: ['inactive-members', ladderId] }),
         queryClient.invalidateQueries({ queryKey: ['roster', ladderId] }),
         queryClient.invalidateQueries({ queryKey: ['ladder-members', ladderId] }),
       ])
