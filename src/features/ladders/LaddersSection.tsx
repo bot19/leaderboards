@@ -74,10 +74,10 @@ export function LaddersSection({ idPrefix = '', variant = 'page' }: Props) {
     try {
       await joinLadder(code, { makeDefault })
       const ladderId = await fetchLadderIdByShareToken(code)
-      if (!ladderId) throw new Error('Could not open this Ladder')
+      if (!ladderId) throw new Error('Could not open this Leaderboard')
       await openLadder(ladderId)
     } catch (caught) {
-      const message = caught instanceof Error ? caught.message : 'Could not join this Ladder.'
+      const message = caught instanceof Error ? caught.message : 'Could not join this Leaderboard.'
       setJoinError(message)
       toast.error(message, { id: 'join-ladder', duration: Infinity })
     } finally {
@@ -113,7 +113,7 @@ export function LaddersSection({ idPrefix = '', variant = 'page' }: Props) {
         {showHeadingActions ? (
           <div className="flex shrink-0 items-center gap-1">
             <IconButton
-              aria-label={openForm === 'join' ? 'Close join a Ladder' : 'Join a Ladder'}
+              aria-label={openForm === 'join' ? 'Close join a Leaderboard' : 'Join a Leaderboard'}
               className="h-10 w-10"
               onClick={() => toggleForm('join')}
             >
@@ -124,7 +124,7 @@ export function LaddersSection({ idPrefix = '', variant = 'page' }: Props) {
               )}
             </IconButton>
             <IconButton
-              aria-label={openForm === 'new' ? 'Close new Ladder' : 'New Ladder'}
+              aria-label={openForm === 'new' ? 'Close new Leaderboard' : 'New Leaderboard'}
               className="h-10 w-10"
               onClick={() => toggleForm('new')}
             >
@@ -164,13 +164,13 @@ export function LaddersSection({ idPrefix = '', variant = 'page' }: Props) {
               setMakeDefault(false)
               await openLadder(ladder.id)
             } catch (caught) {
-              const message = caught instanceof Error ? caught.message : 'Could not create a Ladder.'
+              const message = caught instanceof Error ? caught.message : 'Could not create a Leaderboard.'
               toast.error(message, { id: 'new-ladder', duration: Infinity })
             }
           })}
         >
           <label className="block text-sm font-medium text-neutral-800" htmlFor={ladderNameId}>
-            New Ladder
+            New Leaderboard
           </label>
           <input
             id={ladderNameId}
@@ -187,19 +187,19 @@ export function LaddersSection({ idPrefix = '', variant = 'page' }: Props) {
             disabled={ladderForm.formState.isSubmitting}
             className="min-h-11 rounded-md bg-ink px-3 py-2 text-sm font-medium text-white disabled:opacity-60"
           >
-            Create Ladder
+            Create Leaderboard
           </button>
         </form>
       ) : null}
       {openForm ? <hr className="border-neutral-200" /> : null}
-      {ladders.isLoading ? <p className="text-neutral-600">Loading Ladders…</p> : null}
+      {ladders.isLoading ? <p className="text-neutral-600">Loading Leaderboards…</p> : null}
       {ladders.isError ? (
-        <p className="text-sm text-red-700">Could not load your Ladders.</p>
+        <p className="text-sm text-red-700">Could not load your Leaderboards.</p>
       ) : null}
       {ladders.data && ladders.data.length === 0 && !openForm ? (
         <div className="space-y-3">
           <p className="text-neutral-700">
-            Join a Ladder with a code from a friend, or start your own.
+            Join a Leaderboard with a code from a friend, or start your own.
           </p>
           <button
             type="button"
@@ -215,12 +215,12 @@ export function LaddersSection({ idPrefix = '', variant = 'page' }: Props) {
             onClick={() => toggleForm('new')}
           >
             <IconPlus size={18} stroke={1.75} aria-hidden />
-            New Ladder
+            New Leaderboard
           </button>
         </div>
       ) : null}
       {ladders.data && ladders.data.length >= 2 && !profile.defaultLadderId ? (
-        <InfoBox>Star a Ladder to open it when you sign in.</InfoBox>
+        <InfoBox>Star a Leaderboard to open it when you sign in.</InfoBox>
       ) : null}
       {ladders.data && ladders.data.length > 0 ? (
         <ul className="divide-y divide-neutral-200 overflow-hidden rounded-xl bg-white shadow-sm">
@@ -232,8 +232,8 @@ export function LaddersSection({ idPrefix = '', variant = 'page' }: Props) {
                 <IconButton
                   aria-label={
                     isDefault
-                      ? `${ladder.name} is your Default Ladder`
-                      : `Make ${ladder.name} your Default Ladder`
+                      ? `${ladder.name} is your Default Leaderboard`
+                      : `Make ${ladder.name} your Default Leaderboard`
                   }
                   aria-pressed={isDefault}
                   className="group h-11 w-11 shrink-0 hover:bg-transparent active:bg-transparent active:text-current"

@@ -186,19 +186,19 @@ describe('recording and confirming a Match', () => {
         { ladderId: ladder.id, sideA: [samId], sideB: [leftId], result: 'side_a_won' },
         sam.client,
       ),
-    ).rejects.toThrow(/active ladder member/i)
+    ).rejects.toThrow(/active member/i)
     await expect(
       recordMatch(
         { ladderId: ladder.id, sideA: [samId], sideB: [removedId], result: 'side_a_won' },
         sam.client,
       ),
-    ).rejects.toThrow(/active ladder member/i)
+    ).rejects.toThrow(/active member/i)
     await expect(
       recordMatch(
         { ladderId: ladder.id, sideA: [samId], sideB: [elsewhereId], result: 'side_a_won' },
         sam.client,
       ),
-    ).rejects.toThrow(/active ladder member/i)
+    ).rejects.toThrow(/active member/i)
   })
 
   it('refuses a Ladder member listed twice', async () => {
@@ -270,8 +270,8 @@ describe('recording and confirming a Match', () => {
     ])
     expect(matches[0]?.participants.map((participant) => participant.ratingChange)).toEqual([null, null])
     expect(await listLeaderboard(ladder.id, who('Sam').client)).toEqual([
-      expect.objectContaining({ displayName: 'Priya', rating: 1000, rank: 1 }),
-      expect.objectContaining({ displayName: 'Sam', rating: 1000, rank: 2 }),
+      expect.objectContaining({ displayName: 'Priya', rating: 1000, rank: null, ranked: false }),
+      expect.objectContaining({ displayName: 'Sam', rating: 1000, rank: null, ranked: false }),
     ])
   })
 

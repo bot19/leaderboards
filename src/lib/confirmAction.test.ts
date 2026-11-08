@@ -10,13 +10,13 @@ import {
 describe('confirmAction', () => {
   it('asks before leaving a Ladder', () => {
     expect(leaveLadderConfirm()).toBe(
-      'Leave this Ladder? You can rejoin from its Share link.',
+      'Leave this Leaderboard? You can rejoin from its Share link.',
     )
   })
 
   it('names the Ladder member being Removed', () => {
     expect(removeMemberConfirm('Alex')).toBe(
-      'Remove Alex from this Ladder? Only an Admin can reinstate them.',
+      'Remove Alex from this Leaderboard? Only an Admin can reinstate them.',
     )
   })
 
@@ -28,7 +28,7 @@ describe('confirmAction', () => {
 
   it("matches Void's message to the Match status", () => {
     expect(voidMatchConfirm('confirmed')).toBe(
-      'Void this Match? Every Rating on this Ladder will be recalculated without it.',
+      'Void this Match? Every Rating on this Leaderboard will be recalculated without it.',
     )
     expect(voidMatchConfirm('pending')).toBe(
       "Void this Match? It won't count toward any Rating.",

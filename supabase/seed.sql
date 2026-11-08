@@ -43,7 +43,9 @@ from (
     ('11111111-1111-4111-8111-111111111105'::uuid, 'taylor@example.com'),
     ('11111111-1111-4111-8111-111111111106'::uuid, 'morgan@example.com'),
     ('11111111-1111-4111-8111-111111111107'::uuid, 'riley@example.com'),
-    ('11111111-1111-4111-8111-111111111108'::uuid, 'casey@example.com')
+    ('11111111-1111-4111-8111-111111111108'::uuid, 'casey@example.com'),
+    ('11111111-1111-4111-8111-111111111109'::uuid, 'quinn@example.com'),
+    ('11111111-1111-4111-8111-111111111110'::uuid, 'arnold@example.com')
 ) as people (id, email);
 
 insert into auth.identities (
@@ -79,7 +81,9 @@ from (
     ('11111111-1111-4111-8111-111111111105'::uuid, 'taylor@example.com'),
     ('11111111-1111-4111-8111-111111111106'::uuid, 'morgan@example.com'),
     ('11111111-1111-4111-8111-111111111107'::uuid, 'riley@example.com'),
-    ('11111111-1111-4111-8111-111111111108'::uuid, 'casey@example.com')
+    ('11111111-1111-4111-8111-111111111108'::uuid, 'casey@example.com'),
+    ('11111111-1111-4111-8111-111111111109'::uuid, 'quinn@example.com'),
+    ('11111111-1111-4111-8111-111111111110'::uuid, 'arnold@example.com')
 ) as people (id, email);
 
 insert into public.profiles (id, display_name, is_super_admin)
@@ -93,7 +97,9 @@ from (
     ('11111111-1111-4111-8111-111111111105'::uuid, 'Taylor', false),
     ('11111111-1111-4111-8111-111111111106'::uuid, 'Morgan', false),
     ('11111111-1111-4111-8111-111111111107'::uuid, 'Riley', false),
-    ('11111111-1111-4111-8111-111111111108'::uuid, 'Casey', false)
+    ('11111111-1111-4111-8111-111111111108'::uuid, 'Casey', false),
+    ('11111111-1111-4111-8111-111111111109'::uuid, 'Quinn', false),
+    ('11111111-1111-4111-8111-111111111110'::uuid, 'Arnold Schwarzenegger', false)
 ) as people (id, display_name, is_super_admin);
 
 insert into public.games (id, name, draws_allowed, largest_side)
@@ -147,6 +153,10 @@ from (
     ('44444444-4444-4444-8444-444444444405'::uuid, '33333333-3333-4333-8333-333333333301'::uuid, '11111111-1111-4111-8111-111111111106'::uuid, 'player', 'active', now() - interval '50 days'),
     ('44444444-4444-4444-8444-444444444406'::uuid, '33333333-3333-4333-8333-333333333301'::uuid, '11111111-1111-4111-8111-111111111107'::uuid, 'player', 'left', now() - interval '50 days'),
     ('44444444-4444-4444-8444-444444444407'::uuid, '33333333-3333-4333-8333-333333333301'::uuid, '11111111-1111-4111-8111-111111111108'::uuid, 'player', 'removed', now() - interval '50 days'),
+    -- Quinn joined and has never played (Unranked). Recent join so not Inactive.
+    ('44444444-4444-4444-8444-444444444408'::uuid, '33333333-3333-4333-8333-333333333301'::uuid, '11111111-1111-4111-8111-111111111109'::uuid, 'player', 'active', now() - interval '2 days'),
+    -- Arnold plays below; long name for truncation checks.
+    ('44444444-4444-4444-8444-444444444409'::uuid, '33333333-3333-4333-8333-333333333301'::uuid, '11111111-1111-4111-8111-111111111110'::uuid, 'player', 'active', now() - interval '10 days'),
     -- Lunch table tennis. No Matches, so a recent join keeps them on the Leaderboard.
     ('44444444-4444-4444-8444-444444444411'::uuid, '33333333-3333-4333-8333-333333333302'::uuid, '11111111-1111-4111-8111-111111111101'::uuid, 'admin', 'active', now()),
     ('44444444-4444-4444-8444-444444444412'::uuid, '33333333-3333-4333-8333-333333333302'::uuid, '11111111-1111-4111-8111-111111111102'::uuid, 'player', 'active', now())
@@ -236,6 +246,7 @@ declare
   morgan uuid := '11111111-1111-4111-8111-111111111106';
   riley uuid := '11111111-1111-4111-8111-111111111107';
   casey uuid := '11111111-1111-4111-8111-111111111108';
+  arnold uuid := '11111111-1111-4111-8111-111111111110';
 begin
   -- Morgan's only Match is 45 days ago, so they are Inactive.
   perform pg_temp.seed_match(
@@ -319,6 +330,18 @@ begin
     '55555555-5555-4555-8555-555555555516', friday, 'confirmed', 'side_a_won', null,
     jordan, array[jordan], array[sam],
     now() - interval '2 days', now() - interval '2 days', null, null, null
+  );
+
+  -- Arnold Schwarzenegger: a couple of recent Matches so the long name sits on the Leaderboard.
+  perform pg_temp.seed_match(
+    '55555555-5555-4555-8555-555555555521', friday, 'confirmed', 'side_a_won', null,
+    arnold, array[arnold], array[sam],
+    now() - interval '3 days', now() - interval '3 days', null, null, null
+  );
+  perform pg_temp.seed_match(
+    '55555555-5555-4555-8555-555555555522', friday, 'confirmed', 'side_b_won', null,
+    alex, array[alex], array[arnold],
+    now() - interval '1 day', now() - interval '1 day', null, null, null
   );
 
   -- Confirmed, then voided by Sam. Replay skips it.

@@ -1,9 +1,9 @@
 export function leaveLadderConfirm(): string {
-  return 'Leave this Ladder? You can rejoin from its Share link.'
+  return 'Leave this Leaderboard? You can rejoin from its Share link.'
 }
 
 export function removeMemberConfirm(displayName: string): string {
-  return `Remove ${displayName} from this Ladder? Only an Admin can reinstate them.`
+  return `Remove ${displayName} from this Leaderboard? Only an Admin can reinstate them.`
 }
 
 export function demoteToPlayerConfirm(displayName: string): string {
@@ -12,7 +12,7 @@ export function demoteToPlayerConfirm(displayName: string): string {
 
 export function voidMatchConfirm(status: 'pending' | 'confirmed'): string {
   if (status === 'confirmed') {
-    return 'Void this Match? Every Rating on this Ladder will be recalculated without it.'
+    return 'Void this Match? Every Rating on this Leaderboard will be recalculated without it.'
   }
   return "Void this Match? It won't count toward any Rating."
 }

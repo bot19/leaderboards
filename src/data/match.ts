@@ -205,7 +205,7 @@ export async function listMatchesPage(
 const MEMBER_MATCH_COLUMNS =
   `${MATCH_COLUMNS}, filter_me:participants!inner(ladder_member_id)` as const
 
-/** Confirmed and Pending Matches this Ladder member took part in, newest first. */
+/** Pending Matches first (newest recorded), then Confirmed (newest Confirmed). */
 export async function listMemberMatchesPage(
   ladderMemberId: string,
   page: { offset: number; limit: number },
@@ -216,6 +216,7 @@ export async function listMemberMatchesPage(
     .select(MEMBER_MATCH_COLUMNS, { count: 'exact' })
     .eq('filter_me.ladder_member_id', ladderMemberId)
     .in('status', ['confirmed', 'pending'])
+    .order('confirmed_at', { ascending: false, nullsFirst: true })
     .order('recorded_at', { ascending: false })
     .order('id', { ascending: false })
     .range(page.offset, page.offset + page.limit - 1)

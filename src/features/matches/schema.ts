@@ -16,7 +16,7 @@ export const recordMatchSchema = z
     if (ids.some((id) => id.trim() === '')) {
       ctx.addIssue({
         code: 'custom',
-        message: 'Choose a Ladder member for every place.',
+        message: 'Choose a member for every place.',
         path: ['a1'],
       })
     }
@@ -24,7 +24,7 @@ export const recordMatchSchema = z
     if (new Set(chosen).size !== chosen.length) {
       ctx.addIssue({
         code: 'custom',
-        message: 'A Ladder member can only appear once.',
+        message: 'A member can only appear once.',
         path: ['a1'],
       })
     }

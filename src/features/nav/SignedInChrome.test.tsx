@@ -22,6 +22,7 @@ import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import type { Session } from "@/data/auth";
 import { AuthContext, type AuthState } from "@/features/auth/authContext";
 import { routeTree } from "@/routeTree.gen";
+import { member } from "@/test/ladderMocks";
 import { ladderCountLabel } from "./navSearch";
 
 const mocks = vi.hoisted(() => ({
@@ -56,10 +57,23 @@ vi.mock("@/data/profile", () => ({
   fetchProfile: vi.fn(),
 }));
 
+const ownMemberId = "00000000-0000-4000-8000-000000000001";
+
 vi.mock("@/data/ladder", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/data/ladder")>();
   return {
     ...actual,
+    fetchLadder: () =>
+      Promise.resolve({
+        id: "ladder-1",
+        name: "Friday pool",
+        gameName: "Pool",
+        joinPolicy: "open" as const,
+      }),
+    listLadderMembers: () =>
+      Promise.resolve([
+        member(ownMemberId, "Sam", "active", "user-1", "admin"),
+      ]),
     listMyLadders: () => Promise.resolve(mocks.ladders),
     fetchLadderMember: (id: string) =>
       Promise.resolve({
@@ -93,6 +107,10 @@ vi.mock("@/data/match", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/data/match")>();
   return {
     ...actual,
+    listMatches: () => Promise.resolve([]),
+    listMatchesPage: () => Promise.resolve({ matches: [], total: 0 }),
+    countMatches: () => Promise.resolve(0),
+    listMatchesWaitingForMe: () => Promise.resolve([]),
     listMemberMatchesPage: () => Promise.resolve({ matches: [], total: 0 }),
   };
 });
@@ -189,28 +207,33 @@ async function openApp(
 }
 
 describe("ladder count label", () => {
-  it("says Ladders while unknown, and pluralises a count", () => {
-    expect(ladderCountLabel(undefined)).toBe("Ladders");
-    expect(ladderCountLabel(0)).toBe("0 Ladders");
-    expect(ladderCountLabel(1)).toBe("1 Ladder");
-    expect(ladderCountLabel(3)).toBe("3 Ladders");
+  it("says Leaderboards while unknown, and pluralises a count", () => {
+    expect(ladderCountLabel(undefined)).toBe("Leaderboards");
+    expect(ladderCountLabel(0)).toBe("0 Leaderboards");
+    expect(ladderCountLabel(1)).toBe("1 Leaderboard");
+    expect(ladderCountLabel(3)).toBe("3 Leaderboards");
   });
 });
 
 describe("signed-in chrome", () => {
   it("shows the bottom bar on signed-in screens and hides it on signed-out screens", async () => {
-    const signedIn = [
-      "/",
-      "/ladders/ladder-1?tab=leaderboard",
-      "/ladders/ladder-1?nav=member&member=00000000-0000-4000-8000-000000000001",
-      "/join/share-token",
+    const signedIn: Array<[string, "Profile" | "Your record"]> = [
+      ["/", "Profile"],
+      ["/ladders/ladder-1?tab=leaderboard", "Your record"],
+      [
+        `/ladders/ladder-1?nav=member&member=${ownMemberId}`,
+        "Your record",
+      ],
+      ["/join/share-token", "Profile"],
     ];
-    for (const path of signedIn) {
+    for (const [path, avatarLabel] of signedIn) {
       cleanup();
       await openApp(path);
       const bar = await screen.findByRole("navigation", { name: "Primary" });
       expect(within(bar).getByRole("button", { name: "Nav" })).toBeInTheDocument();
-      expect(within(bar).getByRole("button", { name: "Profile" })).toBeInTheDocument();
+      expect(
+        await within(bar).findByRole("button", { name: avatarLabel }),
+      ).toBeInTheDocument();
     }
 
     const signedOut: Array<
@@ -244,7 +267,7 @@ describe("signed-in chrome", () => {
     ).toBeInTheDocument();
     expect(within(menu).getByText("boards")).toHaveClass("text-primary");
     expect(within(menu).getByText("Over 9000?!")).toBeInTheDocument();
-    expect(within(menu).getByText("v1.5.1")).toBeInTheDocument();
+    expect(within(menu).getByText("v1.6.0")).toBeInTheDocument();
     expect(
       within(menu).getByRole("heading", {
         level: 2,
@@ -252,14 +275,14 @@ describe("signed-in chrome", () => {
       }),
     ).toHaveClass("text-xs", "uppercase", "tracking-wide", "text-neutral-500");
     expect(
-      within(menu).getByRole("button", { name: "Join a Ladder" }),
+      within(menu).getByRole("button", { name: "Join a Leaderboard" }),
     ).toHaveClass("h-10", "w-10");
     expect(
       within(menu).queryByRole("textbox", { name: "Display name" }),
     ).not.toBeInTheDocument();
     expect(document.activeElement).toHaveAttribute("data-nav-close");
 
-    const card = await within(menu).findByRole("button", { name: /3 Ladders/ });
+    const card = await within(menu).findByRole("button", { name: /3 Leaderboards/ });
     expect(within(card).getByText("Sam")).toHaveClass("truncate");
     await user.click(card);
 
@@ -270,10 +293,10 @@ describe("signed-in chrome", () => {
     expect(
       within(profile).getByRole("textbox", { name: "Display name" }),
     ).toBeInTheDocument();
-    expect(within(profile).queryByText("v1.5.1")).not.toBeInTheDocument();
+    expect(within(profile).queryByText("v1.6.0")).not.toBeInTheDocument();
 
     await user.click(within(profile).getByRole("button", { name: "Nav" }));
-    expect(await screen.findByText("v1.5.1")).toBeInTheDocument();
+    expect(await screen.findByText("v1.6.0")).toBeInTheDocument();
     expect(
       screen.queryByRole("textbox", { name: "Display name" }),
     ).not.toBeInTheDocument();
@@ -303,7 +326,7 @@ describe("signed-in chrome", () => {
       expect(router.state.location.search).not.toHaveProperty("member");
     });
     expect(
-      within(screen.getByRole("dialog")).getByText("v1.5.1"),
+      within(screen.getByRole("dialog")).getByText("v1.6.0"),
     ).toBeInTheDocument();
 
     await act(async () => {
@@ -339,6 +362,28 @@ describe("signed-in chrome", () => {
     );
   });
 
+  it("opens your member view from the avatar on a Ladder page when you are Joined", async () => {
+    const user = userEvent.setup();
+    const { router } = await openApp("/ladders/ladder-1?tab=leaderboard");
+
+    const bar = await screen.findByRole("navigation", { name: "Primary" });
+    const avatar = await within(bar).findByRole("button", { name: "Your record" });
+    expect(avatar).not.toHaveAttribute("aria-current");
+
+    await user.click(avatar);
+    await waitFor(() => {
+      expect(router.state.location.search).toMatchObject({
+        tab: "leaderboard",
+        nav: "member",
+        member: ownMemberId,
+      });
+    });
+    expect(avatar).toHaveAttribute("aria-current", "page");
+    expect(
+      screen.queryByRole("textbox", { name: "Display name" }),
+    ).not.toBeInTheDocument();
+  });
+
   it("marks Nav and Profile active while their drawer view is open", async () => {
     const user = userEvent.setup();
     await openApp("/");
@@ -353,7 +398,7 @@ describe("signed-in chrome", () => {
     expect(nav).toHaveAttribute("aria-current", "page");
     expect(profile).not.toHaveAttribute("aria-current");
 
-    await user.click(await screen.findByRole("button", { name: /3 Ladders/ }));
+    await user.click(await screen.findByRole("button", { name: /3 Leaderboards/ }));
     expect(
       within(bar).getByRole("button", { name: "Profile" }),
     ).toHaveAttribute("aria-current", "page");
@@ -367,7 +412,7 @@ describe("signed-in chrome", () => {
     const avatar = screen
       .getByRole("button", { name: "Profile" })
       .querySelector("[aria-hidden]");
-    expect(avatar).toHaveClass("text-xs", "!tracking-normal");
+    expect(avatar).toHaveClass("text-base", "!tracking-normal");
     expect(avatar).toHaveTextContent("SA");
   });
 
@@ -404,7 +449,7 @@ describe("signed-in chrome", () => {
     await waitFor(() => expect(nav).toHaveFocus());
 
     await user.click(nav);
-    await user.click(await screen.findByRole("button", { name: /3 Ladders/ }));
+    await user.click(await screen.findByRole("button", { name: /3 Leaderboards/ }));
     expect(router.state.location.search).toMatchObject({ nav: "profile" });
     await act(async () => {
       router.history.back();
@@ -456,7 +501,7 @@ describe("signed-in chrome", () => {
     );
   });
 
-  it("halves Home top padding and toggles the New Ladder form", async () => {
+  it("halves Home top padding and toggles the New Leaderboard form", async () => {
     const user = userEvent.setup();
     await openApp("/");
 
@@ -473,17 +518,17 @@ describe("signed-in chrome", () => {
       screen.queryByRole("textbox", { name: "Display name" }),
     ).not.toBeInTheDocument();
     expect(
-      screen.queryByRole("textbox", { name: "New Ladder" }),
+      screen.queryByRole("textbox", { name: "New Leaderboard" }),
     ).not.toBeInTheDocument();
 
-    await user.click(await screen.findByRole("button", { name: "New Ladder" }));
-    const input = screen.getByRole("textbox", { name: "New Ladder" });
+    await user.click(await screen.findByRole("button", { name: "New Leaderboard" }));
+    const input = screen.getByRole("textbox", { name: "New Leaderboard" });
     expect(input).toHaveFocus();
     expect(screen.getByRole("separator")).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: "Close new Ladder" }));
+    await user.click(screen.getByRole("button", { name: "Close new Leaderboard" }));
     expect(
-      screen.queryByRole("textbox", { name: "New Ladder" }),
+      screen.queryByRole("textbox", { name: "New Leaderboard" }),
     ).not.toBeInTheDocument();
     expect(screen.queryByRole("separator")).not.toBeInTheDocument();
   });
@@ -503,13 +548,13 @@ describe("text input background", () => {
     expect(base).toContain("@apply bg-white;");
   });
 
-  it("is version 1.5.1", () => {
+  it("is version 1.6.0", () => {
     const pkg = JSON.parse(
       readFileSync(
         join(dirname(fileURLToPath(import.meta.url)), "../../../package.json"),
         "utf8",
       ),
     ) as { version: string };
-    expect(pkg.version).toBe("1.5.1");
+    expect(pkg.version).toBe("1.6.0");
   });
 });

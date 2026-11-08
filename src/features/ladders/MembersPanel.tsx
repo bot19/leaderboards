@@ -11,6 +11,7 @@ import {
   type LadderMemberRead,
 } from '@/data/ladder'
 import { useAuth } from '@/features/auth/authContext'
+import { formatLocalDate } from '@/features/matches/labels'
 import {
   demoteToPlayerConfirm,
   leaveLadderConfirm,
@@ -65,7 +66,7 @@ export function MembersPanel({ ladderId }: Props) {
   const leave = useMutation({
     mutationFn: () => leaveLadder(ladderId),
     onSuccess: async () => {
-      toast.success('You left this Ladder')
+      toast.success('You left this Leaderboard')
       await refresh()
       await refreshProfile()
       await navigate({ to: '/' })
@@ -76,7 +77,7 @@ export function MembersPanel({ ladderId }: Props) {
   const remove = useMutation({
     mutationFn: (memberId: string) => removeLadderMember(memberId),
     onSuccess: async () => {
-      toast.success('Ladder member Removed')
+      toast.success('Member Removed')
       await refresh()
     },
     onError: (error: Error) => toast.error(error.message),
@@ -85,7 +86,7 @@ export function MembersPanel({ ladderId }: Props) {
   const reinstate = useMutation({
     mutationFn: (memberId: string) => reinstateLadderMember(memberId),
     onSuccess: async () => {
-      toast.success('Ladder member reinstated')
+      toast.success('Member reinstated')
       await refresh()
     },
     onError: (error: Error) => toast.error(error.message),
@@ -104,7 +105,7 @@ export function MembersPanel({ ladderId }: Props) {
   const removeLadder = useMutation({
     mutationFn: () => deleteLadder(ladderId),
     onSuccess: async () => {
-      toast.success('Ladder deleted')
+      toast.success('Leaderboard deleted')
       await queryClient.invalidateQueries({ queryKey: ['my-ladders'] })
       await refreshProfile()
       await navigate({ to: '/' })
@@ -113,11 +114,11 @@ export function MembersPanel({ ladderId }: Props) {
   })
 
   return (
-    <section aria-label="Ladder members" className="space-y-4">
-      <h2 className="sr-only">Ladder members</h2>
-      {members.isLoading ? <p className="text-neutral-600">Loading Ladder members…</p> : null}
+    <section aria-label="Members" className="space-y-4">
+      <h2 className="sr-only">Members</h2>
+      {members.isLoading ? <p className="text-neutral-600">Loading members…</p> : null}
       {members.isError ? (
-        <p className="text-sm text-red-700">Could not load Ladder members.</p>
+        <p className="text-sm text-red-700">Could not load members.</p>
       ) : null}
       {sorted.length > 0 ? (
         <ul className="divide-y divide-neutral-200 overflow-hidden rounded-xl bg-white shadow-sm">
@@ -142,7 +143,10 @@ export function MembersPanel({ ladderId }: Props) {
                   </button>
                 </p>
                 <p className="text-sm text-neutral-600">
-                  {member.role === 'admin' ? 'Admin' : 'Player'} · {statusLabel[member.status]}
+                  {member.role === 'admin' ? 'Admin' : 'Player'} ·{' '}
+                  {member.status === 'active'
+                    ? `Joined ${formatLocalDate(member.joinedAt)}`
+                    : statusLabel[member.status]}
                 </p>
               </div>
               {canManage ? <MemberAdminActions member={member} remove={remove} reinstate={reinstate} setRole={setRole} /> : null}
@@ -162,7 +166,7 @@ export function MembersPanel({ ladderId }: Props) {
               }
             }}
           >
-            Leave Ladder
+            Leave Leaderboard
           </button>
         ) : null}
         {profile?.isSuperAdmin ? (
@@ -171,12 +175,12 @@ export function MembersPanel({ ladderId }: Props) {
             className="rounded-md bg-red-800 px-3 py-2 text-sm font-medium text-white"
             disabled={removeLadder.isPending}
             onClick={() => {
-              if (window.confirm('Delete this Ladder and all of its data?')) {
+              if (window.confirm('Delete this Leaderboard and all of its data?')) {
                 removeLadder.mutate()
               }
             }}
           >
-            Delete Ladder
+            Delete Leaderboard
           </button>
         ) : null}
       </div>

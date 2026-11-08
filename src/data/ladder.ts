@@ -23,9 +23,12 @@ export type LeaderboardEntry = {
   ladderMemberId: string
   displayName: string
   rating: number
-  rank: number
+  rank: number | null
   provisional: boolean
   inactive: boolean
+  ranked: boolean
+  matches: number
+  wins: number
   rankChange: number | null
 }
 
@@ -62,6 +65,7 @@ export type LadderMemberRead = {
   rating: number
   ratedMatchCount: number
   lastMatchAt: string | null
+  joinedAt: string
 }
 
 export type RosterMember = {
@@ -117,7 +121,7 @@ export async function fetchShareToken(
     .maybeSingle()
 
   if (error) throw new Error(error.message)
-  if (!data?.share_token) throw new Error('This Ladder has no Share link')
+  if (!data?.share_token) throw new Error('This Leaderboard has no Share link')
   return data.share_token
 }
 
@@ -130,7 +134,7 @@ export async function previewLadder(
   })
   if (error) throw new Error(error.message)
   if (!data?.name || !data.game_name || data.member_count == null) {
-    throw new Error('No Ladder matches this Share link')
+    throw new Error('No Leaderboard matches this Share link')
   }
   return {
     name: data.name,
@@ -165,7 +169,7 @@ export async function joinLadder(
     p_make_default: makeDefault,
   })
   if (error) throw new Error(error.message)
-  if (data !== 'joined') throw new Error('Could not join this Ladder')
+  if (data !== 'joined') throw new Error('Could not join this Leaderboard')
   return { outcome: 'joined' }
 }
 
@@ -251,7 +255,7 @@ export async function createLadder(
     p_make_default: makeDefault,
   })
   if (error) throw new Error(error.message)
-  if (!data) throw new Error('Could not create a Ladder')
+  if (!data) throw new Error('Could not create a Leaderboard')
   return { id: data }
 }
 
@@ -269,7 +273,7 @@ export async function fetchLadder(
   if (!data) return null
 
   const gameName = embeddedName(data.games)
-  if (!gameName) throw new Error('Ladder is missing its Game')
+  if (!gameName) throw new Error('Leaderboard is missing its Game')
   return {
     id: data.id,
     name: data.name,
@@ -289,7 +293,7 @@ export async function listLadders(
 
   return (data ?? []).map((row) => {
     const gameName = embeddedName(row.games)
-    if (!gameName) throw new Error('Ladder is missing its Game')
+    if (!gameName) throw new Error('Leaderboard is missing its Game')
     return {
       id: row.id,
       name: row.name,
@@ -322,9 +326,12 @@ export async function listLeaderboard(
 ): Promise<LeaderboardEntry[]> {
   const { data, error } = await client
     .from('leaderboard')
-    .select('ladder_member_id, display_name, rating, provisional, inactive, rank, rank_change')
+    .select(
+      'ladder_member_id, display_name, rating, provisional, inactive, ranked, matches, wins, rank, rank_change',
+    )
     .eq('ladder_id', ladderId)
-    .order('rank', { ascending: true })
+    .order('rank', { ascending: true, nullsFirst: false })
+    .order('display_name', { ascending: true })
 
   if (error) throw new Error(error.message)
 
@@ -332,9 +339,12 @@ export async function listLeaderboard(
     ladderMemberId: row.ladder_member_id,
     displayName: row.display_name,
     rating: asNumber(row.rating),
-    rank: asNumber(row.rank),
+    rank: row.rank == null ? null : asNumber(row.rank),
     provisional: row.provisional,
     inactive: row.inactive,
+    ranked: row.ranked,
+    matches: row.matches,
+    wins: row.wins,
     rankChange: row.rank_change == null ? null : asNumber(row.rank_change),
   }))
 }
@@ -362,12 +372,12 @@ export async function fetchLadderMember(
   if (!data) return null
 
   const displayName = embeddedDisplayName(data.profiles)
-  if (!displayName) throw new Error('Ladder member is missing a display name')
+  if (!displayName) throw new Error('Member is missing a display name')
 
   const ladder = Array.isArray(data.ladders) ? data.ladders[0] : data.ladders
-  if (!ladder) throw new Error('Ladder member is missing its Ladder')
+  if (!ladder) throw new Error('Member is missing its Leaderboard')
   const game = Array.isArray(ladder.games) ? ladder.games[0] : ladder.games
-  if (!game) throw new Error('Ladder is missing its Game')
+  if (!game) throw new Error('Leaderboard is missing its Game')
 
   return {
     id: data.id,
@@ -423,7 +433,7 @@ export async function listLadderMembers(
   const { data, error } = await client
     .from('ladder_members')
     .select(
-      'id, user_id, role, status, rating, rated_match_count, last_match_at, profiles(display_name)',
+      'id, user_id, role, status, rating, rated_match_count, last_match_at, joined_at, profiles(display_name)',
     )
     .eq('ladder_id', ladderId)
 
@@ -431,7 +441,7 @@ export async function listLadderMembers(
 
   return (data ?? []).map((row) => {
     const displayName = embeddedDisplayName(row.profiles)
-    if (!displayName) throw new Error('Ladder member is missing a display name')
+    if (!displayName) throw new Error('Member is missing a display name')
     return {
       id: row.id,
       userId: row.user_id,
@@ -441,6 +451,7 @@ export async function listLadderMembers(
       rating: asNumber(row.rating),
       ratedMatchCount: row.rated_match_count,
       lastMatchAt: row.last_match_at,
+      joinedAt: row.joined_at,
     }
   })
 }
@@ -459,7 +470,7 @@ export async function listRoster(
   return (data ?? [])
     .map((row) => {
       const displayName = embeddedDisplayName(row.profiles)
-      if (!displayName) throw new Error('Ladder member is missing a display name')
+      if (!displayName) throw new Error('Member is missing a display name')
       return {
         id: row.id,
         userId: row.user_id,

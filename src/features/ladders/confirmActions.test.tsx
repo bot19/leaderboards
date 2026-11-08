@@ -9,6 +9,7 @@ import userEvent from '@testing-library/user-event'
 import { afterEach, beforeAll, describe, expect, it, vi } from 'vitest'
 import type { Session } from '@/data/auth'
 import type { LadderMemberRead, LadderSummary } from '@/data/ladder'
+import { member } from '@/test/ladderMocks'
 import type { MatchRead } from '@/data/match'
 import { AuthContext, type AuthState } from '@/features/auth/authContext'
 import {
@@ -29,32 +30,10 @@ const mocks = vi.hoisted(() => ({
   voidMatch: vi.fn((matchId: string) => Promise.resolve(matchId)),
   rejectMatch: vi.fn((matchId: string) => Promise.resolve(matchId)),
   confirmMatch: vi.fn((matchId: string) => Promise.resolve(matchId)),
-  members: [
-    member('m1', 'Sam', 'active', 'user-1', 'admin'),
-    member('m2', 'Alex', 'active', 'user-2', 'player'),
-  ] as LadderMemberRead[],
-  matches: [match('match-pending', 'pending'), match('match-confirmed', 'confirmed')] as MatchRead[],
+  members: [] as LadderMemberRead[],
+  matches: [] as MatchRead[],
   waiting: [] as MatchRead[],
 }))
-
-function member(
-  id: string,
-  displayName: string,
-  status: LadderMemberRead['status'],
-  userId: string | null,
-  role: LadderMemberRead['role'],
-): LadderMemberRead {
-  return {
-    id,
-    userId,
-    displayName,
-    role,
-    status,
-    rating: 1000,
-    ratedMatchCount: 1,
-    lastMatchAt: null,
-  }
-}
 
 function match(id: string, status: MatchRead['status']): MatchRead {
   return {
@@ -88,6 +67,12 @@ function match(id: string, status: MatchRead['status']): MatchRead {
     ],
   }
 }
+
+mocks.members = [
+  member('m1', 'Sam', 'active', 'user-1', 'admin'),
+  member('m2', 'Alex', 'active', 'user-2', 'player'),
+]
+mocks.matches = [match('match-pending', 'pending'), match('match-confirmed', 'confirmed')]
 
 vi.mock('sonner', () => ({
   toast: { success: vi.fn(), error: vi.fn() },
@@ -205,7 +190,7 @@ describe('confirm impactful actions', () => {
     const user = userEvent.setup()
     const { toast } = await import('sonner')
     await openApp('/ladders/ladder-1?tab=members')
-    const leave = await screen.findByRole('button', { name: 'Leave Ladder' })
+    const leave = await screen.findByRole('button', { name: 'Leave Leaderboard' })
 
     confirm.mockReturnValue(false)
     await user.click(leave)

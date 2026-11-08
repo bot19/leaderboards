@@ -19,7 +19,7 @@ export function useSetDefaultLadder() {
       ])
     } catch (caught) {
       const message =
-        caught instanceof Error ? caught.message : 'Could not choose a Default Ladder.'
+        caught instanceof Error ? caught.message : 'Could not choose a Default Leaderboard.'
       toast.error(message, { id: 'default-ladder', duration: Infinity })
     } finally {
       setPendingId(null)

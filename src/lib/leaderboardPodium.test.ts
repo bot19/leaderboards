@@ -20,7 +20,8 @@ describe('leaderboardPodium', () => {
     })
   })
 
-  it('returns nothing from rank 4 on', () => {
+  it('returns nothing from rank 4 on and for a null rank', () => {
     expect(leaderboardPodium(4)).toBeNull()
+    expect(leaderboardPodium(null)).toBeNull()
   })
 })

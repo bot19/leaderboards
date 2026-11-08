@@ -2,15 +2,15 @@
 
 A **build doc** describes one versioned update to the app: a feature, a fix, a UI change. Each one lives at `.scratch/updates/<version>-<slug>.md` (for example `.scratch/updates/0.3.0-win-streaks.md`) and carries its own **Version**. Work that doesn't change the shipped app (seed data, tooling) has **Version:** none and lives at `.scratch/updates/<slug>.md`.
 
-Build docs replace the MVP's ticket-and-worktree flow in `README.md`: work happens directly on `dev` in this checkout.
+Work happens directly on `dev` in this checkout, with no worktree or branch.
 
 ## Implementing a build doc
 
-1. **Read.** Read the build doc, `GLOSSARY.md`, and any ADR in `docs/adr/` that touches the area. Use glossary terms in code, copy and commit messages.
+1. **Read.** Read the build doc, `docs/app.md`, `GLOSSARY.md`, and any ADR in `docs/adr/` that touches the area. Use glossary terms in code, copy and commit messages.
 2. **Branch.** Confirm `git branch --show-current` prints `dev`. If it doesn't, stop and ask the human. Changes already in `git status` belong to the human: leave them unstaged and stage only the files you touch.
 3. **Version.** Set `"version"` in `package.json` to the build doc's **Version**. Change nothing else in that file unless the build doc says so. Skip this step when the Version is none.
 4. **Schema** (only when the build doc needs a database change). Add a migration under `supabase/migrations/`, then run `pnpm exec supabase db reset`, and again after every migration edit. The stack rules in `AGENTS.md` apply. Production is the human's: record the migration in your report so they can apply it.
-5. **Build** test-first, following **UI rules** below for anything a user sees. Done when every acceptance box in the build doc is met.
+5. **Build** test-first, following **UI rules** below for anything a user sees. Done when every acceptance box in the build doc is met, and `docs/app.md` describes the app after this change. Edit the sections the change touches in place, in present tense, with no "changed in" notes. Skip `docs/app.md` only when nothing a User sees and no rule, schema, RPC function or constant changed.
 6. **Gate.** `pnpm typecheck`, `pnpm lint`, `pnpm test` and `pnpm build` all green. If you can drive a browser, check each changed screen at 300px, 375px, 512px and 1280px wide. If you can't, say so in your review.
 7. **Review.** With the gate green and nothing committed, ask the human whether they want any changes before you commit. In the same message, summarise what you built, any migration production needs, and every judgement call the build doc didn't settle (including UI with no food-friends equivalent). Apply each change they ask for, rerun the gate, and ask again. Move on only when the human says there are no more changes.
 8. **Commit** on `dev`, following **Commit messages** below. In the last commit, tick the build doc's boxes and set its `**Status:** resolved`. Stop any dev server or watcher you started. Leave pushing to the human.
@@ -60,7 +60,7 @@ Every screen sits in one centred column: `mx-auto max-w-lg px-4` on the route's 
 
 ## Writing a build doc
 
-For the agent that turns the human's feature description into a build doc. Settle open questions with the human before writing; the implementing agent should find nothing left to decide. Once it's written, commit the build doc alone on `dev` as `<version> docs: add build doc for <short title>`.
+For the agent that turns the human's feature description into a build doc. Read `docs/app.md` first, so the build doc starts from how the app works now. Settle open questions with the human before writing; the implementing agent should find nothing left to decide. Once it's written, commit the build doc alone on `dev` as `<version> docs: add build doc for <short title>`.
 
 ```md
 # <version>: <short title>

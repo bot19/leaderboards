@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { matchResultLabel } from './labels'
+import { MOCK_JOINED_AT } from '@/test/ladderMocks'
+import { formatLocalDate, matchResultLabel } from './labels'
 
 function match(
   result: 'side_a_won' | 'side_b_won' | 'draw',
@@ -39,5 +40,20 @@ describe('matchResultLabel', () => {
         ]),
       ),
     ).toBe('Draw')
+  })
+})
+
+describe('formatLocalDate', () => {
+  it('formats day, short month and year in the user locale', () => {
+    const expected = new Date(MOCK_JOINED_AT).toLocaleDateString(undefined, {
+      day: 'numeric',
+      month: 'short',
+      year: 'numeric',
+    })
+    expect(formatLocalDate(MOCK_JOINED_AT)).toBe(expected)
+  })
+
+  it('returns an empty string for an invalid date', () => {
+    expect(formatLocalDate('not-a-date')).toBe('')
   })
 })

@@ -1,16 +1,15 @@
 # Leaderboards
 
-Elo Ladders for office games. React + Vite on the front, Supabase (Postgres, auth, PostgREST) behind it. The spec and tickets live in `.scratch/elo-ladder-mvp/`.
+Elo Ladders for office games. React + Vite on the front, Supabase (Postgres, auth, PostgREST) behind it. `docs/app.md` describes the app as it is now.
 
-Tickets are built one at a time by an agent, each in its own git worktree under `.worktrees/` (gitignored, so one `Write(.worktrees/**)` rule in `.cursor/cli.json` covers every ticket). This file covers what the human does and what the agent does.
+Every change is a build doc in `.scratch/updates/`, which an agent implements directly on `dev` by following `docs/agents/build-docs.md`. `.scratch/elo-ladder-mvp/` holds the finished release-1 spec and tickets, kept as history, plus the production deploy guide (`deploy.md`).
 
 ## The local Supabase stack
 
 `pnpm test` runs integration tests against a real local Supabase. `supabase start` runs it as about 12 Docker containers. There is **one** stack, and the human owns it:
 
-- Its name and ports come from `supabase/config.toml`, which stays the same in every worktree.
-- The agent applies its worktree's migrations with `pnpm exec supabase db reset`. That wipes local data, which is fine because tests create their own Users.
-- Only one ticket can use the stack at a time. That fits the tickets, which block one another in order.
+- Its name and ports come from `supabase/config.toml`.
+- The agent applies migrations with `pnpm exec supabase db reset`. That wipes local data, which is fine because tests create their own Users and the seed rebuilds the test Users below.
 
 ## Local test Users
 
@@ -27,7 +26,7 @@ Friday pool also has Jordan, Taylor, Morgan, Riley and Casey (`jordan@example.co
 ## Human: once
 
 ```sh
-pnpm install            # in this checkout, so you can run the Supabase CLI here
+pnpm install            # so you can run the Supabase CLI here
 pnpm env:local          # with the stack running: writes .env from `supabase status`
 ```
 
@@ -39,24 +38,31 @@ In the Cursor chat panel, add these to Settings → Agents → Auto-Run → Comm
 2. From this checkout, run `pnpm exec supabase start`.
 3. When you're done for the day, run `pnpm exec supabase stop`. Data volumes are kept.
 
-## Human: each ticket
+## Human: each build doc
 
-1. Tell the agent: *"Work the next ticket in `.scratch/elo-ladder-mvp/` following README.md."* You can name a specific ticket instead.
+1. Tell the agent: *"Implement `.scratch/updates/<file>.md`."* Or describe a feature and ask it to write the build doc first.
 2. Answer the prompts that are left. The allowlist above covers routine work, so anything else still asks: `docker`, `curl`, `python3`/`node` scripts, `rm` and `kill`.
-3. When the agent reports the ticket resolved, look over the merge on `dev`.
+3. When the agent asks for changes before committing, review the work and answer.
+4. After it commits on `dev`, push. To ship, follow **Human: releasing** below.
 
-## Agent: working a ticket
+## Human: releasing
 
-1. **Pick.** Use the ticket you were given. Otherwise take the lowest-numbered ticket in `.scratch/elo-ladder-mvp/issues/` that isn't `claimed` or `resolved` and whose **Blocked by** tickets are all `resolved`.
-2. **Claim.** On `dev` in this checkout, set `**Status:** claimed` and commit (`Claim the <ticket> ticket.`).
-3. **Worktree.** Run `git worktree add .worktrees/<NN-slug> -b ticket/<NN-slug> dev`. Then, inside it, run `pnpm install` and `pnpm env:local`.
-4. **Schema.** From the worktree, run `pnpm exec supabase db reset`. Run it again whenever you add or change a migration.
-5. **Build** test-first. The ticket is done when every acceptance box is ticked and `pnpm typecheck`, `pnpm lint` and `pnpm test` are green in the worktree.
-6. **Resolve.** Stop every dev server or watcher you started in the worktree. Then, in this checkout, merge `ticket/<NN-slug>` into `dev`. Then tick the boxes, set `**Status:** resolved` and commit (`Resolve the <ticket> ticket.`). Last, run `git worktree remove .worktrees/<NN-slug>`.
+Run these from this checkout, which is linked to the production Supabase project. Agents never run them (`AGENTS.md`).
 
-If `pnpm test` says *Local Supabase is not ready*, the stack is down. Stop and ask the human to start it.
+1. **Migrations first**, if the release has any. The new client may need them, and the old client keeps working with them in place:
+
+   ```sh
+   pnpm exec supabase migration list --linked   # local vs production: what's not applied yet
+   pnpm exec supabase db push --dry-run         # lists what it would apply, changes nothing
+   pnpm exec supabase db push                   # applies them
+   ```
+
+2. **Then the client.** Open a PR `dev` → `main` and merge it. Netlify deploys `main`.
+
+The first-time production setup is in `.scratch/elo-ladder-mvp/deploy.md`.
 
 ## Troubleshooting
 
-- **Stacks left over from older tickets.** List them with `docker ps --format '{{.Names}}'`. Stop one with `pnpm exec supabase stop --project-id <id>`.
+- **`Local Supabase is not ready`** from `pnpm test`. The stack is down: start it.
+- **Stacks left over from the release-1 worktrees.** List them with `docker ps --format '{{.Names}}'`. Stop one with `pnpm exec supabase stop --project-id <id>`.
 - **`Command "supabase" not found`.** `pnpm install` hasn't been run in that checkout.

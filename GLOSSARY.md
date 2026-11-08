@@ -11,7 +11,7 @@ A person with an account in the app.
 _Avoid_: account, profile (the profile is just the User's display details)
 
 **Ladder member**:
-A User's or Guest's place on one Ladder, holding their Role, whether they are Joined, Left, or Removed, and their Rating for that Ladder. A User has one Ladder member per Ladder they join.
+A User's or Guest's place on one Ladder, holding their Role, whether they are Joined, Left, or Removed, and their Rating for that Ladder. A User has one Ladder member per Ladder they join. Shown on screen as **member**.
 _Avoid_: member (on its own), entrant, player (see Flagged ambiguities)
 
 **Guest**:
@@ -56,13 +56,13 @@ _Avoid_: active, current, enrolled, present
 A Ladder member who chose to go (Left) or was taken off by an Admin (Removed). Their Matches stay in history. A Left member can rejoin from the Share link; a Removed member returns only when an Admin reinstates them.
 
 **Default Ladder**:
-The Ladder a User opens on when they sign in. It's always one they're Joined to. Their only Ladder becomes it automatically, and they can move it to another Ladder but not clear it.
+The Ladder a User opens on when they sign in. It's always one they're Joined to. Their only Ladder becomes it automatically, and they can move it to another Ladder but not clear it. Shown on screen as **Default Leaderboard**.
 _Avoid_: home Ladder, main Ladder, favourite
 
 ### Competition
 
 **Ladder**:
-A competition for one Game among a set of Ladder members, with one Leaderboard. The Ladder is the unit people join and the boundary of what they can see.
+A competition for one Game among a set of Ladder members, with one Leaderboard. The Ladder is the unit people join and the boundary of what they can see. Shown on screen as **Leaderboard**.
 _Avoid_: group, league, tournament
 
 **Game**:
@@ -74,8 +74,12 @@ A Ladder member's Elo number on one Ladder. Everyone starts at the same Rating, 
 _Avoid_: score, points, rank (rank is a position on the Leaderboard)
 
 **Leaderboard**:
-A Ladder's Joined Ladder members, ordered by Rating. Inactive members stay on it, marked as Inactive.
+A Ladder's Joined Ladder members, ranked by Rating. Unranked members are listed after the ranked ones. Inactive members stay at their rank, marked Inactive. The Ladder page's tab for it is shown on screen as **Rankings**.
 _Avoid_: ladder (the Ladder is the competition; the Leaderboard is its ranking), table, standings
+
+**Unranked**:
+A Joined Ladder member with no Confirmed Match on the Ladder. Listed at the bottom of the Leaderboard with no rank, medal or Rank movement. Their first Confirmed Match ranks them.
+_Avoid_: unrated, unplaced
 
 **Provisional**:
 A Ladder member who has played fewer than a set number of rated Matches on that Ladder. Their Rating moves faster while Provisional. Shown on screen as **New**.
@@ -158,3 +162,4 @@ _Avoid_: recalc, rebuild
 - **"Player"** is used in speech for anyone who plays. In this project it means only the lowest **Role**. Someone in a Match is a **Participant**; someone on a Ladder is a **Ladder member**.
 - **"Game"** is used in speech for a single contest ("we played five games"). Here a **Game** is the kind of contest (pool); one contest is a **Match**.
 - **"Group"** is reserved for a later idea: a set of Users tied together outside any Ladder. It never means a Ladder.
+- On screen, **Leaderboard** names a Ladder and **Rankings** names its Leaderboard. In code and docs, use Ladder and Leaderboard.

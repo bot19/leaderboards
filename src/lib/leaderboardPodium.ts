@@ -6,7 +6,7 @@ const podium = {
 
 export type LeaderboardPodium = (typeof podium)[keyof typeof podium]
 
-export function leaderboardPodium(rank: number): LeaderboardPodium | null {
+export function leaderboardPodium(rank: number | null): LeaderboardPodium | null {
   if (rank === 1 || rank === 2 || rank === 3) return podium[rank]
   return null
 }

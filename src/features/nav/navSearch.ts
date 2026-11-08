@@ -11,7 +11,7 @@ export const navSearchSchema = z.object({
 })
 
 export function ladderCountLabel(count: number | undefined): string {
-  if (count == null) return 'Ladders'
-  if (count === 1) return '1 Ladder'
-  return `${count} Ladders`
+  if (count == null) return 'Leaderboards'
+  if (count === 1) return '1 Leaderboard'
+  return `${count} Leaderboards`
 }

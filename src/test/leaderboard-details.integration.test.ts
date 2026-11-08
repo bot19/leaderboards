@@ -107,7 +107,7 @@ describe('Leaderboard details', () => {
     expect(rows[0]?.inactive_threshold_days).toBe(30)
   })
 
-  it('ranks Joined Ladder members by Rating and marks Provisional below the threshold', async () => {
+  it('ranks Joined Ladder members by Rating and lists Unranked members last', async () => {
     const { ladder, who, idOf } = await ladderWith('Sam', 'Priya', 'Alex')
     await setMember(ladder.id, who('Priya').user.id, {
       rating: 1200,
@@ -130,6 +130,9 @@ describe('Leaderboard details', () => {
         rank: 1,
         provisional: false,
         inactive: false,
+        ranked: true,
+        matches: 5,
+        wins: 0,
         rankChange: null,
       },
       {
@@ -139,18 +142,99 @@ describe('Leaderboard details', () => {
         rank: 2,
         provisional: true,
         inactive: false,
+        ranked: true,
+        matches: 4,
+        wins: 0,
         rankChange: null,
       },
       {
         ladderMemberId: idOf('Alex'),
         displayName: 'Alex',
         rating: 900,
-        rank: 3,
+        rank: null,
         provisional: true,
         inactive: false,
+        ranked: false,
+        matches: 0,
+        wins: 0,
         rankChange: null,
       },
     ])
+  })
+
+  it('does not let an Unranked newcomer push a lower-rated ranked member down', async () => {
+    const { ladder, who, idOf } = await ladderWith('Sam', 'Priya', 'Alex')
+    await setMember(ladder.id, who('Sam').user.id, { rating: 990, ratedMatchCount: 3 })
+    await setMember(ladder.id, who('Priya').user.id, { rating: 1000, ratedMatchCount: 0 })
+    await setMember(ladder.id, who('Alex').user.id, { rating: 1010, ratedMatchCount: 3 })
+
+    const board = await listLeaderboard(ladder.id, who('Sam').client)
+    expect(entryOf(board, idOf('Alex'))).toMatchObject({ rank: 1, ranked: true })
+    expect(entryOf(board, idOf('Sam'))).toMatchObject({ rank: 2, ranked: true })
+    expect(entryOf(board, idOf('Priya'))).toMatchObject({ rank: null, ranked: false })
+    expect(board.map((entry) => entry.displayName)).toEqual(['Alex', 'Sam', 'Priya'])
+  })
+
+  it('exposes wins and matches, and does not count a Draw as a win', async () => {
+    const { ladder, who, idOf } = await ladderWith('Sam', 'Priya')
+
+    const win = await recordMatch(
+      {
+        ladderId: ladder.id,
+        sideA: [idOf('Sam')],
+        sideB: [idOf('Priya')],
+        result: 'side_a_won',
+      },
+      who('Sam').client,
+    )
+    await confirmMatch(win.id, who('Priya').client)
+
+    // Pool does not allow Draws — insert a confirmed Draw via the service role.
+    const { data: drawMatch, error: drawError } = await serviceRole()
+      .from('matches')
+      .insert({
+        ladder_id: ladder.id,
+        status: 'confirmed',
+        result: 'draw',
+        recorded_by: who('Sam').user.id,
+        confirmed_at: new Date().toISOString(),
+      })
+      .select('id')
+      .single()
+    if (drawError || !drawMatch) throw new Error(drawError?.message ?? 'Missing Draw Match')
+
+    const { error: partsError } = await serviceRole().from('participants').insert([
+      {
+        match_id: drawMatch.id,
+        ladder_member_id: idOf('Sam'),
+        side: 'a',
+        rating_before: 1000,
+        rating_change: 0,
+      },
+      {
+        match_id: drawMatch.id,
+        ladder_member_id: idOf('Priya'),
+        side: 'b',
+        rating_before: 1000,
+        rating_change: 0,
+      },
+    ])
+    if (partsError) throw new Error(partsError.message)
+
+    await setMember(ladder.id, who('Sam').user.id, { ratedMatchCount: 2 })
+    await setMember(ladder.id, who('Priya').user.id, { ratedMatchCount: 2 })
+
+    const board = await listLeaderboard(ladder.id, who('Sam').client)
+    expect(entryOf(board, idOf('Sam'))).toMatchObject({
+      ranked: true,
+      matches: 2,
+      wins: 1,
+    })
+    expect(entryOf(board, idOf('Priya'))).toMatchObject({
+      ranked: true,
+      matches: 2,
+      wins: 0,
+    })
   })
 
   it('clears the Provisional flag at 5 rated Matches', async () => {
@@ -169,8 +253,10 @@ describe('Leaderboard details', () => {
     const { ladder, who, idOf } = await ladderWith('Sam', 'Priya')
     await setMember(ladder.id, who('Priya').user.id, {
       rating: 1180,
+      ratedMatchCount: 5,
       lastMatchAt: daysAgo(31),
     })
+    await setMember(ladder.id, who('Sam').user.id, { ratedMatchCount: 1 })
 
     const board = await listLeaderboard(ladder.id, who('Sam').client)
     expect(board).toEqual([
@@ -179,8 +265,11 @@ describe('Leaderboard details', () => {
         displayName: 'Priya',
         rating: 1180,
         rank: 1,
-        provisional: true,
+        provisional: false,
         inactive: true,
+        ranked: true,
+        matches: 5,
+        wins: 0,
         rankChange: null,
       },
       {
@@ -190,6 +279,9 @@ describe('Leaderboard details', () => {
         rank: 2,
         provisional: true,
         inactive: false,
+        ranked: true,
+        matches: 1,
+        wins: 0,
         rankChange: null,
       },
     ])
@@ -198,9 +290,11 @@ describe('Leaderboard details', () => {
   it('treats joining as the activity time when a Ladder member has never played', async () => {
     const { ladder, who, idOf } = await ladderWith('Sam', 'Priya')
     await setMember(ladder.id, who('Priya').user.id, {
+      ratedMatchCount: 1,
       lastMatchAt: null,
       joinedAt: daysAgo(31),
     })
+    await setMember(ladder.id, who('Sam').user.id, { ratedMatchCount: 1 })
 
     const board = await listLeaderboard(ladder.id, who('Sam').client)
     expect(entryOf(board, idOf('Priya'))).toMatchObject({
@@ -214,6 +308,7 @@ describe('Leaderboard details', () => {
     const { ladder, who, idOf } = await ladderWith('Sam', 'Priya')
     await setMember(ladder.id, who('Priya').user.id, {
       rating: 1180,
+      ratedMatchCount: 5,
       lastMatchAt: daysAgo(40),
     })
 
@@ -264,11 +359,87 @@ describe('Leaderboard details', () => {
 
   it('leaves rank_change null when the Ladder has no Confirmed Matches', async () => {
     const { ladder, who } = await ladderWith('Sam', 'Priya')
+    await setMember(ladder.id, who('Sam').user.id, { ratedMatchCount: 1 })
+    await setMember(ladder.id, who('Priya').user.id, { ratedMatchCount: 1 })
     const board = await listLeaderboard(ladder.id, who('Sam').client)
     expect(board.every((entry) => entry.rankChange === null)).toBe(true)
   })
 
   it('leaves rank_change null for a member who joined after the latest Confirmed Match', async () => {
+    const { ladder, who, idOf } = await ladderWith('Sam', 'Priya', 'Alex')
+    await setMember(ladder.id, who('Sam').user.id, { rating: 1100, ratedMatchCount: 5 })
+    await setMember(ladder.id, who('Priya').user.id, { rating: 1000, ratedMatchCount: 5 })
+    await setMember(ladder.id, who('Alex').user.id, { rating: 1010, ratedMatchCount: 5 })
+
+    const match = await recordMatch(
+      {
+        ladderId: ladder.id,
+        sideA: [idOf('Priya')],
+        sideB: [idOf('Sam')],
+        result: 'side_a_won',
+      },
+      who('Priya').client,
+    )
+    await confirmMatch(match.id, who('Sam').client)
+
+    const late = await person('Jamie')
+    await addLadderPlayer(ladder.id, late.user.id)
+    await setMember(ladder.id, late.user.id, {
+      ratedMatchCount: 1,
+      joinedAt: new Date(Date.now() + 60_000).toISOString(),
+    })
+
+    const board = await listLeaderboard(ladder.id, who('Sam').client)
+    expect(board.find((entry) => entry.displayName === 'Jamie')?.rankChange).toBeNull()
+    expect(entryOf(board, idOf('Priya')).rankChange).not.toBeNull()
+  })
+
+  it('leaves rank_change null for a member ranked for the first time by the latest Match', async () => {
+    const { ladder, who, idOf } = await ladderWith('Sam', 'Priya', 'Alex')
+    await setMember(ladder.id, who('Alex').user.id, { rating: 1000, ratedMatchCount: 3 })
+
+    const match = await recordMatch(
+      {
+        ladderId: ladder.id,
+        sideA: [idOf('Sam')],
+        sideB: [idOf('Priya')],
+        result: 'side_a_won',
+      },
+      who('Sam').client,
+    )
+    await confirmMatch(match.id, who('Priya').client)
+
+    const board = await listLeaderboard(ladder.id, who('Sam').client)
+    expect(entryOf(board, idOf('Sam')).rankChange).toBeNull()
+    expect(entryOf(board, idOf('Priya')).rankChange).toBeNull()
+    expect(entryOf(board, idOf('Alex')).rankChange).not.toBeNull()
+  })
+
+  it('ignores Unranked members when computing rank_change for everyone else', async () => {
+    const { ladder, who, idOf } = await ladderWith('Sam', 'Priya', 'Alex')
+    // Close Ratings so Priya overtakes Sam; Alex's 1050 would sit between them if ranked.
+    await setMember(ladder.id, who('Sam').user.id, { rating: 1010, ratedMatchCount: 5 })
+    await setMember(ladder.id, who('Priya').user.id, { rating: 1000, ratedMatchCount: 5 })
+    await setMember(ladder.id, who('Alex').user.id, { rating: 1050, ratedMatchCount: 0 })
+
+    const match = await recordMatch(
+      {
+        ladderId: ladder.id,
+        sideA: [idOf('Priya')],
+        sideB: [idOf('Sam')],
+        result: 'side_a_won',
+      },
+      who('Priya').client,
+    )
+    await confirmMatch(match.id, who('Sam').client)
+
+    const board = await listLeaderboard(ladder.id, who('Sam').client)
+    expect(entryOf(board, idOf('Alex'))).toMatchObject({ ranked: false, rankChange: null })
+    expect(entryOf(board, idOf('Priya')).rankChange).toBe(1)
+    expect(entryOf(board, idOf('Sam')).rankChange).toBe(-1)
+  })
+
+  it('makes a member Unranked again when their only Match is Voided', async () => {
     const { ladder, who, idOf } = await ladderWith('Sam', 'Priya')
     const match = await recordMatch(
       {
@@ -281,16 +452,24 @@ describe('Leaderboard details', () => {
     )
     await confirmMatch(match.id, who('Priya').client)
 
-    const late = await person('Alex')
-    await addLadderPlayer(ladder.id, late.user.id)
-    await setMember(ladder.id, late.user.id, {
-      joinedAt: new Date(Date.now() + 60_000).toISOString(),
-    })
+    expect(entryOf(await listLeaderboard(ladder.id, who('Sam').client), idOf('Sam')).ranked).toBe(
+      true,
+    )
+
+    await voidMatch(match.id, who('Sam').client)
 
     const board = await listLeaderboard(ladder.id, who('Sam').client)
-    const alex = board.find((entry) => entry.displayName === 'Alex')
-    expect(alex?.rankChange).toBeNull()
-    expect(entryOf(board, idOf('Sam')).rankChange).not.toBeNull()
+    expect(entryOf(board, idOf('Sam'))).toMatchObject({
+      ranked: false,
+      rank: null,
+      matches: 0,
+      wins: 0,
+    })
+    expect(entryOf(board, idOf('Priya'))).toMatchObject({
+      ranked: false,
+      rank: null,
+      matches: 0,
+    })
   })
 
   it('updates rank_change after voiding the latest Confirmed Match', async () => {
@@ -307,10 +486,6 @@ describe('Leaderboard details', () => {
     )
     await confirmMatch(first.id, who('Priya').client)
 
-    const afterFirst = await listLeaderboard(ladder.id, who('Sam').client)
-    // From equal starts, name order before the Match was Alex, Priya, Sam.
-    expect(entryOf(afterFirst, idOf('Sam')).rankChange).toBe(2)
-
     const second = await recordMatch(
       {
         ladderId: ladder.id,
@@ -323,14 +498,39 @@ describe('Leaderboard details', () => {
     await confirmMatch(second.id, who('Alex').client)
 
     const afterSecond = await listLeaderboard(ladder.id, who('Sam').client)
-    expect(entryOf(afterSecond, idOf('Sam')).rankChange).not.toBe(2)
+    const samAfterSecond = entryOf(afterSecond, idOf('Sam')).rankChange
 
-    await voidMatch(second.id, who('Sam').client)
+    const third = await recordMatch(
+      {
+        ladderId: ladder.id,
+        sideA: [idOf('Alex')],
+        sideB: [idOf('Sam')],
+        result: 'side_a_won',
+      },
+      who('Alex').client,
+    )
+    await confirmMatch(third.id, who('Sam').client)
+
+    const afterThird = await listLeaderboard(ladder.id, who('Sam').client)
+    expect(entryOf(afterThird, idOf('Sam')).rankChange).not.toBe(samAfterSecond)
+
+    await voidMatch(third.id, who('Sam').client)
 
     const afterVoid = await listLeaderboard(ladder.id, who('Sam').client)
-    expect(entryOf(afterVoid, idOf('Sam')).rankChange).toBe(2)
+    expect(entryOf(afterVoid, idOf('Sam')).rankChange).toBe(samAfterSecond)
     expect(entryOf(afterVoid, idOf('Alex')).rankChange).toBe(
-      entryOf(afterFirst, idOf('Alex')).rankChange,
+      entryOf(afterSecond, idOf('Alex')).rankChange,
+    )
+  })
+
+  it('rewires a Removed-member refusal to say member, not Ladder member', async () => {
+    const { ladder, who, idOf } = await ladderWith('Sam', 'Priya')
+    const { fetchShareToken, joinLadder, removeLadderMember } = await import('@/data/ladder')
+    await removeLadderMember(idOf('Priya'), who('Sam').client)
+    const token = await fetchShareToken(ladder.id, who('Sam').client)
+
+    await expect(joinLadder(token, who('Priya').client)).rejects.toThrow(
+      'A Removed member cannot rejoin from the Share link',
     )
   })
 

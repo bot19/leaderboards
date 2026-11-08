@@ -1,6 +1,8 @@
 # Spec: Elo Ladder app (release 1)
 
-Status: ready-for-agent
+> **Historical.** This is the original release-1 plan, kept as it was written. For the app as it is now, read `docs/app.md`. Changes since are recorded in `.scratch/updates/`.
+
+Status: resolved
 
 ## Problem Statement
 

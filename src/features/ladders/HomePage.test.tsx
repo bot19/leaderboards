@@ -144,7 +144,7 @@ async function openHome(path = '/', options?: { defaultLadderId?: string | null 
 async function openJoinForm() {
   const user = userEvent.setup()
   const opened = await openHome()
-  await user.click(await screen.findByRole('button', { name: /Join (a Ladder|with a code)/ }))
+  await user.click(await screen.findByRole('button', { name: /Join (a Leaderboard|with a code)/ }))
   const input = screen.getByRole('textbox', { name: 'Join code' })
   return { user, input, ...opened }
 }
@@ -158,38 +158,38 @@ describe('Home Ladders', () => {
     const emptyRow = emptyHeading.parentElement
     if (!emptyRow) throw new Error('Heading row not found')
     expect(await screen.findByRole('button', { name: 'Join with a code' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'New Ladder' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'New Leaderboard' })).toBeInTheDocument()
     expect(within(emptyRow).queryByRole('button')).not.toBeInTheDocument()
 
     cleanup()
     mocks.ladders = [{ id: 'l1', name: 'Friday pool', gameName: 'pool' }]
     await openHome()
 
-    expect(await screen.findByRole('button', { name: 'Join a Ladder' })).toBeInTheDocument()
+    expect(await screen.findByRole('button', { name: 'Join a Leaderboard' })).toBeInTheDocument()
     const heading = screen.getByRole('heading', { level: 2, name: 'Leaderboards' })
     const row = heading.parentElement
     if (!row) throw new Error('Heading row not found')
     expect(within(row).getAllByRole('button').map((button) => button.getAttribute('aria-label'))).toEqual([
-      'Join a Ladder',
-      'New Ladder',
+      'Join a Leaderboard',
+      'New Leaderboard',
     ])
 
-    await user.click(within(row).getByRole('button', { name: 'New Ladder' }))
-    expect(screen.getByRole('textbox', { name: 'New Ladder' })).toHaveFocus()
+    await user.click(within(row).getByRole('button', { name: 'New Leaderboard' }))
+    expect(screen.getByRole('textbox', { name: 'New Leaderboard' })).toHaveFocus()
     expect(screen.getByRole('separator')).toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: 'Join a Ladder' }))
-    expect(screen.queryByRole('textbox', { name: 'New Ladder' })).not.toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: 'Join a Leaderboard' }))
+    expect(screen.queryByRole('textbox', { name: 'New Leaderboard' })).not.toBeInTheDocument()
     const joinCode = screen.getByRole('textbox', { name: 'Join code' })
     expect(joinCode).toHaveFocus()
     expect(joinCode).toHaveAttribute('maxLength', '6')
     expect(joinCode).toHaveClass('font-mono', 'uppercase', 'placeholder:font-sans')
-    expect(screen.getByRole('button', { name: 'Close join a Ladder' })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: 'New Ladder' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Close join a Leaderboard' })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'New Leaderboard' })).toBeInTheDocument()
 
-    await user.click(screen.getByRole('button', { name: 'New Ladder' }))
+    await user.click(screen.getByRole('button', { name: 'New Leaderboard' }))
     expect(screen.queryByRole('textbox', { name: 'Join code' })).not.toBeInTheDocument()
-    expect(screen.getByRole('textbox', { name: 'New Ladder' })).toHaveFocus()
+    expect(screen.getByRole('textbox', { name: 'New Leaderboard' })).toHaveFocus()
   })
 
   it('stays idle until the Join code is valid, then shows the Ladder', async () => {
@@ -216,18 +216,18 @@ describe('Home Ladders', () => {
       resolvePreview(preview)
     })
 
-    expect(await screen.findByText('Friday pool · pool · 3 Ladder members')).toBeInTheDocument()
+    expect(await screen.findByText('Friday pool · pool · 3 members')).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Join' })).toBeInTheDocument()
     expect(mocks.preview).toHaveBeenCalledWith('FP7K2Q')
   })
 
   it('says when a Join code matches no Ladder', async () => {
-    mocks.preview.mockRejectedValue(new Error('No Ladder matches this Share link'))
+    mocks.preview.mockRejectedValue(new Error('No Leaderboard matches this Share link'))
     const { user, input } = await openJoinForm()
 
     await user.type(input, 'ZZZZZ9')
 
-    expect(await screen.findByText("That code doesn't match a Ladder.")).toBeInTheDocument()
+    expect(await screen.findByText("That code doesn't match a Leaderboard.")).toBeInTheDocument()
     expect(screen.queryByRole('button', { name: 'Join' })).not.toBeInTheDocument()
   })
 
@@ -273,7 +273,7 @@ describe('Home Ladders', () => {
   it('shows a Removed Ladder member the refusal inline', async () => {
     const { toast } = await import('sonner')
     mocks.join.mockRejectedValue(
-      new Error('A Removed Ladder member cannot rejoin from the Share link'),
+      new Error('A Removed member cannot rejoin from the Share link'),
     )
     const { user, input, router } = await openJoinForm()
 
@@ -282,15 +282,15 @@ describe('Home Ladders', () => {
 
     expect(
       await screen.findByRole('alert'),
-    ).toHaveTextContent('A Removed Ladder member cannot rejoin from the Share link')
+    ).toHaveTextContent('A Removed member cannot rejoin from the Share link')
     expect(toast.error).toHaveBeenCalledWith(
-      'A Removed Ladder member cannot rejoin from the Share link',
+      'A Removed member cannot rejoin from the Share link',
       { id: 'join-ladder', duration: Infinity },
     )
     expect(router.state.location.pathname).toBe('/')
   })
 
-  it('replaces / with the Default Ladder Leaderboard', async () => {
+  it('replaces / with the Default Leaderboard', async () => {
     const { router } = await openHome('/', { defaultLadderId: 'ladder-9' })
     await waitFor(() => {
       expect(router.state.location.pathname).toBe('/ladders/ladder-9')
@@ -304,7 +304,7 @@ describe('Home Ladders', () => {
     expect(router.history.length).toBe(length)
   })
 
-  it('follows a redirect search param ahead of the Default Ladder', async () => {
+  it('follows a redirect search param ahead of the Default Leaderboard', async () => {
     const { router } = await openHome('/?redirect=/join/FP7K2Q', {
       defaultLadderId: 'ladder-9',
     })
@@ -319,29 +319,29 @@ describe('Home Ladders', () => {
 
     const main = screen.getByRole('main')
     expect(
-      await within(main).findByText('Join a Ladder with a code from a friend, or start your own.'),
+      await within(main).findByText('Join a Leaderboard with a code from a friend, or start your own.'),
     ).toBeInTheDocument()
     expect(within(main).queryByText('No Ladders yet.')).not.toBeInTheDocument()
 
     await user.click(within(main).getByRole('button', { name: 'Join with a code' }))
     expect(within(main).getByRole('textbox', { name: 'Join code' })).toHaveFocus()
     expect(
-      within(main).queryByText('Join a Ladder with a code from a friend, or start your own.'),
+      within(main).queryByText('Join a Leaderboard with a code from a friend, or start your own.'),
     ).not.toBeInTheDocument()
 
-    await user.click(within(main).getByRole('button', { name: 'Close join a Ladder' }))
+    await user.click(within(main).getByRole('button', { name: 'Close join a Leaderboard' }))
     const welcomeNew = within(main)
-      .getAllByRole('button', { name: 'New Ladder' })
-      .find((button) => button.textContent?.includes('New Ladder'))
-    if (!welcomeNew) throw new Error('Welcome New Ladder button missing')
+      .getAllByRole('button', { name: 'New Leaderboard' })
+      .find((button) => button.textContent?.includes('New Leaderboard'))
+    if (!welcomeNew) throw new Error('Welcome New Leaderboard button missing')
     await user.click(welcomeNew)
-    expect(within(main).getByRole('textbox', { name: 'New Ladder' })).toHaveFocus()
+    expect(within(main).getByRole('textbox', { name: 'New Leaderboard' })).toHaveFocus()
     expect(
-      within(main).queryByText('Join a Ladder with a code from a friend, or start your own.'),
+      within(main).queryByText('Join a Leaderboard with a code from a friend, or start your own.'),
     ).not.toBeInTheDocument()
   })
 
-  it('shows the star hint only with two or more Ladders and no Default Ladder', async () => {
+  it('shows the star hint only with two or more Ladders and no Default Leaderboard', async () => {
     mocks.ladders = [
       { id: 'l1', name: 'Friday pool', gameName: 'pool' },
       { id: 'l2', name: 'Chess night', gameName: 'Chess' },
@@ -349,7 +349,7 @@ describe('Home Ladders', () => {
     await openHome()
     const main = screen.getByRole('main')
     expect(
-      await within(main).findByText('Star a Ladder to open it when you sign in.'),
+      await within(main).findByText('Star a Leaderboard to open it when you sign in.'),
     ).toBeInTheDocument()
 
     cleanup()
@@ -358,7 +358,7 @@ describe('Home Ladders', () => {
     const single = screen.getByRole('main')
     expect(await within(single).findByText('Friday pool')).toBeInTheDocument()
     expect(
-      within(single).queryByText('Star a Ladder to open it when you sign in.'),
+      within(single).queryByText('Star a Leaderboard to open it when you sign in.'),
     ).not.toBeInTheDocument()
   })
 
@@ -380,14 +380,14 @@ describe('Home Ladders', () => {
     await user.click(await screen.findByRole('button', { name: 'Nav' }))
     const menu = await screen.findByRole('dialog')
     const filled = within(menu).getByRole('button', {
-      name: 'Friday pool is your Default Ladder',
+      name: 'Friday pool is your Default Leaderboard',
     })
     expect(filled).toHaveAttribute('aria-pressed', 'true')
     expect(within(menu).getByText('Friday pool')).toHaveClass('min-w-0', 'truncate')
     await user.click(filled)
     expect(mocks.star).not.toHaveBeenCalled()
 
-    const chess = within(menu).getByRole('button', { name: 'Make Chess night your Default Ladder' })
+    const chess = within(menu).getByRole('button', { name: 'Make Chess night your Default Leaderboard' })
     await user.click(chess)
     expect(chess.querySelector('.animate-spin')).toBeTruthy()
     expect(mocks.star).toHaveBeenCalledWith('l2')
@@ -410,7 +410,7 @@ describe('Home Ladders', () => {
 
     await user.click(await screen.findByRole('button', { name: 'Nav' }))
     const menu = await screen.findByRole('dialog')
-    await user.click(within(menu).getByRole('button', { name: 'Join a Ladder' }))
+    await user.click(within(menu).getByRole('button', { name: 'Join a Leaderboard' }))
     const input = within(menu).getByRole('textbox', { name: 'Join code' })
     expect(input).toHaveFocus()
     await user.type(input, 'fp7k2q')
@@ -425,10 +425,10 @@ describe('Home Ladders', () => {
     const reopened = await openHome('/ladders/ladder-9')
     await again.click(await screen.findByRole('button', { name: 'Nav' }))
     const drawer = await screen.findByRole('dialog')
-    await again.click(within(drawer).getByRole('button', { name: 'New Ladder' }))
-    expect(within(drawer).getByRole('textbox', { name: 'New Ladder' })).toHaveFocus()
-    await again.type(within(drawer).getByRole('textbox', { name: 'New Ladder' }), 'Sunday')
-    await again.click(within(drawer).getByRole('button', { name: 'Create Ladder' }))
+    await again.click(within(drawer).getByRole('button', { name: 'New Leaderboard' }))
+    expect(within(drawer).getByRole('textbox', { name: 'New Leaderboard' })).toHaveFocus()
+    await again.type(within(drawer).getByRole('textbox', { name: 'New Leaderboard' }), 'Sunday')
+    await again.click(within(drawer).getByRole('button', { name: 'Create Leaderboard' }))
     await waitFor(() => {
       expect(reopened.router.state.location.pathname).toBe('/ladders/ladder-new')
     })
@@ -436,12 +436,12 @@ describe('Home Ladders', () => {
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 
-  it('shows the Default Ladder checkbox only once the User has a Ladder, and passes its value', async () => {
+  it('shows the Default Leaderboard checkbox only once the User has a Ladder, and passes its value', async () => {
     const user = userEvent.setup()
     await openHome()
-    await user.click(await screen.findByRole('button', { name: 'New Ladder' }))
+    await user.click(await screen.findByRole('button', { name: 'New Leaderboard' }))
     expect(
-      screen.queryByRole('checkbox', { name: 'Make this my Default Ladder' }),
+      screen.queryByRole('checkbox', { name: 'Make this my Default Leaderboard' }),
     ).not.toBeInTheDocument()
 
     cleanup()
@@ -449,12 +449,12 @@ describe('Home Ladders', () => {
     await openHome()
     const withLadder = screen.getByRole('heading', { level: 2, name: 'Leaderboards' }).parentElement
     if (!withLadder) throw new Error('Heading row not found')
-    await user.click(await within(withLadder).findByRole('button', { name: 'New Ladder' }))
-    const box = screen.getByRole('checkbox', { name: 'Make this my Default Ladder' })
+    await user.click(await within(withLadder).findByRole('button', { name: 'New Leaderboard' }))
+    const box = screen.getByRole('checkbox', { name: 'Make this my Default Leaderboard' })
     expect(box).not.toBeChecked()
-    expect(box.closest('label')).toHaveClass('min-h-11', 'text-sm', 'text-neutral-800')
-    await user.type(screen.getByRole('textbox', { name: 'New Ladder' }), 'Saturday')
-    await user.click(screen.getByRole('button', { name: 'Create Ladder' }))
+    expect(box.closest('label')).toHaveClass('py-1', 'text-sm', 'text-neutral-800')
+    await user.type(screen.getByRole('textbox', { name: 'New Leaderboard' }), 'Saturday')
+    await user.click(screen.getByRole('button', { name: 'Create Leaderboard' }))
     await waitFor(() => {
       expect(mocks.create).toHaveBeenCalledWith('Saturday', { makeDefault: false })
     })
@@ -464,10 +464,10 @@ describe('Home Ladders', () => {
     await openHome()
     const checkedRow = screen.getByRole('heading', { level: 2, name: 'Leaderboards' }).parentElement
     if (!checkedRow) throw new Error('Heading row not found')
-    await user.click(await within(checkedRow).findByRole('button', { name: 'New Ladder' }))
-    await user.click(screen.getByRole('checkbox', { name: 'Make this my Default Ladder' }))
-    await user.type(screen.getByRole('textbox', { name: 'New Ladder' }), 'Sunday')
-    await user.click(screen.getByRole('button', { name: 'Create Ladder' }))
+    await user.click(await within(checkedRow).findByRole('button', { name: 'New Leaderboard' }))
+    await user.click(screen.getByRole('checkbox', { name: 'Make this my Default Leaderboard' }))
+    await user.type(screen.getByRole('textbox', { name: 'New Leaderboard' }), 'Sunday')
+    await user.click(screen.getByRole('button', { name: 'Create Leaderboard' }))
     await waitFor(() => {
       expect(mocks.create).toHaveBeenCalledWith('Sunday', { makeDefault: true })
     })
@@ -476,7 +476,7 @@ describe('Home Ladders', () => {
   it('passes the checkbox value when joining', async () => {
     mocks.ladders = [{ id: 'l1', name: 'Friday pool', gameName: 'pool' }]
     const { user, input } = await openJoinForm()
-    await user.click(screen.getByRole('checkbox', { name: 'Make this my Default Ladder' }))
+    await user.click(screen.getByRole('checkbox', { name: 'Make this my Default Leaderboard' }))
     await user.type(input, 'fp7k2q')
     await user.click(await screen.findByRole('button', { name: 'Join' }))
     await waitFor(() => {
@@ -488,7 +488,7 @@ describe('Home Ladders', () => {
     mocks.ladders = [{ id: 'l1', name: 'Friday pool', gameName: 'pool' }]
     const user = userEvent.setup()
     await openHome('/join/FP7K2Q')
-    await user.click(await screen.findByRole('checkbox', { name: 'Make this my Default Ladder' }))
+    await user.click(await screen.findByRole('checkbox', { name: 'Make this my Default Leaderboard' }))
     await user.click(screen.getByRole('button', { name: 'Join' }))
     await waitFor(() => {
       expect(mocks.join).toHaveBeenCalledWith('FP7K2Q', { makeDefault: true })
@@ -499,7 +499,7 @@ describe('Home Ladders', () => {
     await openHome('/join/FP7K2Q')
     expect(await screen.findByRole('button', { name: 'Join' })).toBeInTheDocument()
     expect(
-      screen.queryByRole('checkbox', { name: 'Make this my Default Ladder' }),
+      screen.queryByRole('checkbox', { name: 'Make this my Default Leaderboard' }),
     ).not.toBeInTheDocument()
   })
 
@@ -509,14 +509,14 @@ describe('Home Ladders', () => {
       { id: 'l1', name: 'Friday pool', gameName: 'pool' },
       { id: 'l2', name: 'Chess night', gameName: 'Chess' },
     ]
-    mocks.star.mockRejectedValue(new Error('Could not choose a Default Ladder.'))
+    mocks.star.mockRejectedValue(new Error('Could not choose a Default Leaderboard.'))
     const user = userEvent.setup()
     await openHome()
     await user.click(
-      await screen.findByRole('button', { name: 'Make Friday pool your Default Ladder' }),
+      await screen.findByRole('button', { name: 'Make Friday pool your Default Leaderboard' }),
     )
     await waitFor(() => {
-      expect(toast.error).toHaveBeenCalledWith('Could not choose a Default Ladder.', {
+      expect(toast.error).toHaveBeenCalledWith('Could not choose a Default Leaderboard.', {
         id: 'default-ladder',
         duration: Infinity,
       })
