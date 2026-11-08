@@ -40,6 +40,17 @@ export function formatLocalDateTime(isoDate: string): string {
   })
 }
 
+/** Day, short month and year in the User's locale, for example `12 Oct 2026`. */
+export function formatLocalDate(isoDate: string): string {
+  const then = Date.parse(isoDate)
+  if (Number.isNaN(then)) return ''
+  return new Date(then).toLocaleDateString(undefined, {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
+}
+
 export function recorderName(
   match: { recordedBy: string; participants: { userId: string | null; displayName: string }[] },
   members: { userId: string | null; displayName: string }[],

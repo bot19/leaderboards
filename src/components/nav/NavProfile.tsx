@@ -25,7 +25,7 @@ export function NavProfile({ displayName, ladderLabel, onOpenProfile }: Props) {
       >
         <UserAvatar
           username={displayName}
-          className="h-14 w-14 rounded-lg text-xl"
+          className="h-14 w-14 rounded-lg text-2xl"
         />
         <div className="min-w-0 flex-1">
           <p className="truncate font-medium text-ink">{displayName}</p>

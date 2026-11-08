@@ -23,9 +23,9 @@ const textItemClass = 'inline-flex items-center gap-1 text-base leading-5 text-n
 const textLinkClass = `${textItemClass} underline hover:text-ink`
 
 const tabLabel: Record<LadderTab, string> = {
-  leaderboard: 'Leaderboard',
+  leaderboard: 'Rankings',
   matches: 'Matches',
-  members: 'Ladder members',
+  members: 'Members',
 }
 
 export const Route = createFileRoute('/ladders/$ladderId')({
@@ -84,6 +84,9 @@ function LadderPage() {
       ? ladderMembers.data.filter((entry) => entry.status === 'active').length
       : null,
   }
+  const ownLadderMemberId = ladderMembers.data?.find(
+    (entry) => entry.userId === profile?.id && entry.status === 'active',
+  )?.id
 
   useEffect(() => {
     if (copyState === 'idle') return
@@ -114,7 +117,7 @@ function LadderPage() {
             }}
           >
             <IconList size={16} stroke={1.75} aria-hidden />
-            Ladders
+            Leaderboards
           </button>
           {ladder.data ? (
             <>
@@ -160,17 +163,17 @@ function LadderPage() {
             }}
           />
         ) : null}
-        {ladder.isLoading ? <p className="text-neutral-600">Loading Ladder…</p> : null}
+        {ladder.isLoading ? <p className="text-neutral-600">Loading Leaderboard…</p> : null}
         {ladder.data ? (
           <h1 className="break-words font-display text-3xl text-ink">{ladder.data.name}</h1>
         ) : null}
         {ladder.isSuccess && !ladder.data ? (
-          <h1 className="font-display text-3xl text-ink">This Ladder is not available.</h1>
+          <h1 className="font-display text-3xl text-ink">This Leaderboard is not available.</h1>
         ) : null}
       </div>
       {ladder.data ? (
         <>
-          <div className="flex min-w-0 flex-wrap gap-2" role="tablist" aria-label="Ladder">
+          <div className="flex min-w-0 flex-wrap gap-2" role="tablist" aria-label="Leaderboard">
             {ladderTabs.map((item) => {
               const count = counts[item]
               const label = tabLabel[item]
@@ -219,6 +222,7 @@ function LadderPage() {
       ) : null}
     </main>
     <SignedInChrome
+      ownLadderMemberId={ownLadderMemberId}
       barBeforeNav={
         <>
           {ladder.data ? (

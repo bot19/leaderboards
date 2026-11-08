@@ -225,7 +225,7 @@ function MemberField({
         className="block w-full rounded-md border border-neutral-300 bg-white px-3 py-2 font-normal text-ink"
         {...registration}
       >
-        <option value="">Choose a Ladder member</option>
+        <option value="">Choose a member</option>
         {members.map((member) => (
           <option key={member.id} value={member.id}>
             {member.displayName} · {formatRating(member.rating)}

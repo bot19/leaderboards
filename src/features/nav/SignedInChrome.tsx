@@ -42,6 +42,8 @@ function updateSearch(
 type Props = {
   /** Bar buttons between the avatar and Nav. */
   barBeforeNav?: ReactNode
+  /** Joined Ladder member id for the signed-in User on this Ladder page, if any. */
+  ownLadderMemberId?: string
 }
 
 /** Scrollable middle of the drawer. Side inset is 20px; 16px where it meets the header and footer. */
@@ -51,7 +53,7 @@ const drawerContentClass = 'min-h-0 flex-1 overflow-y-auto px-5 py-4'
 const drawerFooterClass =
   'shrink-0 border-t border-neutral-100 px-5 pt-4 pb-[max(1.25rem,env(safe-area-inset-bottom))]'
 
-export function SignedInChrome({ barBeforeNav }: Props) {
+export function SignedInChrome({ barBeforeNav, ownLadderMemberId }: Props) {
   const { profile, refreshProfile } = useAuth()
   const { nav, member: memberId } = useSearch({ from: '__root__' })
   const navigate = useNavigate()
@@ -70,6 +72,11 @@ export function SignedInChrome({ barBeforeNav }: Props) {
     },
     enabled: Boolean(memberId) && nav === 'member',
   })
+  const openOwnRecord = Boolean(ownLadderMemberId)
+  const ownRecordOpen =
+    openOwnRecord && nav === 'member' && memberId === ownLadderMemberId
+  const profileOpen = nav === 'profile'
+  const avatarActive = openOwnRecord ? ownRecordOpen : profileOpen
 
   const isOpen = nav === 'menu' || nav === 'profile' || nav === 'member'
   // Remember the open view so the panel can slide out without swapping content.
@@ -130,33 +137,49 @@ export function SignedInChrome({ barBeforeNav }: Props) {
 
   if (!profile) return null
 
-  const profileOpen = nav === 'profile'
   const menuOpen = nav === 'menu'
   const drawerTitle =
     view === 'profile'
       ? profile.displayName
       : view === 'member'
-        ? (member.data?.displayName ?? 'Ladder member')
+        ? (member.data?.displayName ?? 'Member')
         : undefined
   const drawerTagline = view === 'member' ? (member.data?.ladderName ?? '') : undefined
+
+  function openAvatar() {
+    if (ownLadderMemberId) {
+      setView('member')
+      void updateSearch(
+        navigate as unknown as SearchNavigate,
+        (prev) => ({
+          ...prev,
+          nav: 'member',
+          member: ownLadderMemberId,
+        }),
+        true,
+      )
+      return
+    }
+    setNav('profile')
+  }
 
   return (
     <>
       <BottomNavBar>
         <button
           type="button"
-          aria-label="Profile"
-          aria-current={profileOpen ? 'page' : undefined}
+          aria-label={openOwnRecord ? 'Your record' : 'Profile'}
+          aria-current={avatarActive ? 'page' : undefined}
           className={`inline-flex h-10 w-10 items-center justify-center rounded-md ${
-            profileOpen
+            avatarActive
               ? 'bg-ink text-white hover:bg-neutral-800 hover:text-white'
               : 'hover:bg-neutral-300'
           }`}
-          onClick={() => setNav('profile')}
+          onClick={openAvatar}
         >
           <UserAvatar
             username={profile.displayName}
-            className="h-10 w-10 rounded-lg text-xs font-semibold !tracking-normal"
+            className="h-10 w-10 rounded-lg text-base font-semibold !tracking-normal"
           />
         </button>
         {barBeforeNav}

@@ -16,7 +16,7 @@ type Props = {
 }
 
 function memberLabel(count: number): string {
-  return `${count} ${count === 1 ? 'Ladder member' : 'Ladder members'}`
+  return `${count} ${count === 1 ? 'member' : 'members'}`
 }
 
 export function JoinLadderForm({
@@ -91,7 +91,7 @@ export function JoinLadderForm({
       ) : null}
       {lookup.status === 'unknown' ? (
         <p id="join-code-lookup-msg" className="text-sm text-red-700">
-          That code doesn&apos;t match a Ladder.
+          That code doesn&apos;t match a Leaderboard.
         </p>
       ) : null}
       {lookup.status === 'error' ? (

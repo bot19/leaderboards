@@ -93,6 +93,7 @@ describe('joining a Ladder from its Share link', () => {
         rating: 1000,
         ratedMatchCount: 0,
         lastMatchAt: null,
+        joinedAt: expect.any(String),
       },
       {
         id: expect.any(String),
@@ -103,11 +104,12 @@ describe('joining a Ladder from its Share link', () => {
         rating: 1000,
         ratedMatchCount: 0,
         lastMatchAt: null,
+        joinedAt: expect.any(String),
       },
     ])
     expect(await listLeaderboard(ladder.id, joinerClient)).toEqual([
-      expect.objectContaining({ displayName: 'Priya', rating: 1000, rank: 1 }),
-      expect.objectContaining({ displayName: 'Sam', rating: 1000, rank: 2 }),
+      expect.objectContaining({ displayName: 'Priya', rating: 1000, rank: null, ranked: false }),
+      expect.objectContaining({ displayName: 'Sam', rating: 1000, rank: null, ranked: false }),
     ])
   })
 
@@ -138,6 +140,7 @@ describe('joining a Ladder from its Share link', () => {
       rating: 1200,
       ratedMatchCount: 0,
       lastMatchAt: null,
+        joinedAt: expect.any(String),
     })
   })
 
@@ -153,7 +156,9 @@ describe('joining a Ladder from its Share link', () => {
     await addLadderPlayer(ladder.id, removed.id, { rating: 1100, status: 'removed' })
     const token = await fetchShareToken(ladder.id, adminClient)
 
-    await expect(joinLadder(token, removedClient)).rejects.toThrow(/removed/i)
+    await expect(joinLadder(token, removedClient)).rejects.toThrow(
+      'A Removed member cannot rejoin from the Share link',
+    )
 
     expect(
       (await listLadderMembers(ladder.id, adminClient)).find(
@@ -168,6 +173,7 @@ describe('joining a Ladder from its Share link', () => {
       rating: 1100,
       ratedMatchCount: 0,
       lastMatchAt: null,
+      joinedAt: expect.any(String),
     })
   })
 
@@ -282,6 +288,7 @@ describe('joining a Ladder from its Share link', () => {
         rating: 1000,
         ratedMatchCount: 0,
         lastMatchAt: null,
+        joinedAt: expect.any(String),
       },
       {
         id: expect.any(String),
@@ -292,6 +299,7 @@ describe('joining a Ladder from its Share link', () => {
         rating: 1000,
         ratedMatchCount: 0,
         lastMatchAt: null,
+        joinedAt: expect.any(String),
       },
     ])
   })

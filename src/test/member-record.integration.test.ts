@@ -211,6 +211,37 @@ describe('ladder member record and Matches', () => {
     expect(after.peakRating).not.toBe(peakBefore)
   })
 
+  it('lists Pending Matches before Confirmed ones, then Confirmed in confirmation order', async () => {
+    const { ladder, idOf, who } = await ladderWith('Sam', 'Priya')
+    const sam = idOf('Sam')
+
+    const older = await recordMatch(
+      {
+        ladderId: ladder.id,
+        sideA: [sam],
+        sideB: [idOf('Priya')],
+        result: 'side_a_won',
+      },
+      who('Sam').client,
+    )
+    await confirmMatch(older.id, who('Priya').client)
+
+    const pending = await recordMatch(
+      {
+        ladderId: ladder.id,
+        sideA: [sam],
+        sideB: [idOf('Priya')],
+        result: 'side_b_won',
+      },
+      who('Sam').client,
+    )
+
+    const page = await listMemberMatchesPage(sam, { offset: 0, limit: 10 }, who('Sam').client)
+    expect(page.matches.map((match) => match.id)).toEqual([pending.id, older.id])
+    expect(page.matches[0]?.status).toBe('pending')
+    expect(page.matches[1]?.status).toBe('confirmed')
+  })
+
   it('pages a Ladder member Matches read without overlap', async () => {
     const { ladder, idOf, who } = await ladderWith('Sam', 'Priya', 'Alex')
     const sam = idOf('Sam')
@@ -267,7 +298,9 @@ describe('ladder member record and Matches', () => {
       if (error) throw new Error(error.message)
     }
 
-    const newestFirst = [...ids].reverse()
+    const pendingNewestFirst = [...ids].filter((_, index) => index % 2 === 1).reverse()
+    const confirmedNewestFirst = [...ids].filter((_, index) => index % 2 === 0).reverse()
+    const expectedOrder = [...pendingNewestFirst, ...confirmedNewestFirst]
     const first = await listMemberMatchesPage(
       sam,
       { offset: 0, limit: 10 },
@@ -280,9 +313,9 @@ describe('ladder member record and Matches', () => {
     )
 
     expect(first.total).toBe(12)
-    expect(first.matches.map((match) => match.id)).toEqual(newestFirst.slice(0, 10))
+    expect(first.matches.map((match) => match.id)).toEqual(expectedOrder.slice(0, 10))
     expect(second.total).toBe(12)
-    expect(second.matches.map((match) => match.id)).toEqual(newestFirst.slice(10))
+    expect(second.matches.map((match) => match.id)).toEqual(expectedOrder.slice(10))
     expect(first.matches.every((match) => match.status === 'confirmed' || match.status === 'pending')).toBe(
       true,
     )

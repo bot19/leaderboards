@@ -29,7 +29,7 @@ The data model already allows for Guests, Claims, Join requests, Draws and other
 | `/onboarding` | Set a display name. It includes a Sign out link |
 | `/auth/callback` | Fallback for a magic link |
 | `/` | Redirects to the User's Default Ladder. With no Default Ladder, shows the Ladders section |
-| `/ladders/$ladderId` | The Ladder page. Tabs (`?tab=`): Leaderboard, Matches, Members |
+| `/ladders/$ladderId` | The Ladder page. Tabs (`?tab=`): Rankings (`leaderboard`), Matches, Members |
 | `/join/$token` | The Ladder preview from a Share link, with a Join button. Signed in only |
 
 - **Signed-out visitors.** A signed-out User is sent to login and then back to where they were going (`redirect` param).
@@ -38,10 +38,11 @@ The data model already allows for Guests, Claims, Join requests, Draws and other
   - `tab` and `record=open` (the Record a Match panel) on the Ladder page
   - `nav` and `member` (the drawer) on every signed-in route
 - **Bottom nav bar.** Every signed-in screen has a floating bar centred at the bottom. It holds:
-  - the Profile avatar, which opens the drawer's profile view
+  - the Profile avatar (`Profile`), or on a Ladder page where the User is a Joined member, **Your record**, which opens their member view for that Ladder
   - Record a Match, on the Ladder page only
   - Nav, which opens the drawer's menu view
   - The bar sits under the drawer and under Record a Match. Pages pad their bottom so nothing ends up hidden behind it.
+- **On-screen names.** In the UI, a **Ladder** reads **Leaderboard**, a **Ladder member** reads **member**, and the Leaderboard tab reads **Rankings**. Route params, code and this file keep the glossary terms.
 - **Nav drawer.** It slides in from the right, with Refresh and Close in its header and the app version shown. It has three views, set by `nav`:
   - **`menu`:** the Ladders section, then the profile card, Sign out and Close.
   - **`profile`:** a form to change the display name.
@@ -65,22 +66,24 @@ It's shown on `/` when the User has no Default Ladder, and always in the drawer'
   - the Game
   - **Invite**, which opens a card with the Join code (copy button) and a Copy link button for the Share link
 - **Waiting for you:** above the tabs. Lists the Pending Matches the User can confirm or Reject, with a divider below.
-- **Leaderboard tab:**
-  - rank, with 🥇🥈🥉 and a tinted row for the top three
+- **Rankings tab** (param `?tab=leaderboard`):
+  - rank (`–` for Unranked members, with no medal or movement), 🥇🥈🥉 and a tinted row for the top three ranked places
   - name, then the badges `New` (Provisional) and `Inactive` (the row dimmed)
-  - rank movement: green ↑n or red ↓n
-  - Rating
+  - rank movement: green ↑n or red ↓n (ranked members only)
+  - win rate in green at 50% and up or red below (`–` when Unranked), then Rating (dimmed when Unranked)
+  - Unranked members (no Confirmed Match yet) sit below every ranked member, ordered by name
 - **Matches tab:** Match cards, newest first, 10 at a time with load more and "Showing n of total Matches".
   - **Each card:** both Sides by name, the status with its icon, `Recorded by <name> · <relative time>`, the Result by name (`Alex & Sam won` or `Draw`) with notes, and, once Confirmed, each Participant's Rating change in green or red.
   - **Status styles:** Pending cards are orange. Rejected and Voided by Admin cards are dimmed. Confirmed cards are white.
   - **Void:** Admins see a Void button.
 - **Members tab:**
-  - Joined, Left and Removed Ladder members, with their Role
+  - Joined, Left and Removed members, with their Role
+  - the second line is `Role · Joined <date>` for active members (locale day, short month, year); Left and Removed show `Role · Left` or `Role · Removed` with no date
   - Admin actions: remove, reinstate, Make Admin, Demote to Player
   - Leave Ladder for yourself
   - Delete Ladder for the super admin
-- **Tab counts:** each tab shows a count. Matches shows the total.
-- **Member names:** tapping a name on the Leaderboard or Members tab opens the member view.
+- **Tab counts:** each tab shows a count. Rankings counts everyone on the Leaderboard (ranked and Unranked). Matches shows the total.
+- **Member names:** tapping a name on the Rankings or Members tab opens the member view.
 
 ### Member view (drawer)
 
@@ -88,11 +91,11 @@ It's titled with the member's name, with the Ladder's name underneath. It shows:
 
 - **Summary:**
   - Rating, with `New` if Provisional
-  - rank (shown with the `Inactive` badge if they're Inactive), or `Left` or `Removed` instead
+  - rank as `#n of m` for ranked members (m is the count of ranked members only), `Unranked` when they have no Confirmed Match, or `Left` or `Removed` instead; the `Inactive` badge when they are Inactive
   - their record, for example `12W · 5L · 1D`
   - their last 5 results as coloured dots, and their streak when it's 2 or more
   - their peak Rating and when they reached it
-- **Their Matches:** Confirmed and Pending only, 10 at a time with load more. Each row is told from their side:
+- **Their Matches:** Pending first (newest recorded first), then Confirmed Matches in confirmation order (newest Confirmed first), 10 at a time with load more. Each row is told from their side:
   - `Won`, `Lost` or `Drew` vs the opponents, in green, red or neutral
   - the format (1v1 or 2v2), and their partner in a 2v2
   - relative time, Rating change, and Rating before → after
@@ -160,10 +163,14 @@ Impactful actions ask first with `window.confirm`. These are Leave, Remove, Demo
 
 ### Leaderboard
 
-- **Who's on it:** every Joined Ladder member, ordered by `rating desc, display_name asc` and ranked with `rank()`. Inactive members are ranked like everyone else and keep their medals.
-- **Inactive:** no Match, or no join if they've never played, within the Inactive threshold. Being Inactive never changes a Rating.
+The `leaderboard` view exposes one row per Joined Ladder member: `ranked`, `matches`, `wins`, nullable `rank`, `rank_change`, `provisional`, `inactive`, `rating` and `display_name`.
+
+- **Who's on it:** every Joined Ladder member. Ranked members are ordered by `rating desc, display_name asc` with `rank()`; Unranked members (no Confirmed Match) follow, ordered by name, with null `rank`. Inactive members stay ranked and keep their medals.
+- **Unranked:** `ranked` is false, `matches` and `wins` are zero, `rank` and `rank_change` are null until their first Confirmed Match.
+- **Win rate:** `wins` over `matches` on the row; Draws are not wins.
+- **Inactive:** no Match within the Inactive threshold. Being Inactive never changes a Rating.
 - **Provisional:** fewer rated Matches than the Provisional threshold. Shown on screen as `New`.
-- **Rank movement:** each member's previous rank minus their current rank, across the Ladder's latest Confirmed Match.
+- **Rank movement:** each ranked member's previous rank minus their current rank, across the Ladder's latest Confirmed Match; null for Unranked members and when 1.5.0 rules already make it null.
   - Their previous Rating is their Rating before in that Match, or their current Rating if they didn't play in it.
   - Members who joined after that Match show no movement.
 
@@ -215,7 +222,7 @@ The internal functions in the `private` schema can't be called by clients:
 
 - **Row-level security:** Ladder members can read their own Ladders' Ladder members, Matches and Participants. The super admin can read everything. Outside the Ladder, only the signed-in preview is visible.
 - **Read views.** Views store nothing: each is computed when it's read, and row-level security applies to it (`security_invoker`).
-  - `leaderboard`, which includes the `inactive` and `rank_change` columns
+  - `leaderboard`, which includes `ranked`, `matches`, `wins`, nullable `rank`, `inactive` and `rank_change`
   - `my_ladders`: the caller's Joined Ladders, filtered on `auth.uid()`. It looks empty in the Supabase dashboard because nobody is signed in there
   - `rating_history`: Confirmed Matches' Participant rows. Only integration tests read it
 

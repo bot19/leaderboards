@@ -53,6 +53,7 @@ describe('creating a Ladder', () => {
         rating: 1000,
         ratedMatchCount: 0,
         lastMatchAt: null,
+        joinedAt: expect.any(String),
       },
     ])
   })
@@ -99,6 +100,7 @@ describe('creating a Ladder', () => {
         rating: 1000,
         ratedMatchCount: 0,
         lastMatchAt: null,
+        joinedAt: expect.any(String),
       },
     ])
   })
@@ -156,10 +158,10 @@ describe('creating a Ladder', () => {
     await addLadderPlayer(ladder.id, left.id, { rating: 1500, status: 'left' })
 
     const board = await listLeaderboard(ladder.id, adminClient)
-    expect(board.map((entry) => ({ displayName: entry.displayName, rating: entry.rating, rank: entry.rank }))).toEqual([
-      { displayName: 'Priya', rating: 1200, rank: 1 },
-      { displayName: 'Sam', rating: 1000, rank: 2 },
-      { displayName: 'Alex', rating: 900, rank: 3 },
+    expect(board.map((entry) => ({ displayName: entry.displayName, rating: entry.rating, rank: entry.rank, ranked: entry.ranked }))).toEqual([
+      { displayName: 'Alex', rating: 900, rank: null, ranked: false },
+      { displayName: 'Priya', rating: 1200, rank: null, ranked: false },
+      { displayName: 'Sam', rating: 1000, rank: null, ranked: false },
     ])
     expect(board.every((entry) => entry.provisional && entry.ladderMemberId)).toBe(true)
   })

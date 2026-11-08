@@ -28,7 +28,7 @@ export function MemberMatchRow({ match, ladderMemberId }: Props) {
   return (
     <article className={matchCardClassName[match.status]}>
       <div className="flex items-start justify-between gap-3">
-        <p className="min-w-0 font-medium text-ink">
+        <p className="min-w-0 break-words font-medium text-ink">
           {pending ? (
             <span className="mr-1.5 inline-flex items-center gap-1 align-middle text-sm text-orange-900">
               <IconClock size={16} stroke={1.75} className="shrink-0 text-orange-600" aria-hidden />
@@ -36,10 +36,7 @@ export function MemberMatchRow({ match, ladderMemberId }: Props) {
             </span>
           ) : null}
           <span className={tone}>{resultLabel[outcome.result]}</span>
-          <span className="text-neutral-800">
-            {' '}
-            vs <span className="inline-block max-w-[300px] truncate align-bottom">{vs}</span>
-          </span>
+          <span className="text-neutral-800"> vs {vs}</span>
         </p>
         {!pending && outcome.ratingChange != null ? (
           <span className={`shrink-0 tabular-nums ${tone}`}>
@@ -47,21 +44,21 @@ export function MemberMatchRow({ match, ladderMemberId }: Props) {
           </span>
         ) : null}
       </div>
-      <div className="flex items-start justify-between gap-3 text-xs text-neutral-500">
-        <p className="min-w-0">
-          <span>{outcome.format}</span>
+      <div className="flex items-center justify-between gap-3 text-xs text-neutral-500">
+        <p className="flex min-w-0 items-center overflow-hidden whitespace-nowrap">
+          <span className="shrink-0">{outcome.format}</span>
           {withPartner ? (
             <>
-              <span aria-hidden className="mx-1.5">
+              <span aria-hidden className="mx-1.5 shrink-0">
                 ·
               </span>
-              <span className="inline-block max-w-[300px] truncate align-bottom">{withPartner}</span>
+              <span className="min-w-0 truncate">{withPartner}</span>
             </>
           ) : null}
-          <span aria-hidden className="mx-1.5">
+          <span aria-hidden className="mx-1.5 shrink-0">
             ·
           </span>
-          <time dateTime={outcome.at} title={formatLocalDateTime(outcome.at)}>
+          <time className="shrink-0" dateTime={outcome.at} title={formatLocalDateTime(outcome.at)}>
             {formatRelativeTime(outcome.at)}
           </time>
         </p>

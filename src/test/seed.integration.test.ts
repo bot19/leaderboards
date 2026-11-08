@@ -73,17 +73,34 @@ describe('seeded local data', () => {
     const board = await listLeaderboard(friday.id, client)
     expect(board.map((entry) => entry.displayName).sort()).toEqual([
       'Alex',
+      'Arnold Schwarzenegger',
       'Jordan',
       'Morgan',
+      'Quinn',
       'Sam',
       'Taylor',
     ])
-    expect(board.map((entry) => entry.rank).sort()).toEqual([1, 2, 3, 4, 5])
-    expect(board.find((entry) => entry.displayName === 'Taylor')?.provisional).toBe(true)
-    expect(board.find((entry) => entry.displayName === 'Morgan')?.provisional).toBe(true)
+    expect(board.find((entry) => entry.displayName === 'Quinn')).toMatchObject({
+      ranked: false,
+      rank: null,
+    })
     expect(
       board
-        .filter((entry) => entry.displayName !== 'Taylor' && entry.displayName !== 'Morgan')
+        .filter((entry) => entry.ranked)
+        .map((entry) => entry.rank)
+        .sort((a, b) => (a ?? 0) - (b ?? 0)),
+    ).toEqual([1, 2, 3, 4, 5, 6])
+    expect(board.find((entry) => entry.displayName === 'Taylor')?.provisional).toBe(true)
+    expect(board.find((entry) => entry.displayName === 'Morgan')?.provisional).toBe(true)
+    expect(board.find((entry) => entry.displayName === 'Quinn')?.provisional).toBe(true)
+    expect(board.find((entry) => entry.displayName === 'Arnold Schwarzenegger')?.provisional).toBe(
+      true,
+    )
+    expect(
+      board
+        .filter((entry) =>
+          !['Taylor', 'Morgan', 'Quinn', 'Arnold Schwarzenegger'].includes(entry.displayName),
+        )
         .every((entry) => !entry.provisional),
     ).toBe(true)
     const morgan = board.find((entry) => entry.displayName === 'Morgan')
@@ -104,7 +121,7 @@ describe('seeded local data', () => {
     const matches = await listMatches(friday.id, client)
     const confirmed = matches.filter((match) => match.status === 'confirmed')
     const recent = confirmed.filter((match) => daysAgo(match.confirmedAt ?? '') <= 40)
-    expect(recent).toHaveLength(15)
+    expect(recent).toHaveLength(17)
     expect(recent.some((match) => match.result === 'draw')).toBe(true)
     expect(recent.filter((match) => match.notes).length).toBeGreaterThanOrEqual(2)
     expect(

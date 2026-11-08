@@ -33,7 +33,7 @@ export function MemberPanel({ memberId }: Props) {
   }
 
   if (member.isError || !member.data) {
-    return <p className="text-sm text-neutral-600">This Ladder member is not available.</p>
+    return <p className="text-sm text-neutral-600">This member is not available.</p>
   }
 
   return <MemberPanelBody member={member.data} />
@@ -241,7 +241,11 @@ function memberRankLabel({
 }): string {
   if (member.status === 'left') return 'Left'
   if (member.status === 'removed') return 'Removed'
-  if (entry && leaderboard) return `#${entry.rank} of ${leaderboard.length}`
+  if (entry && !entry.ranked) return 'Unranked'
+  if (entry && leaderboard && entry.rank != null) {
+    const rankedCount = leaderboard.filter((row) => row.ranked).length
+    return `#${entry.rank} of ${rankedCount}`
+  }
   return 'Inactive'
 }
 

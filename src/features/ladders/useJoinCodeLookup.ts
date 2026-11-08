@@ -28,7 +28,7 @@ export type JoinCodeLookup =
 function isUnknownLadder(error: unknown): boolean {
   return (
     error instanceof Error &&
-    /no ladder matches this share link/i.test(error.message)
+    /no (ladder|leaderboard) matches this share link/i.test(error.message)
   )
 }
 

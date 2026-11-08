@@ -54,7 +54,7 @@ function ShareLinkPreviewPage() {
     <main className={`mx-auto flex min-h-dvh max-w-lg flex-col gap-6 px-4 pt-10 ${bottomNavMainPaddingClass}`}>
       {preview.isLoading ? <p className="text-neutral-600">Loading preview…</p> : null}
       {preview.isError ? (
-        <h1 className="font-display text-3xl text-ink">This Share link does not match a Ladder.</h1>
+        <h1 className="font-display text-3xl text-ink">This Share link does not match a Leaderboard.</h1>
       ) : null}
       {preview.data ? (
         <>
@@ -67,7 +67,7 @@ function ShareLinkPreviewPage() {
             </p>
             <p className="text-neutral-800">
               {preview.data.memberCount}{' '}
-              {preview.data.memberCount === 1 ? 'Ladder member' : 'Ladder members'}
+              {preview.data.memberCount === 1 ? 'member' : 'members'}
             </p>
           </div>
           {error ? <p className="text-sm text-red-700">{error}</p> : null}
@@ -84,11 +84,11 @@ function ShareLinkPreviewPage() {
               void joinLadder(token, { makeDefault })
                 .then(async () => {
                   const ladderId = await fetchLadderIdByShareToken(token)
-                  if (!ladderId) throw new Error('Could not open this Ladder')
+                  if (!ladderId) throw new Error('Could not open this Leaderboard')
                   await openLadder(ladderId)
                 })
                 .catch((caught: unknown) => {
-                  const message = caught instanceof Error ? caught.message : 'Could not join this Ladder.'
+                  const message = caught instanceof Error ? caught.message : 'Could not join this Leaderboard.'
                   setError(message)
                   toast.error(message)
                 })

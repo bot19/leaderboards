@@ -6,6 +6,7 @@ import { inactiveBadgeLabel, provisionalBadgeLabel } from '@/features/ladders/ba
 import { formatRating } from '@/features/matches/labels'
 import { memberOutcomeTone } from '@/features/matches/matchStyles'
 import { leaderboardPodium } from '@/lib/leaderboardPodium'
+import { formatWinRate } from '@/lib/winRate'
 
 type Props = {
   ladderId: string
@@ -36,6 +37,7 @@ export function LeaderboardPanel({ ladderId }: Props) {
           <ol className="divide-y divide-neutral-200 overflow-hidden rounded-xl bg-white shadow-sm">
             {leaderboard.data.map((entry) => {
               const podium = leaderboardPodium(entry.rank)
+              const winRate = formatWinRate(entry)
               return (
                 <li
                   key={entry.ladderMemberId}
@@ -54,7 +56,7 @@ export function LeaderboardPanel({ ladderId }: Props) {
                       </span>
                     ) : (
                       <span className="w-6 shrink-0 tabular-nums text-sm text-neutral-500">
-                        {entry.rank}
+                        {entry.rank ?? '–'}
                       </span>
                     )}
                     <button
@@ -77,7 +79,15 @@ export function LeaderboardPanel({ ladderId }: Props) {
                   </div>
                   <div className="flex shrink-0 items-baseline gap-1.5">
                     <RankMovement change={entry.rankChange} />
-                    <span className={`tabular-nums text-neutral-800${podium ? ' font-bold' : ''}`}>
+                    <span
+                      className={`w-9 shrink-0 text-right tabular-nums text-sm ${winRate.className}`}
+                      aria-label={winRate.ariaLabel}
+                    >
+                      {winRate.text}
+                    </span>
+                    <span
+                      className={`tabular-nums text-neutral-800${podium ? ' font-bold' : ''}${entry.ranked ? '' : ' opacity-30'}`}
+                    >
                       {formatRating(entry.rating)}
                     </span>
                   </div>

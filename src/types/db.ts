@@ -247,7 +247,10 @@ export type Database = {
           rating: number
           provisional: boolean
           inactive: boolean
-          rank: number
+          ranked: boolean
+          matches: number
+          wins: number
+          rank: number | null
           rank_change: number | null
         }
         Relationships: []
