@@ -1,3 +1,7 @@
+## Start here
+
+`docs/app.md` describes the app as it is now: screens, rules, schema, RPC surface and constants. Read it first. `.scratch/elo-ladder-mvp/spec.md` is the original release-1 plan and is kept only as history.
+
 ## Build docs
 
 Build docs live in `.scratch/updates/`. When you're given one to implement, or asked to write one, follow `docs/agents/build-docs.md`.
