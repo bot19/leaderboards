@@ -2,7 +2,7 @@
 
 A **build doc** describes one versioned update to the app: a feature, a fix, a UI change. Each one lives at `.scratch/updates/<version>-<slug>.md` (for example `.scratch/updates/0.3.0-win-streaks.md`) and carries its own **Version**. Work that doesn't change the shipped app (seed data, tooling) has **Version:** none and lives at `.scratch/updates/<slug>.md`.
 
-Build docs replace the MVP's ticket-and-worktree flow in `README.md`: work happens directly on `dev` in this checkout.
+Work happens directly on `dev` in this checkout, with no worktree or branch.
 
 ## Implementing a build doc
 

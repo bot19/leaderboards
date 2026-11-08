@@ -1,14 +1,14 @@
 ## Start here
 
-`docs/app.md` describes the app as it is now: screens, rules, schema, RPC surface and constants. Read it first. `.scratch/elo-ladder-mvp/spec.md` is the original release-1 plan and is kept only as history.
+`docs/app.md` describes the app as it is now: screens, rules, schema, RPC surface and constants. Read it first.
 
 ## Build docs
 
-Build docs live in `.scratch/updates/`. When you're given one to implement, or asked to write one, follow `docs/agents/build-docs.md`.
+Every change to the app is a build doc in `.scratch/updates/`. When you're given one to implement, or asked to write one, follow `docs/agents/build-docs.md`.
 
-## Working a ticket
+`.scratch/elo-ladder-mvp/` is the finished release-1 work, kept as history: `spec.md` and the tickets in `issues/` are all resolved. Its `deploy.md` is still the live production deploy guide.
 
-Follow `README.md` → "Agent: working a ticket" for every ticket: claim, worktree, schema, build, resolve.
+## Local Supabase stack
 
 The local Supabase stack is shared and owned by the human. Your only stack commands are `supabase status`, `supabase db reset` and `supabase migration up`. Keep `supabase/config.toml`'s `project_id` and ports as they are. If the stack is down, stop and ask the human to start it. Never start or stop it yourself, and never run `docker`.
 
