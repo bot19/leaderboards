@@ -43,7 +43,23 @@ In the Cursor chat panel, add these to Settings → Agents → Auto-Run → Comm
 1. Tell the agent: *"Implement `.scratch/updates/<file>.md`."* Or describe a feature and ask it to write the build doc first.
 2. Answer the prompts that are left. The allowlist above covers routine work, so anything else still asks: `docker`, `curl`, `python3`/`node` scripts, `rm` and `kill`.
 3. When the agent asks for changes before committing, review the work and answer.
-4. After it commits on `dev`, push, and apply any migration it reports to production (`.scratch/elo-ladder-mvp/deploy.md`).
+4. After it commits on `dev`, push. To ship, follow **Human: releasing** below.
+
+## Human: releasing
+
+Run these from this checkout, which is linked to the production Supabase project. Agents never run them (`AGENTS.md`).
+
+1. **Migrations first**, if the release has any. The new client may need them, and the old client keeps working with them in place:
+
+   ```sh
+   pnpm exec supabase migration list --linked   # local vs production: what's not applied yet
+   pnpm exec supabase db push --dry-run         # lists what it would apply, changes nothing
+   pnpm exec supabase db push                   # applies them
+   ```
+
+2. **Then the client.** Open a PR `dev` → `main` and merge it. Netlify deploys `main`.
+
+The first-time production setup is in `.scratch/elo-ladder-mvp/deploy.md`.
 
 ## Troubleshooting
 
